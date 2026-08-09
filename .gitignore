@@ -1,0 +1,10 @@
+/node_modules/
+/dist/
+/vite-run.log
+/vite-run.err.log
+/vite.log
+/vite.err.log
+/.env
+/.env.*
+!/.env.example
+!/.env.development.example
