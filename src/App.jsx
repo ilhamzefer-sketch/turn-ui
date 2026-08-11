@@ -312,6 +312,26 @@ export default function App() {
     navigateTo('home');
   }
 
+  function activateRole(role) {
+    if (role !== 'REGISTRATION') {
+      setRegistration(null);
+      setQueues([]);
+    }
+    if (role !== 'CUSTOMER') {
+      setCustomer(null);
+      setCustomerHistory([]);
+    }
+    if (role !== 'QUEUE_MANAGER') {
+      setQueueManagerSession(null);
+      setSelectedQueueAccess(null);
+      setSelectedQueueDetail(null);
+    }
+    if (role !== 'ADMIN') {
+      setAdminSession(null);
+      setAdminDashboard(null);
+    }
+  }
+
   function startRegistration(type) {
     clearMessages();
     setRegistrationForm({ ...initialRegistrationForm, registrationType: type });
@@ -411,8 +431,8 @@ export default function App() {
     }
   }
 
-  async function ensureCsrfToken() {
-    if (csrfToken) {
+  async function ensureCsrfToken(forceRefresh = false) {
+    if (csrfToken && !forceRefresh) {
       return csrfToken;
     }
 
@@ -453,15 +473,17 @@ export default function App() {
       body,
       requiresAuth = false,
       retryOnUnauthorized = true,
+      retryOnCsrfFailure = true,
+      csrfTokenOverride = '',
       accessTokenOverride = '',
       headers: customHeaders = {}
     } = options;
 
     const headers = { ...customHeaders };
-    let resolvedCsrfToken = csrfToken;
+    let resolvedCsrfToken = csrfTokenOverride || csrfToken;
 
     if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
-      resolvedCsrfToken = await ensureCsrfToken();
+      resolvedCsrfToken = csrfTokenOverride || await ensureCsrfToken();
       headers['X-CSRF-TOKEN'] = resolvedCsrfToken;
     }
 
@@ -470,6 +492,14 @@ export default function App() {
     }
 
     const bearerToken = accessTokenOverride || accessToken;
+    if (requiresAuth && !bearerToken && retryOnUnauthorized) {
+      const newAccessToken = await refreshAccessToken(resolvedCsrfToken);
+      return apiFetch(path, {
+        ...options,
+        retryOnUnauthorized: false,
+        accessTokenOverride: newAccessToken
+      });
+    }
     if (requiresAuth && bearerToken) {
       headers.Authorization = `Bearer ${bearerToken}`;
     }
@@ -488,6 +518,18 @@ export default function App() {
         retryOnUnauthorized: false,
         accessTokenOverride: newAccessToken
       });
+    }
+
+    if (response.status === 403 && retryOnCsrfFailure) {
+      const errorBody = await response.clone().json().catch(() => ({}));
+      if (String(errorBody.message || '').toUpperCase().includes('CSRF')) {
+        const freshCsrfToken = await ensureCsrfToken(true);
+        return apiFetch(path, {
+          ...options,
+          retryOnCsrfFailure: false,
+          csrfTokenOverride: freshCsrfToken
+        });
+      }
     }
 
     return response;
@@ -549,6 +591,7 @@ export default function App() {
       const data = await response.json();
       setPaymentSession(data.payment);
       if (data.registration) {
+        activateRole('REGISTRATION');
         setRegistration(data.registration);
         setAccessToken(data.registration.accessToken || '');
         setQueues([]);
@@ -607,6 +650,7 @@ export default function App() {
       });
       if (!response.ok) throw new Error(await readErrorMessage(response, 'Daxil olmaq alınmadı.'));
       const data = await response.json();
+      activateRole('REGISTRATION');
       setAccessToken(data.accessToken || '');
       setRegistration(data);
       setQueues(await loadQueues(data.id));
@@ -630,6 +674,7 @@ export default function App() {
       });
       if (!response.ok) throw new Error(await readErrorMessage(response, 'Müştəri qeydiyyatı alınmadı.'));
       const data = await response.json();
+      activateRole('CUSTOMER');
       setAccessToken(data.accessToken || '');
       setCustomer(data);
       setCustomerHistory([]);
@@ -653,6 +698,7 @@ export default function App() {
       });
       if (!response.ok) throw new Error(await readErrorMessage(response, 'Müştəri girişi alınmadı.'));
       const data = await response.json();
+      activateRole('CUSTOMER');
       setAccessToken(data.accessToken || '');
       setCustomer(data);
       await loadCustomerHistory(data.id);
@@ -676,6 +722,7 @@ export default function App() {
       });
       if (!response.ok) throw new Error(await readErrorMessage(response, 'Növbə idarəçisi girişi alınmadı.'));
       const data = await response.json();
+      activateRole('QUEUE_MANAGER');
       setAccessToken(data.accessToken || '');
       setQueueManagerSession({ queueManagerId: data.queueManagerId, username: data.username });
       setSelectedQueueAccess({ queueManagerId: data.queueManagerId });
@@ -700,6 +747,7 @@ export default function App() {
       });
       if (!response.ok) throw new Error(await readErrorMessage(response, 'Admin girişi alınmadı.'));
       const data = await response.json();
+      activateRole('ADMIN');
       setAccessToken(data.accessToken || '');
       setAdminSession(data);
       await loadAdminDashboard(adminFilters);
@@ -1018,28 +1066,52 @@ export default function App() {
   const individualLimitReached = registration?.registrationType === 'FERDI' && queues.length >= 1;
 
   return (
-    <main className="app">
+    <main className={`app app-${screen}`}>
       <div className="shell">
         <header className="masthead">
-          <p className="eyebrow">E-Növbə</p>
-          <h1>E-Növbə</h1>
+          <button className="brandButton" type="button" onClick={() => navigateTo('home')} aria-label="E-Növbə ana səhifəsi">
+            <span className="brandMark">eN</span>
+            <span className="brandWords">
+              <strong>E-Növbə</strong>
+              <small>Rəqəmsal növbə platforması</small>
+            </span>
+          </button>
           <p className="description">
-            Növbə yaradanlar kabinetdən növbə açır, müştərilər isə ya scan edərək, ya da evdən qoşularaq öz tarixçəsini izləyir.
+            Vaxtını növbədə deyil, həyatında keçir.
           </p>
         </header>
 
-        <div className="toolbar">
+        <nav className="toolbar" aria-label="Əsas naviqasiya">
           <button className="ghostButton" type="button" onClick={() => navigateTo('home')}>Ana səhifə</button>
           {registration ? <button className="ghostButton" type="button" onClick={() => navigateTo('dashboard')}>Yaradan kabineti</button> : null}
           {customer ? <button className="ghostButton" type="button" onClick={() => navigateTo('customerDashboard')}>Müştəri kabineti</button> : null}
-          <button className="ghostButton" type="button" onClick={resetAll}>Çıxış et</button>
-        </div>
+          {adminSession ? <button className="ghostButton" type="button" onClick={() => navigateTo('adminDashboard')}>Admin paneli</button> : null}
+          {registration || customer || queueManagerSession || adminSession ? <button className="ghostButton logoutButton" type="button" onClick={resetAll}>Çıxış et</button> : null}
+        </nav>
 
         {successMessage ? <div className="resultBanner">{successMessage}</div> : null}
         {error ? <div className="error">{error}</div> : null}
 
         {screen === 'home' ? (
-          <section className="panel">
+          <section className="panel homePanel">
+            <div className="homeHero">
+              <div className="homeHeroCopy">
+                <p className="homeOverline">Növbənin yeni ritmi</p>
+                <h1>Gözləməni<br /><em>görünən et.</em></h1>
+                <p>Nömrəni əvvəlcədən al, vaxtını hesabla və xidmətə tam zamanında yaxınlaş.</p>
+                <div className="homeSignals">
+                  <span><i /> Canlı növbə statusu</span>
+                  <span>QR və UID ilə sürətli giriş</span>
+                </div>
+              </div>
+              <div className="homeTicket" aria-hidden="true">
+                <div className="ticketTop"><span>E-NÖVBƏ</span><small>CANLI</small></div>
+                <p>Sizin nömrəniz</p>
+                <strong>015</strong>
+                <div className="ticketProgress"><i /></div>
+                <div className="ticketMeta"><span>İndi<br /><b>003</b></span><span>Gözləyən<br /><b>12 nəfər</b></span><span>Təxmini<br /><b>60 dəq</b></span></div>
+              </div>
+            </div>
             <div className="choiceGrid choiceGridWide">
               <button className="choiceCard" type="button" onClick={() => navigateTo('creatorLogin')}>
                 <span className="choiceLabel">Yaradan</span>
