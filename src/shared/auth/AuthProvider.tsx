@@ -74,9 +74,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
     clearApiSession();
-    queryClient.clear();
     setUser(null);
     setStatus("anonymous");
+    if (event === "signed-out") {
+      queryClient.clear();
+    }
   }), [queryClient, restore]);
 
   const value = useMemo(
