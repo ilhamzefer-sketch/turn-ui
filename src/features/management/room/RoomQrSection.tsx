@@ -87,15 +87,18 @@ type QrCardProps = {
 function QrCard({ credential, roomName, index, busy, onRegenerate, onRevoke }: QrCardProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [copyLabel, setCopyLabel] = useState("Linki kopyala");
-  const publicUrl = `${window.location.origin}/q/${credential.token}`;
+  const token = credential.token?.trim() ?? "";
+  const publicUrl = token ? `${window.location.origin}/q/${encodeURIComponent(token)}` : null;
 
   const copy = async () => {
+    if (!publicUrl) return;
     await navigator.clipboard.writeText(publicUrl);
     setCopyLabel("Kopyalandı");
     window.setTimeout(() => setCopyLabel("Linki kopyala"), 1800);
   };
 
   const download = () => {
+    if (!publicUrl) return;
     const svg = wrapperRef.current?.querySelector("svg");
     if (!svg) return;
     const source = new XMLSerializer().serializeToString(svg);
@@ -111,17 +114,23 @@ function QrCard({ credential, roomName, index, busy, onRegenerate, onRevoke }: Q
   return (
     <article className="qr-card">
       <div className="qr-card__image" ref={wrapperRef}>
-        <QRCodeSVG value={publicUrl} size={192} level="M" marginSize={2} title={`${roomName} üçün QR kod ${index}`} />
+        {publicUrl ? (
+          <QRCodeSVG value={publicUrl} size={192} level="M" marginSize={2} title={`${roomName} üçün QR kod ${index}`} />
+        ) : (
+          <div className="qr-card__unavailable" role="status"><strong>QR</strong><span>Kodu yeniləyin</span></div>
+        )}
       </div>
       <div className="qr-card__content">
         <div className="management-list__title"><h3>QR kod {index}</h3><StatusBadge tone="success">Aktiv</StatusBadge></div>
         <p>{formatManagementDate(credential.createdAt)} tarixində yaradılıb</p>
-        <code>{publicUrl}</code>
+        {!publicUrl ? <p className="qr-card__repair-note">Bu köhnə QR kodu işlək vəziyyətə gətirmək üçün yeniləyin.</p> : null}
       </div>
       <div className="qr-card__actions">
-        <Button variant="secondary" onClick={() => void copy()}>{copyLabel}</Button>
-        <Button variant="secondary" onClick={download}>SVG yüklə</Button>
-        <Button variant="quiet" disabled={busy} onClick={onRegenerate}>Yenilə</Button>
+        {publicUrl ? <Button variant="secondary" onClick={() => void copy()}>{copyLabel}</Button> : null}
+        {publicUrl ? <Button variant="secondary" onClick={download}>SVG yüklə</Button> : null}
+        <Button variant={publicUrl ? "quiet" : "primary"} disabled={busy} onClick={onRegenerate}>
+          {publicUrl ? "Yenilə" : "QR kodu bərpa et"}
+        </Button>
         <Button variant="quiet" disabled={busy} onClick={onRevoke}>Ləğv et</Button>
       </div>
     </article>
