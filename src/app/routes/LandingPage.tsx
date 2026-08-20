@@ -37,21 +37,34 @@ export function LandingPage() {
   useEffect(() => {
     const page = pageRef.current;
     const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (!page || prefersReducedMotion || !("IntersectionObserver" in window)) return;
+    if (!page || prefersReducedMotion) return;
 
     const items = Array.from(page.querySelectorAll<HTMLElement>("[data-reveal]"));
     page.classList.add("landing-page--motion-ready");
 
+    if (CSS.supports?.("animation-timeline: view()")) {
+      page.classList.add("landing-page--scroll-motion");
+      return () => {
+        page.classList.remove("landing-page--motion-ready", "landing-page--scroll-motion");
+      };
+    }
+
+    if (!("IntersectionObserver" in window)) {
+      page.classList.remove("landing-page--motion-ready");
+      return;
+    }
+
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add("is-visible");
-        observer.unobserve(entry.target);
+        entry.target.classList.toggle("is-visible", entry.isIntersecting);
       }
-    }, { rootMargin: "0px 0px -12%", threshold: 0.12 });
+    }, { rootMargin: "-8% 0px -10%", threshold: 0.12 });
 
     items.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      page.classList.remove("landing-page--motion-ready");
+    };
   }, []);
 
   return (
