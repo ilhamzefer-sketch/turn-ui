@@ -39,7 +39,7 @@ export function SubscriptionPage({ scopeType }: { scopeType: ProviderScopeType }
   usePageMeta("Abunəlik — E-Növbə", "İş sahəsinin abunəliyini və ödəniş tarixçəsini idarə edin.");
   const noSubscription = current.error instanceof ApiError && current.error.status === 404;
   return <div className="insight-page">
-    <header className="insight-header"><div><p className="eyebrow">İş sahəsinin abunəliyi</p><h1>Sadə və şəffaf plan</h1><p>Ödəniş ABB Business test mühitində bank hesabları arasında təhlükəsiz emal olunur.</p></div></header>
+    <header className="insight-header"><div><p className="eyebrow">İş sahəsinin abunəliyi</p><h1>Sadə və şəffaf plan</h1><p>Ödəniş test mühitində avtomatik təsdiqlənir və real bank əməliyyatı aparılmır.</p></div></header>
     {activePayment ? <PaymentState session={payment.data ?? activePayment} checking={payment.isFetching} /> : null}
     {current.data ? <section className="subscription-current"><div><span className="status-badge status-badge--success">{subscriptionLabel(current.data.status)}</span><h2>{current.data.plan.name}</h2><p>{billingLabel(current.data.billingPeriod)} plan · {current.data.roomLimit} otaq · {current.data.employeeLimit} əməkdaş limiti</p></div><dl><div><dt>Başlanğıc</dt><dd>{shortDate(current.data.startsAt)}</dd></div><div><dt>Bitmə</dt><dd>{shortDate(current.data.expiresAt)}</dd></div></dl></section> : current.isPending ? <div className="management-state" role="status">Abunəlik yoxlanılır…</div> : !noSubscription ? <div className="form-alert" role="alert">{current.error?.message}</div> : null}
     <section aria-labelledby="plans-title"><div className="panel-heading"><div><p className="eyebrow">Plan seçimi</p><h2 id="plans-title">Uyğun müddəti seçin</h2></div></div>{plans.isPending ? <div role="status">Planlar açılır…</div> : <div className="plan-grid">{plans.data?.map((plan) => <article key={plan.id} className="plan-card"><p>{billingLabel(plan.billingPeriod)}</p><h3>{plan.name}</h3><strong>{money(plan.amount, plan.currency)}</strong><ul><li>{plan.roomLimit} otağa qədər</li><li>{plan.employeeLimit} əməkdaşa qədər</li></ul><Button disabled={(payment.data ?? activePayment)?.status === "PENDING"} loading={checkout.isPending} onClick={() => checkout.mutate(plan.code)}>{current.data?.plan.code === plan.code ? "Planı yenilə" : "Bu planı seç"}</Button></article>)}</div>}{checkout.error ? <div className="form-alert" role="alert">{checkout.error.message}</div> : payment.error ? <div className="form-alert" role="alert">{payment.error.message}</div> : null}</section>
@@ -50,11 +50,11 @@ export function SubscriptionPage({ scopeType }: { scopeType: ProviderScopeType }
 function PaymentState({ session, checking }: { session: SubscriptionPaymentSession; checking: boolean }) {
   const completed = session.status === "COMPLETED";
   const pending = session.status === "PENDING";
-  const title = completed ? "Ödəniş uğurla tamamlandı" : pending ? "Ödəniş ABB tərəfindən yoxlanılır" : "Ödəniş tamamlanmadı";
+  const title = completed ? "Ödəniş uğurla tamamlandı" : pending ? "Test ödənişi təsdiqlənir" : "Ödəniş tamamlanmadı";
   const description = completed
     ? "Abunəliyiniz aktivləşdirildi və qəbz tarixçəyə əlavə olundu."
     : pending
-      ? "Bank faylı qəbul edib. Status avtomatik yenilənəcək; səhifəni açıq saxlaya bilərsiniz."
-      : "Bank əməliyyatı uğursuz oldu və ya ləğv edildi. Məlumatları yoxlayıb yenidən cəhd edin.";
-  return <section className={`payment-state payment-state--${session.status.toLowerCase()}`} aria-live="polite" role="status"><div><span className="payment-state__icon" aria-hidden="true">{completed ? "✓" : pending ? "…" : "!"}</span><div><p className="eyebrow">ABB Business · Test mühiti</p><h2>{title}</h2><p>{description}</p></div></div><dl><div><dt>Məbləğ</dt><dd>{money(session.amount, session.currency)}</dd></div><div><dt>İstinad</dt><dd>{session.paymentReference}</dd></div><div><dt>Status</dt><dd>{checking && pending ? "Yoxlanılır…" : paymentLabel(session.status)}</dd></div></dl></section>;
+      ? "Test ödənişi avtomatik tamamlanır."
+      : "Test ödənişi tamamlana bilmədi. Yenidən cəhd edin.";
+  return <section className={`payment-state payment-state--${session.status.toLowerCase()}`} aria-live="polite" role="status"><div><span className="payment-state__icon" aria-hidden="true">{completed ? "✓" : pending ? "…" : "!"}</span><div><p className="eyebrow">Mock ödəniş · Test mühiti</p><h2>{title}</h2><p>{description}</p></div></div><dl><div><dt>Məbləğ</dt><dd>{money(session.amount, session.currency)}</dd></div><div><dt>İstinad</dt><dd>{session.paymentReference}</dd></div><div><dt>Status</dt><dd>{checking && pending ? "Təsdiqlənir…" : paymentLabel(session.status)}</dd></div></dl></section>;
 }
