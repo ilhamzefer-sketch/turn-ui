@@ -240,7 +240,7 @@ export type QrCredential = {
   roomId: number;
   type: "PERMANENT_ROOM";
   active: boolean;
-  token: string;
+  token: string | null;
   createdAt: string;
   revokedAt: string | null;
 };
