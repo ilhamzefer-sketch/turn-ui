@@ -1,0 +1,218 @@
+.brand {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: var(--space-3);
+  border-radius: var(--radius-small);
+  color: var(--color-ink);
+  font-size: 1.125rem;
+  font-weight: 780;
+  letter-spacing: -0.025em;
+  text-decoration: none;
+}
+
+.brand__mark {
+  display: inline-grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 0.9rem;
+  color: #fffaf0;
+  background: var(--color-brand-700);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.brand__name {
+  white-space: nowrap;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 2.875rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.75rem 1.2rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  font-weight: 720;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    color var(--duration-fast) ease,
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.button--primary {
+  color: white;
+  background: var(--color-brand-700);
+}
+
+.button--secondary {
+  border-color: var(--color-line);
+  color: var(--color-brand-800);
+  background: var(--color-surface);
+}
+
+.button--quiet {
+  color: var(--color-brand-700);
+  background: transparent;
+}
+
+.button--danger {
+  border-color: #b83c31;
+  color: #fff;
+  background: #b83c31;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button__spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+.icon--left {
+  transform: rotate(180deg);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.field__label {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.field__control {
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #b7c1bd;
+  border-radius: var(--radius-small);
+  color: var(--color-ink);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+.field__control--select {
+  padding-right: 2.75rem;
+  cursor: pointer;
+}
+
+.field__control--textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.field__control::placeholder {
+  color: var(--color-muted);
+}
+
+.field__control:hover {
+  border-color: var(--color-brand-600);
+}
+
+.field__control:focus-visible {
+  border-color: var(--color-brand-700);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(12 74 67 / 0.18);
+}
+
+.field--error .field__control {
+  border-color: var(--color-danger);
+}
+
+.field__message {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-small);
+}
+
+.field__message--error {
+  color: var(--color-danger);
+  font-weight: 650;
+}
+
+.form-alert {
+  padding: var(--space-4);
+  border: 1px solid #e3a79d;
+  border-radius: var(--radius-small);
+  color: #7e281f;
+  background: var(--color-danger-soft);
+}
+
+.form-alert p {
+  margin: 0;
+}
+
+.form-alert a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  margin-top: var(--space-2);
+  color: inherit;
+  font-weight: 750;
+}
+
+.page-loader {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  color: var(--color-ink-soft);
+}
+
+.page-loader__mark {
+  width: 3rem;
+  height: 3rem;
+  border: 0.35rem solid var(--color-brand-100);
+  border-top-color: var(--color-brand-700);
+  border-radius: 50%;
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (hover: hover) {
+  .button:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+
+  .button--primary:hover {
+    background: var(--color-brand-600);
+  }
+
+  .button--secondary:hover {
+    border-color: var(--color-brand-700);
+    background: var(--color-brand-100);
+  }
+
+  .button--quiet:hover {
+    background: var(--color-brand-100);
+  }
+
+  .button--danger:hover {
+    border-color: #8f2d25;
+    background: #8f2d25;
+  }
+}

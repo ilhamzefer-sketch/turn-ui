@@ -1,0 +1,5 @@
+*
+!Dockerfile.test
+!nginx.conf
+!dist/
+!dist/**
