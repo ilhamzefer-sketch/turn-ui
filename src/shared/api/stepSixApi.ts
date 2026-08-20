@@ -18,6 +18,7 @@ export const stepSixApi = {
   subscription: (type: ProviderScopeType, id: number) => apiRequest<ProviderSubscription>(`/api/subscriptions/current?${scope(type, id)}`),
   receipts: (type: ProviderScopeType, id: number) => apiRequest<SubscriptionReceipt[]>(`/api/subscriptions/receipts?${scope(type, id)}`),
   checkout: (scopeType: ProviderScopeType, scopeId: number, planCode: string) => apiRequest<SubscriptionPaymentSession>("/api/subscriptions/checkout", { method: "POST", body: JSON.stringify({ scopeType, scopeId, planCode, cardHolder: null, cardNumber: null }) }),
+  confirmPayment: (id: number, token: string | null) => apiRequest<SubscriptionPaymentSession>(`/api/subscriptions/payments/${id}/confirm`, { method: "POST", headers: token ? { "X-Payment-Session-Token": token } : undefined }),
   phoneChange: (requestedPhone: string, reason: string) => apiRequest<PhoneChangeRequest>("/api/support/phone-change-requests", { method: "POST", body: JSON.stringify({ requestedPhone, reason }) }),
   deleteAccount: () => apiRequest<AccountDeletionRequest>("/api/support/account-deletion-requests", { method: "POST" }),
   transferInvitations: () => apiRequest<OwnershipTransfer[]>("/api/users/me/ownership-transfer-invitations"),

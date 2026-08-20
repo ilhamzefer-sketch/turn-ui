@@ -9,6 +9,7 @@ import { Button } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 import { TextAreaField } from "../../../shared/ui/TextAreaField";
 import { TextField } from "../../../shared/ui/TextField";
+import { TimeField } from "../../../shared/ui/TimeField";
 import { apiMessage } from "../managementUtils";
 import { nullableNumber, nullableText } from "../managementLabels";
 import {
@@ -137,7 +138,7 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
                   <option value="EVERY_INTERVAL">Müəyyən intervaldan bir</option>
                 </SelectField>
                 {selectedResetPolicy === "DAILY_AT_TIME" ? (
-                  <TextField label="Gündəlik sıfırlama saatı" type="time" error={configForm.formState.errors.liveQueueResetLocalTime?.message} {...configForm.register("liveQueueResetLocalTime")} />
+                  <TimeField label="Gündəlik sıfırlama saatı" error={configForm.formState.errors.liveQueueResetLocalTime?.message} {...configForm.register("liveQueueResetLocalTime")} />
                 ) : (
                   <TextField label="Sıfırlama intervalı (dəqiqə)" type="number" min="1" error={configForm.formState.errors.liveQueueResetIntervalMinutes?.message} {...configForm.register("liveQueueResetIntervalMinutes")} />
                 )}

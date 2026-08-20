@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isTime24 } from "../../shared/time/time24Hour";
+
 const optionalText = (maximum: number) => z.string().trim().max(maximum, `Maksimum ${maximum} simvol ola bilər.`);
 
 export const branchSchema = z.object({
@@ -62,8 +64,8 @@ export const configurationSchema = z.object({
   liveQueueMaxParticipants: z.string(),
   liveQueueAcceptingNewEntries: z.boolean(),
 }).superRefine((values, context) => {
-  if (values.liveQueueResetPolicy === "DAILY_AT_TIME" && !values.liveQueueResetLocalTime) {
-    context.addIssue({ code: "custom", path: ["liveQueueResetLocalTime"], message: "Sıfırlama saatını seçin." });
+  if (values.liveQueueResetPolicy === "DAILY_AT_TIME" && !isTime24(values.liveQueueResetLocalTime)) {
+    context.addIssue({ code: "custom", path: ["liveQueueResetLocalTime"], message: "Saatı 24 saat formatında yazın (məsələn, 18:30)." });
   }
   if (values.liveQueueResetPolicy === "EVERY_INTERVAL" && !isIntegerBetween(1, 10080)(values.liveQueueResetIntervalMinutes)) {
     context.addIssue({ code: "custom", path: ["liveQueueResetIntervalMinutes"], message: "Müsbət interval yazın." });

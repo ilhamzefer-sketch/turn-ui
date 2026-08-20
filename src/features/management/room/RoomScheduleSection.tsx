@@ -12,6 +12,8 @@ import { managementApi } from "../../../shared/api/managementApi";
 import { Button } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 import { TextField } from "../../../shared/ui/TextField";
+import { TimeField } from "../../../shared/ui/TimeField";
+import { isTime24 } from "../../../shared/time/time24Hour";
 import { StatusBadge } from "../ManagementUi";
 import { apiMessage } from "../managementUtils";
 import { weekdayOptions } from "../managementLabels";
@@ -162,9 +164,9 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
                   <div className="day-editor__intervals">
                     {day.enabled ? day.intervals.map((interval, index) => (
                       <div className="time-interval" key={interval.key}>
-                        <label><span>Başlayır</span><input type="time" value={interval.startTime} onChange={(event) => updateDay(day.day, (current) => replaceInterval(current, index, "startTime", event.target.value))} /></label>
+                        <TimeField label="Başlayır" value={interval.startTime} onChange={(event) => updateDay(day.day, (current) => replaceInterval(current, index, "startTime", event.target.value))} />
                         <span aria-hidden="true">—</span>
-                        <label><span>Bitir</span><input type="time" value={interval.endTime} onChange={(event) => updateDay(day.day, (current) => replaceInterval(current, index, "endTime", event.target.value))} /></label>
+                        <TimeField label="Bitir" value={interval.endTime} onChange={(event) => updateDay(day.day, (current) => replaceInterval(current, index, "endTime", event.target.value))} />
                         {day.intervals.length > 1 ? <Button variant="quiet" onClick={() => updateDay(day.day, (current) => ({ ...current, intervals: current.intervals.filter((_, itemIndex) => itemIndex !== index) }))}>Sil</Button> : null}
                       </div>
                     )) : <p>Bu gün yeni növbə qəbul edilmir.</p>}
@@ -192,8 +194,8 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
           </SelectField>
           {exception.type !== "CLOSED" ? (
             <>
-              <TextField label="Başlanğıc" type="time" value={exception.startTime ?? ""} onChange={(event) => setException((current) => ({ ...current, startTime: event.target.value }))} />
-              <TextField label="Bitmə" type="time" value={exception.endTime ?? ""} onChange={(event) => setException((current) => ({ ...current, endTime: event.target.value }))} />
+              <TimeField label="Başlanğıc" value={exception.startTime ?? ""} onChange={(event) => setException((current) => ({ ...current, startTime: event.target.value }))} />
+              <TimeField label="Bitmə" value={exception.endTime ?? ""} onChange={(event) => setException((current) => ({ ...current, endTime: event.target.value }))} />
             </>
           ) : null}
           <TextField label="Səbəb (istəyə bağlı)" value={exception.reason ?? ""} onChange={(event) => setException((current) => ({ ...current, reason: event.target.value || null }))} />
@@ -253,7 +255,7 @@ function validateSchedule(days: DaySchedule[]) {
     const intervals = [...day.intervals].sort((first, second) => first.startTime.localeCompare(second.startTime));
     for (let index = 0; index < intervals.length; index += 1) {
       const current = intervals[index];
-      if (!current.startTime || !current.endTime || current.startTime >= current.endTime) return `${option?.label}: başlanğıc vaxtı bitmə vaxtından əvvəl olmalıdır.`;
+      if (!isTime24(current.startTime) || !isTime24(current.endTime) || current.startTime >= current.endTime) return `${option?.label}: saatları 24 saat formatında yazın və başlanğıcı bitmədən əvvəl seçin.`;
       const previous = intervals[index - 1];
       if (previous && previous.endTime > current.startTime) return `${option?.label}: iş intervalları üst-üstə düşə bilməz.`;
     }

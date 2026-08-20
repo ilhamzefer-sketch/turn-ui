@@ -36,6 +36,22 @@
 .subscription-current dt { color: #c8ddd8; }
 .subscription-current dl { display: flex; gap: var(--space-8); margin: 0; }
 .subscription-current dl div { display: grid; }
+.payment-state { display: grid; gap: var(--space-5); padding: clamp(1.5rem, 4vw, 2.5rem); border: 1px solid var(--color-line); border-radius: var(--radius-large); background: var(--color-surface); }
+.payment-state > div { display: flex; align-items: center; gap: var(--space-4); }
+.payment-state h2,
+.payment-state p { margin: 0; }
+.payment-state h2 { margin-block: var(--space-1); font-size: var(--text-card); }
+.payment-state p:not(.eyebrow) { color: var(--color-muted); }
+.payment-state__icon { display: grid; width: 3.25rem; height: 3.25rem; flex: 0 0 auto; place-items: center; border-radius: 50%; color: white; background: var(--color-brand-700); font-size: 1.5rem; font-weight: 800; }
+.payment-state dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin: 0; }
+.payment-state dl div { display: grid; gap: var(--space-1); padding: var(--space-3); border-radius: var(--radius-small); background: var(--color-surface-soft); }
+.payment-state dt { color: var(--color-muted); }
+.payment-state dd { margin: 0; overflow-wrap: anywhere; font-weight: 750; }
+.payment-state--completed { border-color: color-mix(in srgb, var(--color-brand-600), white 55%); }
+.payment-state--failed,
+.payment-state--cancelled { border-color: color-mix(in srgb, var(--color-danger), white 60%); }
+.payment-state--failed .payment-state__icon,
+.payment-state--cancelled .payment-state__icon { background: var(--color-danger); }
 .plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
 .plan-card { display: grid; gap: var(--space-4); padding: clamp(1.5rem, 4vw, 2.5rem); border: 1px solid var(--color-line); border-radius: var(--radius-large); background: var(--color-surface); }
 .plan-card h3,
@@ -88,6 +104,7 @@
   .room-chart article { grid-template-columns: minmax(0, 1fr) 2.5rem; }
   .room-chart__track { grid-column: 1 / -1; grid-row: 2; }
   .subscription-current dl { justify-content: space-between; }
+  .payment-state dl { grid-template-columns: 1fr; }
   .receipt-list article,
   .compact-list article,
   .governance-invite { align-items: stretch; flex-direction: column; }
