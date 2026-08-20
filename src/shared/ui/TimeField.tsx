@@ -7,6 +7,7 @@ type TimeFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "inpu
   label: string;
   error?: string;
   hint?: string;
+  info?: string;
 };
 
 export const TimeField = forwardRef<HTMLInputElement, TimeFieldProps>(function TimeField(
