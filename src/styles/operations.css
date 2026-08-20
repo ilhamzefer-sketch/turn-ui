@@ -201,7 +201,7 @@
   background: var(--color-brand-100);
 }
 .booking-submit > div { display: grid; }
-.booking-submit span { color: var(--color-ink-soft); }
+.booking-submit > div > span { color: var(--color-ink-soft); }
 .booking-success { max-width: 48rem; text-align: center; }
 .booking-success__mark { display: grid; width: 4rem; height: 4rem; place-items: center; margin: 0 auto var(--space-6); border-radius: 50%; color: white; background: var(--color-success); font-size: 2rem; font-weight: 800; }
 .booking-success .eyebrow { text-align: center; }
