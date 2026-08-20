@@ -38,8 +38,11 @@ export const publicApi = {
   },
   room: (roomId: number) =>
     apiRequest<PublicRoomProfile>(`/api/public/rooms/${roomId}`, { retryAuthentication: false }),
-  resolveQr: (token: string) =>
-    apiRequest<PublicQrResolution>(`/api/public/qr/${encodeURIComponent(token)}`, { retryAuthentication: false }),
+  resolveQr: (token: string, signal?: AbortSignal) =>
+    apiRequest<PublicQrResolution>(`/api/public/qr/${encodeURIComponent(token)}`, {
+      retryAuthentication: false,
+      signal,
+    }),
   availableSlots: (roomId: number, date: string) =>
     apiRequest<AvailableSlot[]>(`/api/public/rooms/${roomId}/available-slots?date=${encodeURIComponent(date)}`, {
       retryAuthentication: false,
