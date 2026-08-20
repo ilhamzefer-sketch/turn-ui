@@ -571,7 +571,7 @@ export type SubscriptionReceipt = {
   currency: string; provider: string; paymentReference: string; createdAt: string; completedAt: string | null;
 };
 export type SubscriptionPaymentSession = {
-  id: number; status: PaymentStatus; provider: string; paymentMode: string; amount: number; currency: string;
+  id: number; sessionToken: string | null; status: PaymentStatus; provider: string; paymentMode: string; amount: number; currency: string;
   paymentReference: string; checkoutUrl: string | null; subscription: ProviderSubscription | null;
   createdAt: string; completedAt: string | null;
 };
