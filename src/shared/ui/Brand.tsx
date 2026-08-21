@@ -8,7 +8,13 @@ export function Brand({ compact = false }: BrandProps) {
   return (
     <Link className="brand" to="/" aria-label="NövbəTime ana səhifə">
       <span className="brand__mark" aria-hidden="true">
-        NT
+        <img
+          className="brand__logo"
+          src="/novbetime-logo.png"
+          alt=""
+          width="1254"
+          height="1254"
+        />
       </span>
       {!compact && <span className="brand__name">NövbəTime</span>}
     </Link>
