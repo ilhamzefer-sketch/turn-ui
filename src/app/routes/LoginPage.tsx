@@ -15,7 +15,7 @@ type LoginLocationState = {
 };
 
 export function LoginPage() {
-  usePageMeta("Daxil olun — E-Növbə", "Telefon nömrəniz və şifrənizlə E-Növbə hesabınıza daxil olun.");
+  usePageMeta("Daxil olun — NövbəTime", "Telefon nömrəniz və şifrənizlə NövbəTime hesabınıza daxil olun.");
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

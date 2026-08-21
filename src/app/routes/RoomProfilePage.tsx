@@ -30,7 +30,7 @@ export function RoomProfilePage() {
   });
 
   usePageMeta(
-    room ? `${room.name} — ${room.providerName} | E-Növbə` : "Otaq profili — E-Növbə",
+    room ? `${room.name} — ${room.providerName} | NövbəTime` : "Otaq profili — NövbəTime",
     room?.description || "Otağın növbə növü, ünvanı və uyğun saatları ilə tanış olun.",
   );
 

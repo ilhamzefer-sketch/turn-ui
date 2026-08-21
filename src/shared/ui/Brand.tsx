@@ -6,11 +6,11 @@ type BrandProps = {
 
 export function Brand({ compact = false }: BrandProps) {
   return (
-    <Link className="brand" to="/" aria-label="E-Növbə ana səhifə">
+    <Link className="brand" to="/" aria-label="NövbəTime ana səhifə">
       <span className="brand__mark" aria-hidden="true">
-        eN
+        NT
       </span>
-      {!compact && <span className="brand__name">E-Növbə</span>}
+      {!compact && <span className="brand__name">NövbəTime</span>}
     </Link>
   );
 }

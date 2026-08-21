@@ -63,7 +63,7 @@ test.beforeEach(async ({ page }) => mockAuthenticatedOnboarding(page));
 
 test("creates an individual workspace and selects it", async ({ page }) => {
   await page.goto("/onboarding");
-  await expect(page.getByRole("heading", { name: "E-Növbəni necə istifadə edəcəksiniz?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "NövbəTime-dan necə istifadə edəcəksiniz?" })).toBeVisible();
 
   await page.getByRole("button", { name: /Fərdi mütəxəssis/ }).click();
   await page.getByLabel("İş sahəsinin adı").fill("Leyla Studio");
@@ -92,7 +92,7 @@ test("onboarding keeps keyboard focus and survives enlarged text", async ({ page
   test.skip(testInfo.project.name === "mobile-chromium", "The desktop project covers enlarged browser text.");
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/onboarding");
-  await expect(page.getByRole("heading", { name: "E-Növbəni necə istifadə edəcəksiniz?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "NövbəTime-dan necə istifadə edəcəksiniz?" })).toBeVisible();
 
   await page.keyboard.press("Tab");
   await expect(page.getByText("Əsas məzmuna keç", { exact: true })).toBeFocused();

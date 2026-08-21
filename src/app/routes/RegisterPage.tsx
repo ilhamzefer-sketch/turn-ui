@@ -11,7 +11,7 @@ import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 
 export function RegisterPage() {
-  usePageMeta("Hesab yaradın — E-Növbə", "Telefon nömrənizlə vahid E-Növbə hesabı yaradın və ya gözləyən hesabınızı tamamlayın.");
+  usePageMeta("Hesab yaradın — NövbəTime", "Telefon nömrənizlə vahid NövbəTime hesabı yaradın və ya gözləyən hesabınızı tamamlayın.");
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export function RegisterPage() {
       <div className="auth-card auth-card--wide">
         <div className="auth-card__intro">
           <p className="eyebrow">Vahid hesab</p>
-          <h1 id="register-title">E-Növbəyə qoşulun</h1>
+          <h1 id="register-title">NövbəTime-a qoşulun</h1>
           <p>Bir telefon nömrəsi ilə müştəri, fərdi mütəxəssis və biznes rollarınızı idarə edin.</p>
         </div>
         <div className="auth-card__notice">

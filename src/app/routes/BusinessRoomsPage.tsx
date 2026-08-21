@@ -29,7 +29,7 @@ const emptyRoom: RoomFormValues = {
 
 export function BusinessRoomsPage() {
   const businessId = Number(useParams().businessId);
-  usePageMeta("Otaqlar — E-Növbə", "Biznes otaqlarını yaradın və onların növbə rejimini idarə edin.");
+  usePageMeta("Otaqlar — NövbəTime", "Biznes otaqlarını yaradın və onların növbə rejimini idarə edin.");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [creatorOpen, setCreatorOpen] = useState(false);

@@ -11,7 +11,7 @@ import { reservationModeLabel } from "../../features/management/managementLabels
 export function RoomTodayPage() {
   const roomId = Number(useParams().roomId);
   const room = useQuery({ queryKey: ["management-room", roomId], queryFn: () => managementApi.room(roomId), enabled: Number.isInteger(roomId) });
-  usePageMeta(room.data ? `${room.data.name} — bu gün | E-Növbə` : "Bu gün — E-Növbə", "Otağın canlı növbəsini və ya planlı rezervasiyalarını idarə edin.");
+  usePageMeta(room.data ? `${room.data.name} — bu gün | NövbəTime` : "Bu gün — NövbəTime", "Otağın canlı növbəsini və ya planlı rezervasiyalarını idarə edin.");
   if (room.isPending) return <ManagementLoading label="Bugünkü iş sahəsi açılır…" />;
   if (room.isError || !room.data) return <ManagementError message={room.error?.message ?? "Otaq açıla bilmədi."} />;
   const value = room.data;

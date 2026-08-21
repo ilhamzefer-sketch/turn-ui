@@ -13,7 +13,7 @@ export function LiveQueueStatusPage() {
     enabled: reference.length > 0,
     refetchInterval: 5_000,
   });
-  usePageMeta("Növbə statusu — E-Növbə", "Canlı növbədəki yerinizi və təxmini gözləmə vaxtını izləyin.");
+  usePageMeta("Növbə statusu — NövbəTime", "Canlı növbədəki yerinizi və təxmini gözləmə vaxtını izləyin.");
   if (query.isPending) return <div className="operation-public-state shell" role="status">Növbə statusu yoxlanılır…</div>;
   if (query.isError || !query.data) return <main className="operation-public-state shell" role="alert"><h1>Növbə tapılmadı</h1><p>Kod səhv ola və ya əvvəlki sessiyaya aid ola bilər.</p><Link to="/rooms">Otaqlara bax</Link></main>;
   const status = query.data;

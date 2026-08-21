@@ -1,6 +1,6 @@
-# E-Növbə Web
+# NövbəTime Web
 
-This directory is the only workspace for the new E-Növbə frontend.
+This directory is the only workspace for the NövbəTime frontend.
 
 ## Source of truth
 

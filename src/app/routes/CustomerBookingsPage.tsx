@@ -15,7 +15,7 @@ import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 
 export function CustomerBookingsPage() {
-  usePageMeta("Növbələrim və rezervasiyalarım — E-Növbə", "Aktiv və keçmiş növbələrinizi bir yerdə izləyin.");
+  usePageMeta("Növbələrim və rezervasiyalarım — NövbəTime", "Aktiv və keçmiş növbələrinizi bir yerdə izləyin.");
   const bookings = useQuery({ queryKey: ["customer-bookings"], queryFn: bookingApi.history });
   const queues = useQuery({ queryKey: ["customer-live-queue-history"], queryFn: queueApi.history });
   if (bookings.isPending || queues.isPending) return <div className="management-state" role="status">Növbələriniz açılır…</div>;

@@ -7,7 +7,7 @@ import { PageLoader } from "../../shared/ui/PageLoader";
 
 export function QrResolvePage() {
   const token = useParams().token ?? "";
-  usePageMeta("QR link açılır — E-Növbə", "E-Növbə otağının daimi QR linki açılır.");
+  usePageMeta("QR link açılır — NövbəTime", "NövbəTime otağının daimi QR linki açılır.");
   const query = useQuery({
     queryKey: ["public-qr", token],
     queryFn: ({ signal }) => publicApi.resolveQr(

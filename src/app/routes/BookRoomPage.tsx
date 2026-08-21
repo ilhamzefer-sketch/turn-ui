@@ -38,7 +38,7 @@ export function BookRoomPage() {
       });
     },
   });
-  usePageMeta(room ? `${room.name} — rezervasiya | E-Növbə` : "Rezervasiya — E-Növbə", "Uyğun tarixi və boş saatı seçərək rezervasiyanızı təsdiqləyin.");
+  usePageMeta(room ? `${room.name} — rezervasiya | NövbəTime` : "Rezervasiya — NövbəTime", "Uyğun tarixi və boş saatı seçərək rezervasiyanızı təsdiqləyin.");
 
   useEffect(() => {
     if (mutation.data) successHeadingRef.current?.focus();

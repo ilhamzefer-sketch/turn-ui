@@ -17,7 +17,7 @@ export function ExplorePage() {
   });
 
   usePageMeta(
-    "Otaq tap — E-Növbə",
+    "Otaq tap — NövbəTime",
     "Biznes, filial, mütəxəssis və növbə növünə görə açıq otaqları axtarın.",
   );
 

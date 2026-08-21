@@ -30,7 +30,7 @@ let accessToken: string | null = null;
 let csrfToken: string | null = null;
 let refreshPromise: Promise<string> | null = null;
 const sessionListeners = new Set<ApiSessionListener>();
-const SESSION_SYNC_KEY = "enovbe.session-sync";
+const SESSION_SYNC_KEY = "novbetime.session-sync";
 
 function endpoint(path: string) {
   return `${API_BASE_URL}${path}`;
@@ -218,7 +218,7 @@ function notifySessionListeners(event: ApiSessionEvent) {
 
 async function withRefreshLock<T>(operation: () => Promise<T>) {
   if (typeof navigator !== "undefined" && navigator.locks) {
-    return navigator.locks.request("enovbe-refresh-session", operation);
+    return navigator.locks.request("novbetime-refresh-session", operation);
   }
   return operation();
 }

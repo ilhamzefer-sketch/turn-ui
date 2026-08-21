@@ -18,7 +18,7 @@ import { useWorkspace } from "../../shared/workspace/useWorkspace";
 
 export function IndividualWorkspacePage() {
   const workspaceId = Number(useParams().workspaceId);
-  usePageMeta("Fərdi iş sahəsi — E-Növbə", "Fərdi otağınızı və növbə rejimini idarə edin.");
+  usePageMeta("Fərdi iş sahəsi — NövbəTime", "Fərdi otağınızı və növbə rejimini idarə edin.");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { refreshWorkspaces } = useWorkspace();

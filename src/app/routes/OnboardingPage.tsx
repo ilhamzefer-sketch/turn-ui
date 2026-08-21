@@ -40,7 +40,7 @@ function invitationDate(value: string) {
 }
 
 export function OnboardingPage() {
-  usePageMeta("İş sahəsini seçin — E-Növbə", "E-Növbə hesabınız üçün müştəri, fərdi mütəxəssis və ya biznes iş sahəsi seçin.");
+  usePageMeta("İş sahəsini seçin — NövbəTime", "NövbəTime hesabınız üçün müştəri, fərdi mütəxəssis və ya biznes iş sahəsi seçin.");
   const { user } = useAuth();
   const { workspaces, selectWorkspace, refreshWorkspaces } = useWorkspace();
   const navigate = useNavigate();
@@ -105,7 +105,7 @@ export function OnboardingPage() {
       <main id="onboarding-content" className="onboarding-main shell">
         <div className="onboarding-intro">
           <p className="eyebrow">Vahid hesab, fərqli iş sahələri</p>
-          <h1>{mode === "choose" ? "E-Növbəni necə istifadə edəcəksiniz?" : mode === "individual" ? "Fərdi iş sahənizi yaradın" : "Biznesinizi yaradın"}</h1>
+          <h1>{mode === "choose" ? "NövbəTime-dan necə istifadə edəcəksiniz?" : mode === "individual" ? "Fərdi iş sahənizi yaradın" : "Biznesinizi yaradın"}</h1>
           <p>
             {mode === "choose"
               ? "İndi birini seçin. Sonradan eyni hesabda başqa biznes və rollar da əlavə edə bilərsiniz."

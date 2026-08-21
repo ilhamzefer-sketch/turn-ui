@@ -63,7 +63,7 @@ export function RoomManagementPage() {
     },
   });
 
-  const title = roomQuery.data ? `${roomQuery.data.name} — E-Növbə` : "Otaq idarəetməsi — E-Növbə";
+  const title = roomQuery.data ? `${roomQuery.data.name} — NövbəTime` : "Otaq idarəetməsi — NövbəTime";
   usePageMeta(title, "Otaq owner-ləri, iş qrafiki, növbə rejimi və QR kodlarını idarə edin.");
 
   if (!Number.isInteger(roomId)) return <ManagementError message="Otaq identifikatoru düzgün deyil." />;

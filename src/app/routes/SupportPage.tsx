@@ -13,7 +13,7 @@ export function SupportPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const change = useMutation({ mutationFn: () => stepSixApi.phoneChange(phone, reason) });
   const deletion = useMutation({ mutationFn: stepSixApi.deleteAccount });
-  usePageMeta("Dəstək — E-Növbə", "Telefon dəyişməsi, hesab girişi və hesab silinməsi üçün manual dəstək.");
+  usePageMeta("Dəstək — NövbəTime", "Telefon dəyişməsi, hesab girişi və hesab silinməsi üçün manual dəstək.");
   return <div className="insight-page">
     <header className="insight-header"><div><p className="eyebrow">Manual dəstək</p><h1>Hesabınızla bağlı müraciət</h1><p>Telefon və hesab sahibliyi avtomatik dəyişdirilmir. Platforma komandası müraciəti yoxlayır və qərarı audit tarixçəsində saxlayır.</p></div></header>
     <div className="support-grid"><section className="insight-panel"><p className="eyebrow">Telefon dəyişikliyi</p><h2>Yeni nömrə üçün müraciət</h2>{change.data ? <div className="success-alert" role="status">Müraciət #{change.data.id} qəbul edildi. Status: {change.data.status}</div> : <form className="operation-form" onSubmit={(e) => { e.preventDefault(); change.mutate(); }}><TextField label="Yeni telefon nömrəsi" type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required /><TextAreaField label="Dəyişiklik səbəbi" value={reason} onChange={(e) => setReason(e.target.value)} required /><p className="form-note">Yeni nömrə yalnız manual yoxlamadan sonra hesabınıza tətbiq ediləcək.</p><Button type="submit" loading={change.isPending} disabled={!phone.trim() || !reason.trim()}>Telefon dəyişikliyi göndər</Button>{change.error ? <div className="form-alert" role="alert">{change.error.message}</div> : null}</form>}</section>

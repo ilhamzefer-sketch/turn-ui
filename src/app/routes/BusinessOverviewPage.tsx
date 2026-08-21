@@ -18,7 +18,7 @@ import { nullableText } from "../../features/management/managementLabels";
 
 export function BusinessOverviewPage() {
   const businessId = Number(useParams().businessId);
-  usePageMeta("Biznes idarəetməsi — E-Növbə", "Biznes, filial, otaq və komanda hazırlığını idarə edin.");
+  usePageMeta("Biznes idarəetməsi — NövbəTime", "Biznes, filial, otaq və komanda hazırlığını idarə edin.");
   const queryClient = useQueryClient();
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const businessQuery = useQuery({

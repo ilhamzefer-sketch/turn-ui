@@ -74,7 +74,7 @@ export function PublicLayout() {
         <div className="shell site-footer__inner">
           <Brand />
           <p>Canlı növbə və planlı rezervasiya üçün vahid platforma.</p>
-          <p>© 2026 E-Növbə</p>
+          <p>© 2026 NövbəTime</p>
         </div>
       </footer>
     </div>

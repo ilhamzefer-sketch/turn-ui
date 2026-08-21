@@ -42,7 +42,7 @@ export function RoomLiveQueuePage() {
     onSuccess: (result) => joined(result.publicReference),
   });
   const queue = queueQuery.data;
-  usePageMeta(queue ? `${queue.roomName} canlı növbəsi — E-Növbə` : "Canlı növbə — E-Növbə", "Canlı növbənin vəziyyətini görün və qoşulun.");
+  usePageMeta(queue ? `${queue.roomName} canlı növbəsi — NövbəTime` : "Canlı növbə — NövbəTime", "Canlı növbənin vəziyyətini görün və qoşulun.");
 
   if (queueQuery.isPending) return <div className="operation-public-state shell" role="status">Canlı növbə açılır…</div>;
   if (queueQuery.isError || !queue) return <OperationPublicError title="Canlı növbə açılmadı" />;

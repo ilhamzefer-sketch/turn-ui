@@ -12,7 +12,7 @@ import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 
 export function AccountRecoveryPage() {
-  usePageMeta("Hesabı bərpa edin — E-Növbə", "E-Növbə hesabına giriş üçün dəstək müraciəti yaradın.");
+  usePageMeta("Hesabı bərpa edin — NövbəTime", "NövbəTime hesabına giriş üçün dəstək müraciəti yaradın.");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<number | null>(null);
   const {
@@ -54,7 +54,7 @@ export function AccountRecoveryPage() {
         <div className="auth-card__intro">
           <p className="eyebrow">Hesaba giriş</p>
           <h1 id="recovery-title">Dəstəyə müraciət edin</h1>
-          <p>E-Növbə SMS və email ilə avtomatik şifrə bərpası etmir. Hesab sahibliyi dəstək komandası tərəfindən ayrıca yoxlanılır.</p>
+          <p>NövbəTime SMS və email ilə avtomatik şifrə bərpası etmir. Hesab sahibliyi dəstək komandası tərəfindən ayrıca yoxlanılır.</p>
         </div>
         <div className="auth-card__notice auth-card__notice--warning">
           <strong>Şifrəniz yalnız yoxlamadan sonra sıfırlanacaq.</strong>

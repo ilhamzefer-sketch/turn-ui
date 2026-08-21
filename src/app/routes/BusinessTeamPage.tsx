@@ -17,7 +17,7 @@ import { TextField } from "../../shared/ui/TextField";
 
 export function BusinessTeamPage() {
   const businessId = Number(useParams().businessId);
-  usePageMeta("Komanda — E-Növbə", "Administratorları, işçiləri və otaq owner-lərini telefonla idarə edin.");
+  usePageMeta("Komanda — NövbəTime", "Administratorları, işçiləri və otaq owner-lərini telefonla idarə edin.");
   const queryClient = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

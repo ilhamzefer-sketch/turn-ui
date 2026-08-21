@@ -19,7 +19,7 @@ const emptyBranch: BranchFormValues = { name: "", address: "", city: "Bakı", di
 
 export function BusinessBranchesPage() {
   const businessId = Number(useParams().businessId);
-  usePageMeta("Filiallar — E-Növbə", "Biznes filiallarının ünvan və əlaqə məlumatlarını idarə edin.");
+  usePageMeta("Filiallar — NövbəTime", "Biznes filiallarının ünvan və əlaqə məlumatlarını idarə edin.");
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<Branch | null>(null);
   const [formVisible, setFormVisible] = useState(false);

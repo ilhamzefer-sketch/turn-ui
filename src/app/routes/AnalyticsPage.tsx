@@ -15,7 +15,7 @@ export function AnalyticsPage({ scope }: { scope: "business" | "room" }) {
   const [to, setTo] = useState(dateInput());
   const query = useQuery({ queryKey: [scope, id, "analytics", from, to], queryFn: () => scope === "business" ? stepSixApi.businessAnalytics(id, from, to) : stepSixApi.roomAnalytics(id, from, to), enabled: Number.isFinite(id) && from <= to });
   const [downloading, setDownloading] = useState(false);
-  usePageMeta("Əməliyyat analitikası — E-Növbə", "Canlı növbə və planlı rezervasiya üzrə əməliyyat göstəriciləri.");
+  usePageMeta("Əməliyyat analitikası — NövbəTime", "Canlı növbə və planlı rezervasiya üzrə əməliyyat göstəriciləri.");
   const report = query.data;
   const maxRoom = Math.max(1, ...(report?.rooms.map((room) => room.liveEntries + room.plannedBookings) ?? [1]));
   const download = async () => { setDownloading(true); try { if (scope === "business") await stepSixApi.downloadBusinessAnalytics(id, from, to); else await stepSixApi.downloadRoomAnalytics(id, from, to); } finally { setDownloading(false); } };

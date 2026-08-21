@@ -36,7 +36,7 @@ export function SubscriptionPage({ scopeType }: { scopeType: ProviderScopeType }
     void queryClient.invalidateQueries({ queryKey: ["subscription", scopeType, scopeId] });
     void queryClient.invalidateQueries({ queryKey: ["receipts", scopeType, scopeId] });
   }, [payment.data, queryClient, scopeId, scopeType]);
-  usePageMeta("Abunəlik — E-Növbə", "İş sahəsinin abunəliyini və ödəniş tarixçəsini idarə edin.");
+  usePageMeta("Abunəlik — NövbəTime", "İş sahəsinin abunəliyini və ödəniş tarixçəsini idarə edin.");
   const noSubscription = current.error instanceof ApiError && current.error.status === 404;
   return <div className="insight-page">
     <header className="insight-header"><div><p className="eyebrow">İş sahəsinin abunəliyi</p><h1>Sadə və şəffaf plan</h1><p>Ödəniş test mühitində avtomatik təsdiqlənir və real bank əməliyyatı aparılmır.</p></div></header>

@@ -30,7 +30,7 @@ export function LandingPage() {
       : "Pulsuz hesab yaradın";
 
   usePageMeta(
-    "E-Növbə — Vaxtınızı növbədə yox, həyatınızda keçirin",
+    "NövbəTime — Vaxtınızı növbədə yox, həyatınızda keçirin",
     "Canlı növbəyə uzaqdan qoşulun və ya uyğun saatı əvvəlcədən rezervasiya edin.",
   );
 
@@ -113,7 +113,7 @@ export function LandingPage() {
         </a>
       </section>
 
-      <section className="landing-proof" aria-label="E-Növbənin əsas üstünlükləri">
+      <section className="landing-proof" aria-label="NövbəTime platformasının əsas üstünlükləri">
         <div className="shell landing-proof__grid" data-reveal>
           <p><strong>2 növbə modeli</strong><span>Canlı və planlı axın</span></p>
           <p><strong>1 telefon nömrəsi</strong><span>Bütün rollar üçün vahid hesab</span></p>

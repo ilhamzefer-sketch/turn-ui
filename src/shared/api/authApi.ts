@@ -12,7 +12,7 @@ import {
   setAccessToken,
 } from "./httpClient";
 
-const LOGOUT_PENDING_KEY = "enovbe.logout-pending";
+const LOGOUT_PENDING_KEY = "novbetime.logout-pending";
 
 function setLogoutPending(pending: boolean) {
   try {
