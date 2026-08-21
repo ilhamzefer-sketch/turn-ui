@@ -12,8 +12,8 @@ export function Brand({ compact = false }: BrandProps) {
           className="brand__logo"
           src="/novbetime-logo.png"
           alt=""
-          width="1254"
-          height="1254"
+          width="2048"
+          height="2048"
         />
       </span>
       {!compact && <span className="brand__name">NövbəTime</span>}
