@@ -11,7 +11,6 @@ import { bookingApi } from "../../shared/api/bookingApi";
 import { publicApi } from "../../shared/api/publicApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button, ButtonLink } from "../../shared/ui/Button";
-import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { TextField } from "../../shared/ui/TextField";
 
@@ -22,7 +21,7 @@ export function BookRoomPage() {
   const [date, setDate] = useState("");
   const [selectedStart, setSelectedStart] = useState("");
   const successHeadingRef = useRef<HTMLHeadingElement>(null);
-  const form = useForm<BookingNoteFormValues>({ resolver: zodResolver(bookingNoteSchema), defaultValues: { serviceId: "", customerNote: "" } });
+  const form = useForm<BookingNoteFormValues>({ resolver: zodResolver(bookingNoteSchema), defaultValues: { customerNote: "" } });
   const effectiveDate = date || (room ? todayInTimezone(room.timezone) : "");
   const slotsQuery = useQuery({
     queryKey: ["booking-slots", roomId, effectiveDate],
@@ -35,7 +34,6 @@ export function BookRoomPage() {
       return bookingApi.create({
         roomId,
         startAt: selectedStart,
-        serviceId: values.serviceId ? Number(values.serviceId) : null,
         customerNote: values.customerNote.trim() || null,
       });
     },
@@ -80,7 +78,6 @@ export function BookRoomPage() {
         </section>
         <section className="booking-step" aria-labelledby="booking-detail-title">
           <span className="booking-step__number">3</span><div><h2 id="booking-detail-title">Detalları tamamlayın</h2>
-            {room.services.length > 0 ? <SelectField label="Xidmət (istəyə bağlı)" {...form.register("serviceId")}><option value="">Xidmət seçilməyib</option>{room.services.map((service) => <option key={service.id} value={service.id}>{service.name}</option>)}</SelectField> : null}
             <TextAreaField label="Otaq sahibinə qeyd (istəyə bağlı)" error={form.formState.errors.customerNote?.message} {...form.register("customerNote")} />
           </div>
         </section>

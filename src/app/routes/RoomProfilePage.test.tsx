@@ -45,7 +45,6 @@ describe("RoomProfilePage", () => {
       location: { address: "Nizami küçəsi 10", city: "Bakı", district: "Səbail", latitude: null, longitude: null },
       contactPhone: "+994501112233",
       owners: [{ displayName: "Leyla Məmmədova", phone: null }],
-      services: [{ id: 3, name: "Saç kəsimi", description: "Yuma və forma daxildir.", price: 25, currency: "AZN" }],
       averageRating: 4.8,
       ratingCount: 12,
     });
@@ -55,13 +54,11 @@ describe("RoomProfilePage", () => {
     ]);
   });
 
-  it("presents provider, branch, services, privacy, and available hours", async () => {
+  it("presents provider, branch, privacy, and available hours", async () => {
     renderPage();
 
     expect(await screen.findByRole("heading", { level: 1, name: "Leyla ilə saç baxımı" })).toBeInTheDocument();
     expect(screen.getAllByText("Mərkəz filialı")).toHaveLength(2);
-    expect(screen.getByRole("heading", { name: "Xidmətlər" })).toBeInTheDocument();
-    expect(screen.getByText(/25/)).toBeInTheDocument();
     expect(screen.getByText("Telefon gizlidir")).toBeInTheDocument();
     expect(await screen.findByText("10:00")).toBeInTheDocument();
     expect(screen.getByText("10:30")).toBeInTheDocument();

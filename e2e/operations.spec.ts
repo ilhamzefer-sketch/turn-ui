@@ -2,16 +2,16 @@ import { expect, test, type Page } from "@playwright/test";
 
 const user = { id: 44, firstName: "Leyla", lastName: "Məmmədova", phone: "+994501234567", status: "ACTIVE", createdAt: "2026-08-20T08:00:00" };
 const plannedRoom = {
-  id: 30, name: "Aysel — saç ustası", roomNumberOrCode: "A-02", description: "Saç xidməti", timezone: "Asia/Baku",
+  id: 30, name: "Aysel — saç ustası", roomNumberOrCode: "A-02", description: "Saç baxımı", timezone: "Asia/Baku",
   reservationMode: "PLANNED_BOOKING", defaultSlotDurationMinutes: 30, appointmentBufferMinutes: 0, liveQueueAcceptingNewEntries: true,
   providerName: "Sakit Studio", providerDescription: null, providerLogoUrl: null, branchName: "Mərkəz", category: null, customSubcategory: null,
   location: { address: "Nizami 10", city: "Bakı", district: "Səbail", latitude: null, longitude: null }, contactPhone: "+994501112233",
-  owners: [{ displayName: "Aysel Məmmədova", phone: null }], services: [{ id: 8, name: "Saç kəsimi", description: null, price: 20, currency: "AZN" }], averageRating: 0, ratingCount: 0,
+  owners: [{ displayName: "Aysel Məmmədova", phone: null }], averageRating: 0, ratingCount: 0,
 };
 const managedRoom = {
-  id: 30, businessId: 10, branchId: 20, individualWorkspaceId: null, createdByUserId: 44, name: plannedRoom.name, roomNumberOrCode: "A-02", description: "Saç xidməti", notes: null, timezone: "Asia/Baku", reservationMode: "LIVE_QUEUE", defaultSlotDurationMinutes: 30, appointmentBufferMinutes: 0, bookingWindowDays: 30, minimumAdvanceMinutes: 30, cancellationCutoffMinutes: 120, liveQueueResetPolicy: "DAILY_AT_TIME", liveQueueResetLocalTime: "08:00:00", liveQueueResetIntervalMinutes: null, liveQueueMaxParticipants: null, liveQueueAcceptingNewEntries: true, status: "PUBLISHED", visibility: "PUBLIC", personalPublicAddress: null, personalLatitude: null, personalLongitude: null, createdAt: user.createdAt, archivedAt: null,
+  id: 30, businessId: 10, branchId: 20, individualWorkspaceId: null, createdByUserId: 44, name: plannedRoom.name, roomNumberOrCode: "A-02", description: "Saç baxımı", notes: null, timezone: "Asia/Baku", reservationMode: "LIVE_QUEUE", defaultSlotDurationMinutes: 30, appointmentBufferMinutes: 0, bookingWindowDays: 30, minimumAdvanceMinutes: 30, cancellationCutoffMinutes: 120, liveQueueResetPolicy: "DAILY_AT_TIME", liveQueueResetLocalTime: "08:00:00", liveQueueResetIntervalMinutes: null, liveQueueMaxParticipants: null, liveQueueAcceptingNewEntries: true, status: "PUBLISHED", visibility: "PUBLIC", personalPublicAddress: null, personalLatitude: null, personalLongitude: null, createdAt: user.createdAt, archivedAt: null,
 };
-const activeBooking = { id: 90, bookingReference: "B-TEST90", roomId: 30, roomName: plannedRoom.name, serviceId: 8, serviceName: "Saç kəsimi", status: "ACTIVE", participantName: "Cavid Əlizadə", participantPhone: "+994505556677", startAt: "2026-08-24T10:00:00", endAt: "2026-08-24T10:30:00", timezone: "Asia/Baku", customerNote: null, internalNote: null, source: "WEB", cancellationReason: null, cancellationDetail: null, createdByUserId: 44, createdAt: user.createdAt, updatedAt: user.createdAt, completedAt: null, cancelledAt: null };
+const activeBooking = { id: 90, bookingReference: "B-TEST90", roomId: 30, roomName: plannedRoom.name, status: "ACTIVE", participantName: "Cavid Əlizadə", participantPhone: "+994505556677", startAt: "2026-08-24T10:00:00", endAt: "2026-08-24T10:30:00", timezone: "Asia/Baku", customerNote: null, internalNote: null, source: "WEB", cancellationReason: null, cancellationDetail: null, createdByUserId: 44, createdAt: user.createdAt, updatedAt: user.createdAt, completedAt: null, cancelledAt: null };
 
 async function mockSession(page: Page) {
   await page.route("**/api/auth/csrf**", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ csrfToken: "csrf-test" }) }));
@@ -79,7 +79,7 @@ test("step 5 public and operator pages have no compact horizontal overflow", asy
   await page.setViewportSize({ width: 360, height: 800 });
   await page.route("**/api/auth/csrf**", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ csrfToken: "csrf-test" }) }));
   await page.route("**/api/auth/refresh", (route) => route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ message: "anonymous" }) }));
-  await page.route("**/api/public/rooms/30/live-queue", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ roomId: 30, roomName: "Çox uzun adlı mütəxəssis otağı və xidmət sahəsi", sessionId: 7, status: "OPEN", acceptingNewEntries: true, nextOpeningAt: null, nextResetAt: null, currentPublicReference: "Q-VERY-LONG-REFERENCE", waitingCount: 12, approximateWaitingMinutes: 360, entries: [] }) }));
+  await page.route("**/api/public/rooms/30/live-queue", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ roomId: 30, roomName: "Çox uzun adlı mütəxəssis və növbə otağı", sessionId: 7, status: "OPEN", acceptingNewEntries: true, nextOpeningAt: null, nextResetAt: null, currentPublicReference: "Q-VERY-LONG-REFERENCE", waitingCount: 12, approximateWaitingMinutes: 360, entries: [] }) }));
   await page.goto("/rooms/30/live");
   const width = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
   expect(width.scrollWidth).toBeLessThanOrEqual(width.clientWidth);

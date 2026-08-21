@@ -9,7 +9,6 @@ const roomSummary = {
   branchName: "Mərkəz filialı",
   category: { id: 2, code: "BEAUTY", name: "Gözəllik" },
   customSubcategory: null,
-  serviceNames: ["Saç kəsimi"],
   location: { address: "Nizami küçəsi 10", city: "Bakı", district: "Səbail", latitude: null, longitude: null },
   averageRating: 4.8,
   ratingCount: 12,
@@ -37,7 +36,6 @@ async function mockDiscovery(page: Page) {
       providerLogoUrl: null,
       contactPhone: "+994501112233",
       owners: [{ displayName: "Leyla Məmmədova", phone: null }],
-      services: [{ id: 3, name: "Saç kəsimi", description: "Yuma və forma daxildir.", price: 25, currency: "AZN" }],
     }),
   }));
   await page.route("**/api/public/rooms/7/available-slots?date=*", (route) => route.fulfill({
@@ -69,7 +67,7 @@ test("landing search opens filtered discovery and a complete room profile", asyn
 test("discovery stays usable at compact width", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/rooms");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Uyğun xidməti");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Uyğun otağı");
   await expect(page.getByRole("heading", { name: "Leyla ilə saç baxımı" })).toBeVisible();
 
   const widthState = await page.evaluate(() => ({

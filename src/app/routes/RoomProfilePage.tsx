@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 
 import {
-  formatPrice,
   locationLabel,
   ratingLabel,
   reservationModeLabel,
@@ -32,7 +31,7 @@ export function RoomProfilePage() {
 
   usePageMeta(
     room ? `${room.name} — ${room.providerName} | E-Növbə` : "Otaq profili — E-Növbə",
-    room?.description || "Otağın növbə növü, xidmətləri, ünvanı və uyğun saatları ilə tanış olun.",
+    room?.description || "Otağın növbə növü, ünvanı və uyğun saatları ilə tanış olun.",
   );
 
   if (!hasValidId) return <ProfileNotFound />;
@@ -124,27 +123,9 @@ export function RoomProfilePage() {
             </dl>
           </section>
 
-          <section className="profile-section" aria-labelledby="services-title">
-            <p className="eyebrow">Təklif olunan xidmətlər</p>
-            <h2 id="services-title">Xidmətlər</h2>
-            {room.services.length > 0 ? (
-              <div className="service-list">
-                {room.services.map((service) => {
-                  const price = formatPrice(service.price, service.currency);
-                  return (
-                    <article key={service.id}>
-                      <div><h3>{service.name}</h3>{service.description && <p>{service.description}</p>}</div>
-                      {price && <strong>{price}</strong>}
-                    </article>
-                  );
-                })}
-              </div>
-            ) : <p className="empty-copy">Bu otaq üçün xidmət siyahısı paylaşılmayıb.</p>}
-          </section>
-
           <section className="profile-section" aria-labelledby="owners-title">
             <p className="eyebrow">Otaq sahibləri</p>
-            <h2 id="owners-title">Sizə xidmət edən komanda</h2>
+            <h2 id="owners-title">Otağı idarə edən komanda</h2>
             <div className="owner-list">
               {room.owners.map((owner) => (
                 <article key={`${owner.displayName}-${owner.phone ?? "private"}`}>
@@ -167,7 +148,7 @@ export function RoomProfilePage() {
               <span className={room.liveQueueAcceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" />
               <div>
                 <strong>{room.liveQueueAcceptingNewEntries ? "Yeni iştirakçılar qəbul olunur" : "Hazırda qoşulmaq mümkün deyil"}</strong>
-                <p>Hər növbə üçün təxmini xidmət müddəti {room.defaultSlotDurationMinutes} dəqiqədir.</p>
+                <p>Hər iştirakçı üçün təxmini növbə müddəti {room.defaultSlotDurationMinutes} dəqiqədir.</p>
               </div>
             </div>
           ) : (

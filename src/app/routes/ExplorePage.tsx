@@ -18,7 +18,7 @@ export function ExplorePage() {
 
   usePageMeta(
     "Otaq tap — E-Növbə",
-    "Biznes, filial, xidmət və növbə növünə görə açıq otaqları axtarın.",
+    "Biznes, filial, mütəxəssis və növbə növünə görə açıq otaqları axtarın.",
   );
 
   const page = roomsQuery.data;
@@ -28,9 +28,9 @@ export function ExplorePage() {
       <section className="discovery-hero" aria-labelledby="discovery-title">
         <div className="shell discovery-hero__inner">
           <p className="eyebrow">Açıq otaqlar</p>
-          <h1 id="discovery-title">Uyğun xidməti, uyğun vaxtda tapın.</h1>
+          <h1 id="discovery-title">Uyğun otağı, uyğun vaxtda tapın.</h1>
           <p>
-            Biznes, filial, otaq və ya xidmət adı ilə axtarın. Canlı növbəni və planlı
+            Biznes, filial, otaq və ya mütəxəssis adı ilə axtarın. Canlı növbəni və planlı
             rezervasiyanı ehtiyacınıza görə ayırın.
           </p>
         </div>

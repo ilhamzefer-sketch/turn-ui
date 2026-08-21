@@ -245,21 +245,6 @@ export type QrCredential = {
   revokedAt: string | null;
 };
 
-export type ManagedRoomServiceInput = {
-  name: string;
-  description: string | null;
-  price: number | null;
-  active: boolean;
-};
-
-export type ManagedRoomService = ManagedRoomServiceInput & {
-  id: number;
-  roomId: number;
-  currency: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export type PublicCategory = {
   id: number;
   code: string;
@@ -283,7 +268,6 @@ export type PublicRoomSummary = {
   branchName: string | null;
   category: PublicCategory | null;
   customSubcategory: string | null;
-  serviceNames: string[];
   location: PublicRoomLocation | null;
   averageRating: number;
   ratingCount: number;
@@ -300,14 +284,6 @@ export type PublicRoomSearchPage = {
 export type PublicRoomOwner = {
   displayName: string;
   phone: string | null;
-};
-
-export type PublicRoomService = {
-  id: number;
-  name: string;
-  description: string | null;
-  price: number | null;
-  currency: string | null;
 };
 
 export type PublicRoomProfile = {
@@ -329,7 +305,6 @@ export type PublicRoomProfile = {
   location: PublicRoomLocation | null;
   contactPhone: string | null;
   owners: PublicRoomOwner[];
-  services: PublicRoomService[];
   averageRating: number;
   ratingCount: number;
 };
@@ -441,8 +416,6 @@ export type PlannedBooking = {
   bookingReference: string;
   roomId: number;
   roomName: string;
-  serviceId: number | null;
-  serviceName: string | null;
   status: PlannedBookingStatus;
   participantName: string;
   participantPhone: string;
@@ -464,7 +437,6 @@ export type PlannedBooking = {
 export type BookingCreateInput = {
   roomId: number;
   startAt: string;
-  serviceId: number | null;
   customerNote: string | null;
 };
 
@@ -472,7 +444,6 @@ export type BookingManualCreateInput = {
   displayName: string;
   phone: string;
   startAt: string;
-  serviceId: number | null;
   source: Exclude<LiveQueueEntrySource, "WEB" | "QR">;
   internalNote: string | null;
 };

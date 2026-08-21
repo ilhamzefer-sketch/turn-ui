@@ -87,9 +87,9 @@ export function BusinessRoomsPage() {
   return (
     <div className="management-page">
       <ManagementPageHeader
-        eyebrow="Xidmət sahələri"
+        eyebrow="Növbə sahələri"
         title="Otaqlar"
-        description="Otaq bir ortaq növbə və qrafikdir. Eyni vaxtda müstəqil xidmət göstərən əməkdaşlar üçün ayrıca otaqlar yaradın."
+        description="Otaq bir ortaq növbə və qrafikdir. Eyni vaxtda müstəqil qəbul aparan əməkdaşlar üçün ayrıca otaqlar yaradın."
         actions={branches.length > 0 ? <Button onClick={() => setCreatorOpen(true)}>Yeni otaq</Button> : undefined}
       />
 

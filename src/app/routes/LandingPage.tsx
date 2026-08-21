@@ -7,7 +7,7 @@ import { ArrowIcon } from "../../shared/ui/ArrowIcon";
 import { ButtonLink } from "../../shared/ui/Button";
 
 const customerSteps = [
-  { number: "01", title: "Otağı tapın", text: "Biznesi, mütəxəssisi və ya xidməti axtarın." },
+  { number: "01", title: "Otağı tapın", text: "Biznesi, filialı və ya mütəxəssisi axtarın." },
   { number: "02", title: "Axını seçin", text: "Canlı növbəyə qoşulun və ya boş saatı rezervasiya edin." },
   { number: "03", title: "Vaxtınız çatanda gəlin", text: "Vəziyyəti telefondan izləyin və gözləməni azaldın." },
 ] as const;
@@ -90,7 +90,7 @@ export function LandingPage() {
               src="/landing/hero-queue-studio.jpg"
               width="1672"
               height="941"
-              alt="Müasir xidmət məkanında telefondan idarə olunan rəqəmsal növbə"
+              alt="Müasir qəbul məkanında telefondan idarə olunan rəqəmsal növbə"
               fetchPriority="high"
             />
             <div className="live-status-card" aria-label="Canlı növbə nümunəsi">
@@ -206,7 +206,7 @@ export function LandingPage() {
               height="1024"
               loading="lazy"
               decoding="async"
-              alt="Bir neçə xidmət otağı olan məkanda gündəlik iş axınının idarə edilməsi"
+              alt="Bir neçə növbə otağı olan məkanda gündəlik iş axınının idarə edilməsi"
             />
             <div className="business-insight-card">
               <span>Bugünkü əməliyyat</span>

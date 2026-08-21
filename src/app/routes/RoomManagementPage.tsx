@@ -9,15 +9,14 @@ import { RoomOverviewSection } from "../../features/management/room/RoomOverview
 import { RoomOwnersSection } from "../../features/management/room/RoomOwnersSection";
 import { RoomQrSection } from "../../features/management/room/RoomQrSection";
 import { RoomScheduleSection } from "../../features/management/room/RoomScheduleSection";
-import { RoomServicesSection } from "../../features/management/room/RoomServicesSection";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 
-type RoomSection = "overview" | "owners" | "schedule" | "services" | "qr";
+type RoomSection = "overview" | "owners" | "schedule" | "qr";
 
 function roomSection(value: string | null): RoomSection {
-  return value === "owners" || value === "schedule" || value === "services" || value === "qr" ? value : "overview";
+  return value === "owners" || value === "schedule" || value === "qr" ? value : "overview";
 }
 
 export function RoomManagementPage() {
@@ -124,7 +123,6 @@ export function RoomManagementPage() {
           ["overview", "Əsas ayarlar"],
           ["owners", "Owner-lər"],
           ["schedule", "İş qrafiki"],
-          ["services", "Xidmətlər"],
           ["qr", "QR kodlar"],
         ].map(([value, label]) => (
           <NavLink
@@ -142,7 +140,6 @@ export function RoomManagementPage() {
       {section === "overview" ? <RoomOverviewSection room={room} /> : null}
       {section === "owners" ? <RoomOwnersSection room={room} /> : null}
       {section === "schedule" ? <RoomScheduleSection room={room} /> : null}
-      {section === "services" ? <RoomServicesSection room={room} /> : null}
       {section === "qr" ? <RoomQrSection room={room} /> : null}
 
       <section className="danger-zone" aria-labelledby="room-danger-title">

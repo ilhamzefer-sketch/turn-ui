@@ -15,7 +15,6 @@ describe("step 5 operation contracts", () => {
       phone: "0501234567",
       source: "WEB",
       internalNote: "",
-      serviceId: "",
     }).success).toBe(false);
   });
 

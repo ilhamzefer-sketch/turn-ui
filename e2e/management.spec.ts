@@ -14,7 +14,7 @@ const business = {
   primaryOwnerUserId: 44,
   name: "Sakit Studio",
   legalName: null,
-  description: "Gözəllik və qulluq xidmətləri",
+  description: "Gözəllik və qulluq mərkəzi",
   taxId: null,
   logoUrl: null,
   phone: "+994501112233",
@@ -151,7 +151,6 @@ async function mockManagement(page: Page) {
     body: JSON.stringify([{ id: 1, roomId: 30, dayOfWeek: "MONDAY", startTime: "09:00:00", endTime: "18:00:00", active: true }]),
   }));
   await page.route("**/api/rooms/30/availability-exceptions", (route) => route.fulfill({ contentType: "application/json", body: "[]" }));
-  await page.route("**/api/rooms/30/services", (route) => route.fulfill({ contentType: "application/json", body: "[]" }));
   await page.route("**/api/rooms/30/qr-codes", (route) => route.fulfill({
     contentType: "application/json",
     body: JSON.stringify([{ id: 80, roomId: 30, type: "PERMANENT_ROOM", active: true, token: "permanent-test-token", createdAt: user.createdAt, revokedAt: null }]),

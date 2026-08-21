@@ -77,14 +77,6 @@ export const configurationSchema = z.object({
 
 export type ConfigurationFormValues = z.infer<typeof configurationSchema>;
 
-export const serviceSchema = z.object({
-  name: z.string().trim().min(1, "Xidmət adını yazın.").max(160, "Maksimum 160 simvol ola bilər."),
-  description: optionalText(1000),
-  price: z.string().refine((value) => value === "" || (!Number.isNaN(Number(value)) && Number(value) >= 0), "Müsbət qiymət yazın."),
-});
-
-export type ServiceFormValues = z.infer<typeof serviceSchema>;
-
 function isIntegerBetween(minimum: number, maximum: number) {
   return (value: string) => {
     const number = Number(value);

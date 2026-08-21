@@ -4,7 +4,6 @@ import {
   branchSchema,
   configurationSchema,
   roomSchema,
-  serviceSchema,
 } from "./schemas";
 
 describe("management form contracts", () => {
@@ -41,9 +40,5 @@ describe("management form contracts", () => {
       liveQueueAcceptingNewEntries: true,
     });
     expect(result.success).toBe(false);
-  });
-
-  it("allows an optional room service price", () => {
-    expect(serviceSchema.safeParse({ name: "Konsultasiya", description: "", price: "" }).success).toBe(true);
   });
 });

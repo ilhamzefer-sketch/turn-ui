@@ -14,7 +14,7 @@ export function defaultFieldInfo(label: string) {
   if (normalized.includes("nömrəsi") || normalized.includes("qeyd/kod") || normalized.includes("nömrəsi və ya kodu")) return "Otağı daxildə daha rahat ayırmaq üçün nömrə, qısa kod və ya tanıdıcı qeyd daxil edin.";
   if (normalized.includes("iş rejimi")) return "Otağın canlı növbə ilə, yoxsa əvvəlcədən planlanan rezervasiya ilə işləyəcəyini seçin.";
   if (normalized.includes("görünürlük")) return "Otağın axtarışda hamıya, yalnız link və QR ilə, yaxud yalnız səlahiyyətli şəxslərə görünməsini seçin.";
-  if (normalized.includes("standart") && normalized.includes("müddət")) return "Bir müştəri üçün ayrılan standart xidmət və ya növbə müddətini dəqiqə ilə göstərin.";
+  if (normalized.includes("standart") && normalized.includes("müddət")) return "Bir iştirakçı üçün ayrılan standart növbə müddətini dəqiqə ilə göstərin.";
   if (normalized.includes("fasilə")) return "Ardıcıl rezervasiyalar arasında hazırlanmaq üçün saxlanacaq əlavə vaxtı dəqiqə ilə göstərin.";
   if (normalized.includes("rezervasiya pəncərəsi")) return "Müştərilərin bu gündən maksimum neçə gün sonrakı tarixə rezervasiya edə biləcəyini müəyyən edin.";
   if (normalized.includes("minimum əvvəlcədən")) return "Rezervasiyanın başlanmasına ən az neçə dəqiqə qalmış qəbul edilə biləcəyini müəyyən edin.";
@@ -24,12 +24,9 @@ export function defaultFieldInfo(label: string) {
   if (normalized.includes("tarix")) return "Məlumatın və ya əməliyyatın tətbiq olunacağı tarixi seçin.";
   if (normalized.includes("başlayır") || normalized === "başlanğıc" || normalized.includes("bitir") || normalized === "bitmə" || normalized.includes("saat")) return "Vaxtı 24 saat formatında daxil edin, məsələn 09:00 və ya 18:30.";
   if (normalized.includes("ünvan")) return "Müştərilərin məkanı tapması üçün tam və aydın ünvanı daxil edin.";
-  if (normalized.includes("şəhər")) return "Filialın və ya xidmət məkanının yerləşdiyi şəhəri daxil edin.";
+  if (normalized.includes("şəhər")) return "Filialın və ya qəbul məkanının yerləşdiyi şəhəri daxil edin.";
   if (normalized.includes("rayon")) return "Axtarış nəticələrini dəqiqləşdirmək üçün məkanın yerləşdiyi rayonu daxil edin.";
-  if (normalized.includes("kateqoriya") || normalized.includes("biznes sahəsi")) return "Biznesi və ya xidməti müştərilərin düzgün tapa bilməsi üçün uyğun fəaliyyət sahəsini seçin.";
-  if (normalized.includes("xidmət adı")) return "Müştərilərin seçə biləcəyi xidmətin aydın və qısa adını daxil edin.";
-  if (normalized.includes("xidmət")) return "Bu əməliyyat və ya rezervasiya üçün uyğun xidməti seçin.";
-  if (normalized.includes("qiymət")) return "Xidmətin qiymətini Azərbaycan manatı ilə daxil edin.";
+  if (normalized.includes("kateqoriya") || normalized.includes("biznes sahəsi")) return "Biznesi müştərilərin düzgün tapa bilməsi üçün uyğun fəaliyyət sahəsini seçin.";
   if (normalized.includes("əlaqə mənbəyi")) return "Müştərinin növbə və ya rezervasiya üçün hansı kanalla müraciət etdiyini seçin.";
   if (normalized.includes("rol")) return "İstifadəçinin biznes daxilində hansı səlahiyyətlərə malik olacağını seçin.";
   if (normalized.includes("owner seç")) return "Bu otağı idarə edə biləcək komanda üzvünü seçin.";

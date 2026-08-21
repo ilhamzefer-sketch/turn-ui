@@ -38,7 +38,6 @@ describe("ExplorePage", () => {
           branchName: "Mərkəz filialı",
           category: { id: 2, code: "BEAUTY", name: "Gözəllik" },
           customSubcategory: null,
-          serviceNames: ["Saç kəsimi"],
           location: { address: "Nizami küçəsi 10", city: "Bakı", district: "Səbail", latitude: null, longitude: null },
           averageRating: 4.8,
           ratingCount: 12,

@@ -181,7 +181,7 @@ function OnboardingChoices({ pendingInvitationCount, onCustomer, onIndividual, o
       <button type="button" className="choice-card" onClick={onIndividual}>
         <span className="choice-card__number" aria-hidden="true">02</span>
         <strong>Fərdi mütəxəssis</strong>
-        <span>Özünüz üçün bir xidmət otağı və vahid iş təqvimi yaradın.</span>
+        <span>Özünüz üçün bir növbə otağı və vahid iş təqvimi yaradın.</span>
         <span className="choice-card__action">Fərdi sahə yarat <span aria-hidden="true">→</span></span>
       </button>
       <button type="button" className="choice-card" onClick={onBusiness}>

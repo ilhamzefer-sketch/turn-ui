@@ -371,25 +371,6 @@
   font-size: var(--text-small);
 }
 
-.service-tags {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin: var(--space-4) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.service-tags li {
-  padding: 0.3rem 0.58rem;
-  border-radius: var(--radius-pill);
-  color: var(--color-ink-soft);
-  background: var(--color-surface-soft);
-  font-size: 0.75rem;
-}
-
 .room-card__footer {
   display: flex;
   align-items: center;
@@ -689,35 +670,15 @@
   text-underline-offset: 0.2rem;
 }
 
-.service-list {
-  display: grid;
-  border-top: 1px solid var(--color-line);
-}
-
-.service-list article {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-6);
-  padding-block: var(--space-5);
-  border-bottom: 1px solid var(--color-line);
-}
-
-.service-list h3,
 .owner-list h3 {
   margin: 0;
   font-size: 1rem;
 }
 
-.service-list p,
 .owner-list p {
   margin: var(--space-2) 0 0;
   color: var(--color-muted);
   font-size: var(--text-small);
-}
-
-.service-list strong {
-  flex: 0 0 auto;
 }
 
 .empty-copy {
@@ -925,9 +886,4 @@
     letter-spacing: -0.04em;
   }
 
-  .service-list article {
-    align-items: start;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
 }

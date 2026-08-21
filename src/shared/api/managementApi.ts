@@ -10,8 +10,6 @@ import type {
   BusinessRole,
   IndividualWorkspace,
   ManagedRoom,
-  ManagedRoomService,
-  ManagedRoomServiceInput,
   QrCredential,
   RoomAssignment,
   RoomConfigurationInput,
@@ -117,17 +115,4 @@ export const managementApi = {
     apiRequest<QrCredential>(`/api/rooms/${roomId}/qr-codes/${credentialId}/regenerate`, { method: "POST" }),
   revokeQrCode: (roomId: number, credentialId: number) =>
     apiRequest<void>(`/api/rooms/${roomId}/qr-codes/${credentialId}`, { method: "DELETE" }),
-  roomServices: (roomId: number) => apiRequest<ManagedRoomService[]>(`/api/rooms/${roomId}/services`),
-  createRoomService: (roomId: number, input: ManagedRoomServiceInput) =>
-    apiRequest<ManagedRoomService>(`/api/rooms/${roomId}/services`, {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  updateRoomService: (roomId: number, serviceId: number, input: ManagedRoomServiceInput) =>
-    apiRequest<ManagedRoomService>(`/api/rooms/${roomId}/services/${serviceId}`, {
-      method: "PUT",
-      body: JSON.stringify(input),
-    }),
-  deactivateRoomService: (roomId: number, serviceId: number) =>
-    apiRequest<void>(`/api/rooms/${roomId}/services/${serviceId}`, { method: "DELETE" }),
 };

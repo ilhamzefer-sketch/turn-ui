@@ -17,11 +17,10 @@ export const manualEntrySchema = guestQueueSchema.extend({
 export type ManualEntryFormValues = z.infer<typeof manualEntrySchema>;
 
 export const bookingNoteSchema = z.object({
-  serviceId: z.string(),
   customerNote: z.string().max(1000, "Qeyd maksimum 1000 simvol ola bilər."),
 });
 
 export type BookingNoteFormValues = z.infer<typeof bookingNoteSchema>;
 
-export const manualBookingSchema = manualEntrySchema.extend({ serviceId: z.string() });
+export const manualBookingSchema = manualEntrySchema;
 export type ManualBookingFormValues = z.infer<typeof manualBookingSchema>;

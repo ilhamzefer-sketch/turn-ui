@@ -126,7 +126,7 @@ export function BusinessOverviewPage() {
             <ButtonLink variant="quiet" to={`/app/businesses/${businessId}/branches`}>Filiallara keç</ButtonLink>
           </li>
           <li className={rooms.length > 0 ? "is-complete" : ""}>
-            <span>2</span><div><strong>Otaqları əlavə edin</strong><p>Hər xidmət axını üçün ayrıca otaq yaradın.</p></div>
+            <span>2</span><div><strong>Otaqları əlavə edin</strong><p>Hər müstəqil növbə axını üçün ayrıca otaq yaradın.</p></div>
             <ButtonLink variant="quiet" to={`/app/businesses/${businessId}/rooms`}>Otaqlara keç</ButtonLink>
           </li>
           <li className={activeMembers > 1 ? "is-complete" : ""}>

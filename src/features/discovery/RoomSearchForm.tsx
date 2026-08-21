@@ -34,7 +34,7 @@ export function RoomSearchForm({ categories = [], initialValues = {}, compact = 
       >
         <label className="quick-search__query">
           <span>Nə axtarırsınız?</span>
-          <input name="q" maxLength={120} placeholder="Biznes, mütəxəssis və ya xidmət" />
+          <input name="q" maxLength={120} placeholder="Biznes, filial və ya mütəxəssis" />
         </label>
         <label className="quick-search__mode">
           <span>Növbə növü</span>
@@ -68,7 +68,7 @@ export function RoomSearchForm({ categories = [], initialValues = {}, compact = 
             name="q"
             maxLength={120}
             defaultValue={initialValues.q}
-            placeholder="Biznes, filial, otaq və ya xidmət"
+            placeholder="Biznes, filial, otaq və ya mütəxəssis"
           />
         </label>
         <label className="filter-field">
