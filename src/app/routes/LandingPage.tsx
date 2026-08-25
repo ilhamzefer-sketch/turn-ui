@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { RoomSearchForm } from "../../features/discovery/RoomSearchForm";
 import { useAuth } from "../../shared/auth/useAuth";
+import { homeStructuredData } from "../../shared/meta/siteMetadata";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { ArrowIcon } from "../../shared/ui/ArrowIcon";
 import { ButtonLink } from "../../shared/ui/Button";
@@ -18,6 +19,28 @@ const businessCapabilities = [
   "Canlı əməliyyatları və nəticələri izləyin",
 ] as const;
 
+const suitableBusinesses = [
+  { title: "Klinika və tibbi qəbul", text: "Pasiyent axınını canlı növbə və əvvəlcədən təyin olunan qəbul saatları ilə idarə edin." },
+  { title: "Gözəllik və şəxsi qulluq", text: "Salon, bərbər və ustalar üçün boş saatları göstərib onlayn rezervasiya qəbul edin." },
+  { title: "Xidmət və qəbul mərkəzləri", text: "Müştərilərin qapıda gözləməsini azaldın, növbənin gedişini real vaxtda göstərin." },
+  { title: "Fərdi mütəxəssislər", text: "Bir otaqdan başlayın, iş qrafikinizi və müştəri qəbulunuzu vahid səhifədə paylaşın." },
+] as const;
+
+const frequentlyAskedQuestions = [
+  {
+    question: "Onlayn növbə sistemi necə işləyir?",
+    answer: "Müştəri uyğun otağı tapır, canlı növbəyə uzaqdan qoşulur və növbədəki yerini telefondan izləyir. Vaxtı yaxınlaşanda məkana gəlir.",
+  },
+  {
+    question: "Canlı növbə ilə planlı rezervasiyanın fərqi nədir?",
+    answer: "Canlı növbədə iştirakçılar cari ardıcıllığa qoşulur. Planlı rezervasiyada isə müştəri iş qrafikindən yaranan boş tarix və saatı əvvəlcədən seçir.",
+  },
+  {
+    question: "NövbəTime hansı bizneslər üçün uyğundur?",
+    answer: "Müştəri qəbulu aparan klinikalar, salonlar, xidmət mərkəzləri, filiallı bizneslər və fərdi mütəxəssislər hər otaq üçün uyğun növbə rejimi qura bilər.",
+  },
+] as const;
+
 export function LandingPage() {
   const { status } = useAuth();
   const pageRef = useRef<HTMLDivElement>(null);
@@ -30,8 +53,9 @@ export function LandingPage() {
       : "Pulsuz hesab yaradın";
 
   usePageMeta(
-    "NövbəTime — Vaxtınızı növbədə yox, həyatınızda keçirin",
-    "Canlı növbəyə uzaqdan qoşulun və ya uyğun saatı əvvəlcədən rezervasiya edin.",
+    "Onlayn növbə və rezervasiya sistemi | NövbəTime",
+    "Azərbaycanda bizneslər və müştərilər üçün onlayn növbə, canlı növbə və qəbul rezervasiyası. QR ilə qoşulun, növbənizi telefondan izləyin.",
+    { canonicalPath: "/", structuredData: homeStructuredData },
   );
 
   useEffect(() => {
@@ -214,6 +238,44 @@ export function LandingPage() {
               <div aria-hidden="true"><i /><i /><i /><i /><i /></div>
               <small>Günün gedişi bir baxışda</small>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-sectors shell" id="suitable-businesses" aria-labelledby="sectors-title">
+        <div className="landing-section-heading" data-reveal>
+          <p className="eyebrow">Kimlər üçün</p>
+          <h2 id="sectors-title">Onlayn növbə və rezervasiya sistemi kimlər üçün uyğundur?</h2>
+          <p>
+            NövbəTime Azərbaycanda müştəri qəbulu aparan bizneslərə növbəni, boş saatları və
+            gündəlik iş axınını bir platformada idarə etməyə kömək edir.
+          </p>
+        </div>
+        <div className="landing-sectors__grid">
+          {suitableBusinesses.map((business, index) => (
+            <article key={business.title} data-reveal>
+              <span aria-hidden="true">0{index + 1}</span>
+              <h3>{business.title}</h3>
+              <p>{business.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-faq" aria-labelledby="faq-title">
+        <div className="shell landing-faq__grid">
+          <div className="landing-section-heading" data-reveal>
+            <p className="eyebrow">Aydın cavablar</p>
+            <h2 id="faq-title">NövbəTime haqqında tez-tez verilən suallar</h2>
+            <p>Canlı növbə və planlı qəbul modelini ehtiyacınıza uyğun seçin.</p>
+          </div>
+          <div className="landing-faq__list" data-reveal>
+            {frequentlyAskedQuestions.map((item, index) => (
+              <details key={item.question} open={index === 0}>
+                <summary>{item.question}</summary>
+                <p>{item.answer}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>

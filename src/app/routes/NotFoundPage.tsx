@@ -1,7 +1,10 @@
 import { ButtonLink } from "../../shared/ui/Button";
 import { Brand } from "../../shared/ui/Brand";
+import { usePageMeta } from "../../shared/meta/usePageMeta";
 
 export function NotFoundPage() {
+  usePageMeta("Səhifə tapılmadı — NövbəTime", "Axtardığınız NövbəTime səhifəsi mövcud deyil.", { index: false });
+
   return (
     <main className="not-found">
       <Brand />

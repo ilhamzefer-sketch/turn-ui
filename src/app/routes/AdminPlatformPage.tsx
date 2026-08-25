@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { stepSixApi } from "../../shared/api/stepSixApi";
+import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button } from "../../shared/ui/Button";
 import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 
 export function AdminPlatformPage() {
+  usePageMeta("Platform idarəetməsi — NövbəTime", "NövbəTime platforma əməliyyatları.", { index: false });
   const overview = useQuery({ queryKey: ["admin-overview"], queryFn: stepSixApi.adminOverview, retry: false });
   const disputes = useQuery({ queryKey: ["admin-disputes"], queryFn: stepSixApi.adminDisputes, enabled: overview.isSuccess });
   const phone = useQuery({ queryKey: ["admin-phone-changes"], queryFn: stepSixApi.adminPhoneChanges, enabled: overview.isSuccess });

@@ -613,6 +613,98 @@
 .business-insight-card i:nth-child(4) { height: 78%; }
 .business-insight-card i:nth-child(5) { height: 100%; background: var(--color-brand-600); }
 
+.landing-sectors {
+  padding-block: var(--section-space);
+}
+
+.landing-sectors__grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.landing-sectors__grid article {
+  min-height: 15rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-medium);
+  background: var(--color-surface);
+}
+
+.landing-sectors__grid article > span {
+  display: block;
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  color: var(--color-accent);
+  font-size: var(--text-small);
+  font-weight: 800;
+}
+
+.landing-sectors__grid h3 {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  letter-spacing: -0.03em;
+}
+
+.landing-sectors__grid p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.landing-faq {
+  padding-block: var(--section-space);
+  background: #efeee7;
+}
+
+.landing-faq__grid {
+  display: grid;
+  gap: clamp(2.5rem, 7vw, 7rem);
+}
+
+.landing-faq .landing-section-heading {
+  margin-bottom: 0;
+}
+
+.landing-faq__list {
+  border-top: 1px solid var(--color-line);
+}
+
+.landing-faq__list details {
+  border-bottom: 1px solid var(--color-line);
+}
+
+.landing-faq__list summary {
+  position: relative;
+  padding: var(--space-6) 3rem var(--space-6) 0;
+  cursor: pointer;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  font-weight: 740;
+  list-style: none;
+}
+
+.landing-faq__list summary::-webkit-details-marker {
+  display: none;
+}
+
+.landing-faq__list summary::after {
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  color: var(--color-brand-700);
+  content: "+";
+  font-size: 1.5rem;
+  transform: translateY(-50%);
+}
+
+.landing-faq__list details[open] summary::after {
+  content: "−";
+}
+
+.landing-faq__list details p {
+  max-width: var(--reading-measure);
+  margin: calc(-1 * var(--space-2)) 0 var(--space-6);
+  color: var(--color-muted);
+  line-height: 1.65;
+}
+
 .landing-closing {
   display: grid;
   align-items: end;
@@ -731,6 +823,10 @@
   .landing-closing {
     grid-template-columns: minmax(0, 1.3fr) minmax(20rem, 0.7fr);
   }
+
+  .landing-sectors__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 64rem) {
@@ -748,6 +844,11 @@
 
   .landing-business__grid {
     grid-template-columns: minmax(0, 0.86fr) minmax(27rem, 1.14fr);
+  }
+
+
+  .landing-faq__grid {
+    grid-template-columns: minmax(20rem, 0.75fr) minmax(0, 1.25fr);
   }
 }
 

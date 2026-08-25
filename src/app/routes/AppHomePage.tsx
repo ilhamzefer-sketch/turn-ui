@@ -6,8 +6,11 @@ import { workspaceHomePath } from "../../features/workspaces/workspaceLabels";
 import { ButtonLink } from "../../shared/ui/Button";
 import { useWorkspace } from "../../shared/workspace/useWorkspace";
 import { workspaceApi } from "../../shared/api/workspaceApi";
+import { usePageMeta } from "../../shared/meta/usePageMeta";
 
 export function AppHomePage() {
+  usePageMeta("Hesabım — NövbəTime", "Növbələrinizi və iş sahələrinizi idarə edin.", { index: false });
+
   const { user } = useAuth();
   const { activeWorkspace, workspaces, status } = useWorkspace();
   const invitationsQuery = useQuery({

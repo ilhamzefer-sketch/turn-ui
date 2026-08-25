@@ -17,8 +17,9 @@ export function ExplorePage() {
   });
 
   usePageMeta(
-    "Otaq tap — NövbəTime",
-    "Biznes, filial, mütəxəssis və növbə növünə görə açıq otaqları axtarın.",
+    "Onlayn növbə və qəbul üçün otaq tap | NövbəTime",
+    "Azərbaycanda biznes, klinika, salon, filial və mütəxəssis üzrə canlı növbə və onlayn qəbul saatlarını axtarın.",
+    { canonicalPath: "/rooms" },
   );
 
   const page = roomsQuery.data;

@@ -6,6 +6,15 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    build: {
+      rollupOptions: {
+        input: {
+          app: "app.html",
+          home: "index.html",
+          rooms: "rooms.html",
+        },
+      },
+    },
     server: {
       port: 5275,
       strictPort: true,

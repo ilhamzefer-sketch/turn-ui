@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import {
@@ -36,10 +37,28 @@ export function RoomProfilePage() {
     enabled: Boolean(room && room.reservationMode === "LIVE_QUEUE"),
     refetchInterval: 30_000,
   });
+  const structuredData = useMemo(() => room ? {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: `${room.name} — ${room.providerName}`,
+    description: room.description || room.providerDescription || `${room.providerName} üçün onlayn növbə və qəbul səhifəsi.`,
+    url: `https://novbetime.az/rooms/${room.id}`,
+    serviceType: reservationModeLabel(room.reservationMode),
+    provider: {
+      "@type": "Organization",
+      name: room.providerName,
+      telephone: room.contactPhone ?? undefined,
+    },
+    areaServed: room.location?.city ? {
+      "@type": "City",
+      name: room.location.city,
+    } : undefined,
+  } : undefined, [room]);
 
   usePageMeta(
     room ? `${room.name} — ${room.providerName} | NövbəTime` : "Otaq profili — NövbəTime",
     room?.description || "Otağın növbə növü, ünvanı və uyğun saatları ilə tanış olun.",
+    { canonicalPath: hasValidId ? `/rooms/${roomId}` : "/rooms", structuredData },
   );
 
   if (!hasValidId) return <ProfileNotFound />;

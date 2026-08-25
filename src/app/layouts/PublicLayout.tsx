@@ -33,6 +33,7 @@ export function PublicLayout() {
             <Link to="/app/bookings">Növbələrim</Link>
             <a href="/#how-it-works">Necə işləyir</a>
             <a href="/#for-business">Biznes üçün</a>
+            <a href="/#suitable-businesses">Kimlər üçün</a>
             {isAuthenticated ? <Link to="/app">Hesabım</Link> : null}
             {!isAuthenticated && !isChecking ? <Link to="/login">Daxil ol</Link> : null}
             {isChecking ? <span className="auth-link-placeholder" aria-hidden="true" /> : null}
@@ -56,6 +57,7 @@ export function PublicLayout() {
               <Link to="/app/bookings">Növbələrim</Link>
               <a href="/#how-it-works">Necə işləyir</a>
               <a href="/#for-business">Biznes üçün</a>
+              <a href="/#suitable-businesses">Kimlər üçün</a>
               {isAuthenticated ? <Link to="/app">Hesabım</Link> : null}
               {isAuthenticated ? (
                 <Button variant="quiet" loading={isLoggingOut} onClick={() => void handleLogout()}>Çıxış et</Button>
