@@ -5,6 +5,7 @@ import { authApi } from "../api/authApi";
 import { clearApiSession, subscribeToApiSessionChanges } from "../api/httpClient";
 import type { CurrentUser, LoginInput, RegistrationInput } from "../api/contracts";
 import { AuthContext, type AuthStatus } from "./authContext";
+import { SessionLifecycleManager } from "./SessionLifecycleManager";
 
 type AuthProviderProps = {
   children: ReactNode;
@@ -86,5 +87,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [status, user, login, register, restore, logout],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <SessionLifecycleManager status={status} onExpired={logout} />
+    </AuthContext.Provider>
+  );
 }

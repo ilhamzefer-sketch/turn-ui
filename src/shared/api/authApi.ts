@@ -3,6 +3,8 @@ import type {
   CurrentUser,
   LoginInput,
   RegistrationInput,
+  SessionInfo,
+  UserSession,
 } from "./contracts";
 import {
   announceApiSessionChange,
@@ -99,4 +101,21 @@ export const authApi = {
       announceApiSessionChange("signed-out");
     }
   },
+
+  session: () => apiRequest<SessionInfo>("/api/auth/session", { retryAuthentication: false }),
+
+  activity: () => apiRequest<SessionInfo>("/api/auth/activity", {
+    method: "POST",
+    retryAuthentication: false,
+  }),
+
+  sessions: () => apiRequest<UserSession[]>("/api/users/me/sessions"),
+
+  revokeSession: (sessionId: number) => apiRequest<void>(`/api/users/me/sessions/${sessionId}`, {
+    method: "DELETE",
+  }),
+
+  revokeOtherSessions: () => apiRequest<void>("/api/users/me/sessions/others", {
+    method: "DELETE",
+  }),
 };

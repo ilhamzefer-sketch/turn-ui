@@ -1,4 +1,5 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const SAME_ORIGIN_API_GATEWAY = "/_backend";
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 type ApiRequestOptions = RequestInit & {
@@ -6,6 +7,7 @@ type ApiRequestOptions = RequestInit & {
 };
 
 type ErrorPayload = {
+  code?: string;
   message?: string;
   error?: string;
 };
@@ -31,9 +33,11 @@ let csrfToken: string | null = null;
 let refreshPromise: Promise<string> | null = null;
 const sessionListeners = new Set<ApiSessionListener>();
 const SESSION_SYNC_KEY = "novbetime.session-sync";
+const REFRESH_LEASE_KEY = "novbetime.refresh-lease";
+const REFRESH_LEASE_MS = 8_000;
 
 function endpoint(path: string) {
-  return `${API_BASE_URL}${path}`;
+  return API_BASE_URL ? `${API_BASE_URL}${path}` : `${SAME_ORIGIN_API_GATEWAY}${path}`;
 }
 
 function methodOf(options: RequestInit) {
@@ -57,6 +61,7 @@ async function ensureCsrfToken() {
     credentials: "include",
     headers: { Accept: "application/json" },
   });
+  captureCsrfToken(response);
 
   if (!response.ok) {
     const payload = await readError(response);
@@ -80,6 +85,7 @@ async function refreshAccessToken() {
           "X-CSRF-TOKEN": token,
         },
       });
+      captureCsrfToken(response);
 
       if (!response.ok) {
         accessToken = null;
@@ -125,6 +131,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     headers,
     credentials: "include",
   });
+  captureCsrfToken(response);
 
   const mayRetry = options.retryAuthentication !== false && response.status === 401 && path !== "/api/auth/refresh";
   if (mayRetry) {
@@ -148,6 +155,7 @@ export async function apiDownload(path: string, filename: string, retryAuthentic
   const headers = new Headers({ Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   const response = await fetch(endpoint(path), { headers, credentials: "include" });
+  captureCsrfToken(response);
   if (response.status === 401 && retryAuthentication) {
     await refreshAccessToken();
     return apiDownload(path, filename, false);
@@ -220,5 +228,52 @@ async function withRefreshLock<T>(operation: () => Promise<T>) {
   if (typeof navigator !== "undefined" && navigator.locks) {
     return navigator.locks.request("novbetime-refresh-session", operation);
   }
+  return withStorageLease(operation);
+}
+
+async function withStorageLease<T>(operation: () => Promise<T>) {
+  if (!supportsStorageLease()) return operation();
+  const owner = `${Date.now()}-${Math.random()}`;
+  const deadline = Date.now() + REFRESH_LEASE_MS;
+  while (Date.now() < deadline) {
+    const now = Date.now();
+    const lease = readRefreshLease();
+    if (!lease || lease.expiresAt <= now) {
+      localStorage.setItem(REFRESH_LEASE_KEY, JSON.stringify({ owner, expiresAt: now + REFRESH_LEASE_MS }));
+      if (readRefreshLease()?.owner === owner) {
+        try {
+          return await operation();
+        } finally {
+          if (readRefreshLease()?.owner === owner) localStorage.removeItem(REFRESH_LEASE_KEY);
+        }
+      }
+    }
+    await delay(75);
+  }
   return operation();
+}
+
+function supportsStorageLease() {
+  return typeof localStorage !== "undefined"
+    && typeof localStorage.getItem === "function"
+    && typeof localStorage.setItem === "function"
+    && typeof localStorage.removeItem === "function";
+}
+
+function readRefreshLease() {
+  try {
+    const raw = localStorage.getItem(REFRESH_LEASE_KEY);
+    return raw ? JSON.parse(raw) as { owner: string; expiresAt: number } : null;
+  } catch {
+    return null;
+  }
+}
+
+function captureCsrfToken(response: Response) {
+  const rotatedToken = response.headers.get("X-CSRF-TOKEN");
+  if (rotatedToken) csrfToken = rotatedToken;
+}
+
+function delay(milliseconds: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
 }

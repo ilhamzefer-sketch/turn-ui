@@ -20,6 +20,26 @@ export type AuthenticatedUserResponse = CurrentUser & {
   accessToken: string;
 };
 
+export type SessionInfo = {
+  id: number;
+  serverTime: string;
+  lastActivityAt: string;
+  idleExpiresAt: string;
+  absoluteExpiresAt: string;
+};
+
+export type UserSession = {
+  id: number;
+  current: boolean;
+  userAgent: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+  lastActivityAt: string;
+  idleExpiresAt: string;
+  absoluteExpiresAt: string;
+};
+
 export type LoginInput = {
   phone: string;
   password: string;

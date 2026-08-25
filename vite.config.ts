@@ -10,9 +10,10 @@ export default defineConfig(({ mode }) => {
       port: 5275,
       strictPort: true,
       proxy: {
-        "/api": {
+        "/_backend": {
           target: env.VITE_API_PROXY_TARGET || "http://localhost:8080",
           changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/_backend/, ""),
         },
       },
     },

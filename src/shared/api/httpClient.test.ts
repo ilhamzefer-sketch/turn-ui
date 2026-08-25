@@ -27,10 +27,11 @@ describe("http client", () => {
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      "/api/auth/csrf",
+      "/_backend/api/auth/csrf",
       expect.objectContaining({ credentials: "include" }),
     );
     const secondRequest = fetchMock.mock.calls[1];
+    expect(secondRequest?.[0]).toBe("/_backend/api/example");
     const headers = secondRequest?.[1]?.headers as Headers;
     expect(headers.get("X-CSRF-TOKEN")).toBe("csrf-123");
   });
@@ -43,6 +44,7 @@ describe("http client", () => {
 
     await apiRequest<{ id: number }>("/api/users/me", { retryAuthentication: false });
 
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("/_backend/api/users/me");
     const headers = fetchMock.mock.calls[0]?.[1]?.headers as Headers;
     expect(headers.get("Authorization")).toBe("Bearer access-123");
   });

@@ -259,6 +259,41 @@
   font-weight: 750;
 }
 
+.session-warning {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(8 25 23 / 0.58);
+  backdrop-filter: blur(8px);
+}
+
+.session-warning__dialog {
+  width: min(100%, 30rem);
+  padding: clamp(var(--space-5), 5vw, var(--space-8));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+  background: var(--color-surface);
+  box-shadow: 0 1.5rem 4rem rgb(8 25 23 / 0.24);
+}
+
+.session-warning__dialog h2 {
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.session-warning__dialog > p:last-of-type {
+  color: var(--color-ink-soft);
+}
+
+.session-warning__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
 .page-loader {
   display: grid;
   min-height: 100vh;

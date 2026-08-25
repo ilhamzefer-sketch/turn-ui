@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Link, type LinkProps } from "react-router-dom";
 
 type ButtonVariant = "primary" | "secondary" | "quiet" | "danger";
@@ -14,10 +14,14 @@ type ButtonLinkProps = LinkProps & {
   variant?: ButtonVariant;
 };
 
-export function Button({ children, variant = "primary", loading = false, disabled, ...props }: ButtonProps) {
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { children, variant = "primary", loading = false, disabled, ...props },
+  ref,
+) {
   return (
     <button
       {...props}
+      ref={ref}
       className={`button button--${variant} ${props.className ?? ""}`.trim()}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
@@ -27,7 +31,7 @@ export function Button({ children, variant = "primary", loading = false, disable
       <span>{loading ? "Gözləyin…" : children}</span>
     </button>
   );
-}
+});
 
 export function ButtonLink({ children, variant = "primary", ...props }: ButtonLinkProps) {
   return (
