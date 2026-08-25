@@ -94,7 +94,7 @@ export function IndividualWorkspacePage() {
       <ManagementPageHeader
         eyebrow="Fərdi mütəxəssis"
         title={workspaceQuery.data.name}
-        description="Fərdi sahədə bir otaq və bir ortaq qrafik olur. Otağın owner-i avtomatik olaraq siz olursunuz."
+        description="Fərdi sahədə bir otaq və bir ortaq qrafik olur. Otağın sahibi avtomatik olaraq siz olursunuz."
         actions={existingRoom ? (
           <>
             <ButtonLink variant="secondary" to={`/app/rooms/${existingRoom.id}`}>Redaktə et</ButtonLink>

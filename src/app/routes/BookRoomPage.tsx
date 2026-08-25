@@ -81,7 +81,7 @@ export function BookRoomPage() {
             <TextAreaField label="Otaq sahibinə qeyd (istəyə bağlı)" error={form.formState.errors.customerNote?.message} {...form.register("customerNote")} />
           </div>
         </section>
-        <div className="booking-submit"><div><strong>{selectedStart ? `${effectiveDate} · ${localTimeLabel(selectedStart)}` : "Saat seçilməyib"}</strong><span>Ayrıca owner təsdiqi tələb olunmur.</span></div><Button type="submit" disabled={!selectedStart} loading={mutation.isPending}>Rezervasiyanı təsdiqlə</Button></div>
+        <div className="booking-submit"><div><strong>{selectedStart ? `${effectiveDate} · ${localTimeLabel(selectedStart)}` : "Saat seçilməyib"}</strong><span>Ayrıca otaq sahibi təsdiqi tələb olunmur.</span></div><Button type="submit" disabled={!selectedStart} loading={mutation.isPending}>Rezervasiyanı təsdiqlə</Button></div>
       </form>
     </main>
   );

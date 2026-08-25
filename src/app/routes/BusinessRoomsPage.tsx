@@ -121,7 +121,7 @@ export function BusinessRoomsPage() {
             </div>
             <TextAreaField label="Müştəri üçün açıqlama (istəyə bağlı)" rows={3} error={form.formState.errors.description?.message} {...form.register("description")} />
             <TextAreaField label="Daxili qeyd (istəyə bağlı)" rows={3} error={form.formState.errors.notes?.message} {...form.register("notes")} />
-            <p className="form-note">Otaq əvvəl qaralama kimi yaranır. Owner, iş qrafiki və rejim ayarlarını tamamladıqdan sonra ayrıca yayımlayacaqsınız.</p>
+            <p className="form-note">Otaq əvvəl qaralama kimi yaranır. Otaq sahibi, iş qrafiki və rejim ayarlarını tamamladıqdan sonra ayrıca yayımlayacaqsınız.</p>
             <div className="management-form__actions">
               <Button type="button" variant="secondary" onClick={() => setCreatorOpen(false)}>Ləğv et</Button>
               <Button type="submit" loading={createMutation.isPending}>Otağı yarat və qur</Button>

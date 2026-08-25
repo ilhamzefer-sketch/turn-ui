@@ -101,7 +101,31 @@ async function mockManagement(page: Page) {
 
   await page.route("**/api/auth/csrf", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ csrfToken: "test-csrf" }) }));
   await page.route("**/api/auth/refresh", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ accessToken: "test-token" }) }));
+  await page.route("**/api/auth/session", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({
+      id: 1,
+      serverTime: "2026-08-18T10:00:00+04:00",
+      lastActivityAt: "2026-08-18T10:00:00+04:00",
+      idleExpiresAt: "2026-08-18T18:00:00+04:00",
+      absoluteExpiresAt: "2026-08-18T22:00:00+04:00",
+    }),
+  }));
+  await page.route("**/api/auth/activity", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({
+      id: 1,
+      serverTime: "2026-08-18T10:00:00+04:00",
+      lastActivityAt: "2026-08-18T10:00:00+04:00",
+      idleExpiresAt: "2026-08-18T18:00:00+04:00",
+      absoluteExpiresAt: "2026-08-18T22:00:00+04:00",
+    }),
+  }));
   await page.route("**/api/users/me", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(user) }));
+  await page.route("**/api/users/me/invitations", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ businessInvitations: [], roomInvitations: [] }),
+  }));
   await page.route("**/api/users/me/workspaces", (route) => route.fulfill({
     contentType: "application/json",
     body: JSON.stringify([
@@ -146,10 +170,20 @@ async function mockManagement(page: Page) {
     contentType: "application/json",
     body: JSON.stringify([{ id: 50, roomId: 30, roomName: room.name, userId: 44, firstName: "Leyla", lastName: "Məmmədova", phone: user.phone, role: "ROOM_OWNER", status: "ACTIVE", showPhonePublicly: false, invitedByUserId: 44, invitedAt: user.createdAt, respondedAt: user.createdAt }]),
   }));
-  await page.route("**/api/rooms/30/availability-rules", (route) => route.fulfill({
-    contentType: "application/json",
-    body: JSON.stringify([{ id: 1, roomId: 30, dayOfWeek: "MONDAY", startTime: "09:00:00", endTime: "18:00:00", active: true }]),
-  }));
+  await page.route("**/api/rooms/30/availability-rules", async (route) => {
+    if (route.request().method() === "PUT") {
+      const payload = route.request().postDataJSON() as { rules: Array<Record<string, unknown>> };
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(payload.rules.map((rule, index) => ({ ...rule, id: index + 1, roomId: 30 }))),
+      });
+      return;
+    }
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify([{ id: 1, roomId: 30, dayOfWeek: "MONDAY", startTime: "09:00:00", endTime: "18:00:00", active: true }]),
+    });
+  });
   await page.route("**/api/rooms/30/availability-exceptions", (route) => route.fulfill({ contentType: "application/json", body: "[]" }));
   await page.route("**/api/rooms/30/qr-codes", (route) => route.fulfill({
     contentType: "application/json",
@@ -161,6 +195,7 @@ test.beforeEach(async ({ page }) => mockManagement(page));
 
 test("business workspace presents the setup sequence and management navigation", async ({ page }, testInfo) => {
   await page.goto("/app");
+  await expect(page.locator(".account-summary div").filter({ hasText: "İdarə olunan iş sahələri" })).toContainText("3");
   await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");
   await expect(page).toHaveURL(/\/app\/businesses\/10$/);
   await expect(page.getByRole("heading", { name: "Sakit Studio" })).toBeVisible();
@@ -174,10 +209,10 @@ test("creates a branch without losing entered management context", async ({ page
   await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");
   await page.getByRole("link", { name: "Filiallar", exact: true }).click();
   await page.getByRole("button", { name: "Yeni filial" }).click();
-  await page.getByLabel("Filial adı").fill("Gənclik filialı");
-  await page.getByLabel("Şəhər").fill("Bakı");
-  await page.getByLabel("Rayon").fill("Nərimanov");
-  await page.getByLabel("Tam ünvan").fill("Atatürk prospekti 12");
+  await page.getByRole("textbox", { name: "Filial adı", exact: true }).fill("Gənclik filialı");
+  await page.getByRole("textbox", { name: "Şəhər", exact: true }).fill("Bakı");
+  await page.getByRole("textbox", { name: "Rayon", exact: true }).fill("Nərimanov");
+  await page.getByRole("textbox", { name: "Tam ünvan", exact: true }).fill("Atatürk prospekti 12");
   await page.getByRole("button", { name: "Filial yarat" }).click();
   await expect(page.getByRole("heading", { name: "Gənclik filialı" })).toBeVisible();
   await expect(page.getByText("Gənclik filialı yaradıldı.")).toBeVisible();
@@ -191,7 +226,8 @@ test("room management remains usable on a compact viewport and exposes permanent
   await expect(page.getByRole("heading", { name: room.name })).toBeVisible();
   await page.getByRole("link", { name: "QR kodlar" }).click();
   await expect(page.getByRole("heading", { name: "QR kodlar" })).toBeVisible();
-  await expect(page.getByText(/permanent-test-token/)).toBeVisible();
+  await expect(page.getByRole("img", { name: `${room.name} üçün QR kod 1` })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Arxivləşdir" })).toHaveCount(0);
   const widthState = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
   expect(widthState.scrollWidth).toBeLessThanOrEqual(widthState.clientWidth);
   const skipLinkBottom = await page.locator(".skip-link").evaluate((element) => element.getBoundingClientRect().bottom);
@@ -212,6 +248,26 @@ test("individual workspace shows its room and returns to creation after deletion
 
   await expect(page.getByRole("heading", { name: "Otağınızı yaradın" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Otağı sil" })).toHaveCount(0);
+});
+
+test("edited weekend schedule is submitted and confirmed as saved", async ({ page }) => {
+  await page.goto("/app");
+  await page.getByLabel("Aktiv sahə").selectOption("ROOM:30");
+  await page.getByRole("link", { name: "İş qrafiki" }).click();
+  await page.getByRole("group", { name: "Şənbə", exact: true }).getByRole("checkbox").check();
+  await page.getByRole("group", { name: "Bazar", exact: true }).getByRole("checkbox").check();
+  await expect(page.getByText("Saxlanmamış dəyişikliklər var")).toBeVisible();
+
+  const requestPromise = page.waitForRequest((request) => (
+    request.url().endsWith("/api/rooms/30/availability-rules") && request.method() === "PUT"
+  ));
+  await page.getByRole("button", { name: "Dəyişiklikləri saxla" }).click();
+  const request = await requestPromise;
+  const rules = (request.postDataJSON() as { rules: Array<{ dayOfWeek: string }> }).rules;
+
+  expect(rules.map((rule) => rule.dayOfWeek)).toEqual(expect.arrayContaining(["SATURDAY", "SUNDAY"]));
+  await expect(page.getByText("Həftəlik iş qrafiki saxlanıldı.")).toBeVisible();
+  await expect(page.getByText("Qrafik serverlə eynidir")).toBeVisible();
 });
 
 test("management navigation and actions survive doubled text", async ({ page }, testInfo) => {

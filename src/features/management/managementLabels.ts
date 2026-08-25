@@ -51,7 +51,7 @@ export function membershipStatusLabel(status: BusinessMembershipStatus) {
 
 export function assignmentStatusLabel(status: RoomAssignmentStatus) {
   if (status === "PENDING_ACCEPTANCE") return "Dəvət göndərilib";
-  if (status === "ACTIVE") return "Aktiv owner";
+  if (status === "ACTIVE") return "Aktiv otaq sahibi";
   if (status === "REJECTED") return "Rədd edilib";
   return "Ləğv edilib";
 }

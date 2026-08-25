@@ -17,7 +17,7 @@ import { TextField } from "../../shared/ui/TextField";
 
 export function BusinessTeamPage() {
   const businessId = Number(useParams().businessId);
-  usePageMeta("Komanda — NövbəTime", "Administratorları, işçiləri və otaq owner-lərini telefonla idarə edin.");
+  usePageMeta("Komanda — NövbəTime", "Administratorları, işçiləri və otaq sahiblərini telefonla idarə edin.");
   const queryClient = useQueryClient();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -97,7 +97,7 @@ export function BusinessTeamPage() {
               <TextField label="Ad (yeni hesab üçün)" error={form.formState.errors.firstName?.message} {...form.register("firstName")} />
               <TextField label="Soyad (yeni hesab üçün)" error={form.formState.errors.lastName?.message} {...form.register("lastName")} />
             </div>
-            <p className="form-note">Administrator biznesin bütün gündəlik idarəetmə işlərini görə bilər. İşçiyə otaq owner icazəsi ayrıca verilir.</p>
+            <p className="form-note">Administrator biznesin bütün gündəlik idarəetmə işlərini görə bilər. İşçiyə otaq sahibi icazəsi ayrıca verilir.</p>
             <div className="management-form__actions">
               <Button type="button" variant="secondary" onClick={() => setInviteOpen(false)}>Ləğv et</Button>
               <Button type="submit" loading={inviteMutation.isPending}>Dəvət göndər</Button>
@@ -139,7 +139,7 @@ export function BusinessTeamPage() {
                       variant="quiet"
                       disabled={roleMutation.isPending || removeMutation.isPending}
                       onClick={() => {
-                        if (window.confirm(`${member.firstName} ${member.lastName} biznesdən silinsin? Bütün aktiv otaq owner icazələri də ləğv ediləcək.`)) {
+                        if (window.confirm(`${member.firstName} ${member.lastName} biznesdən silinsin? Bütün aktiv otaq sahibi icazələri də ləğv ediləcək.`)) {
                           removeMutation.mutate(member.id);
                         }
                       }}

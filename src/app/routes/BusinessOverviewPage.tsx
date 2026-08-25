@@ -106,7 +106,7 @@ export function BusinessOverviewPage() {
       <ManagementPageHeader
         eyebrow="Biznes iş sahəsi"
         title={business.name}
-        description="Filialdan otağa qədər bütün strukturun hazırlığını bir yerdə izləyin. Otaq yalnız owner və iş qrafiki tamamlandıqdan sonra yayımlanır."
+        description="Filialdan otağa qədər bütün strukturun hazırlığını bir yerdə izləyin. Otaq yalnız otaq sahibi və iş qrafiki tamamlandıqdan sonra yayımlanır."
         actions={<ButtonLink to={`/app/businesses/${businessId}/branches`}>Filial əlavə et</ButtonLink>}
       />
 
@@ -130,7 +130,7 @@ export function BusinessOverviewPage() {
             <ButtonLink variant="quiet" to={`/app/businesses/${businessId}/rooms`}>Otaqlara keç</ButtonLink>
           </li>
           <li className={activeMembers > 1 ? "is-complete" : ""}>
-            <span>3</span><div><strong>Komandanı dəvət edin</strong><p>Administrator və otaq owner-lərini telefon nömrəsi ilə əlavə edin.</p></div>
+            <span>3</span><div><strong>Komandanı dəvət edin</strong><p>Administrator və otaq sahiblərini telefon nömrəsi ilə əlavə edin.</p></div>
             <ButtonLink variant="quiet" to={`/app/businesses/${businessId}/team`}>Komandaya keç</ButtonLink>
           </li>
         </ol>

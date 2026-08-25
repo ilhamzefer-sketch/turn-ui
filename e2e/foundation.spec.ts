@@ -51,7 +51,9 @@ test("authenticated landing replaces account creation actions with the current a
   }
   await expect(page.getByRole("link", { name: "Daxil ol" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Pulsuz hesab yarat" })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Hesabıma keç" })).toBeVisible();
+  const workspaceLinks = page.getByRole("link", { name: "İş sahəsinə keçin" });
+  await expect(workspaceLinks).toHaveCount(2);
+  await expect(workspaceLinks.first()).toBeVisible();
 });
 
 test("compact layout has no horizontal overflow", async ({ page }) => {

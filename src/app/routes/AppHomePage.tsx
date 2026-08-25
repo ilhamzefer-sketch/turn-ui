@@ -1,12 +1,23 @@
+import { useQuery } from "@tanstack/react-query";
+
 import { useAuth } from "../../shared/auth/useAuth";
 import { workspaceTypeLabel } from "../../features/workspaces/workspaceLabels";
 import { workspaceHomePath } from "../../features/workspaces/workspaceLabels";
 import { ButtonLink } from "../../shared/ui/Button";
 import { useWorkspace } from "../../shared/workspace/useWorkspace";
+import { workspaceApi } from "../../shared/api/workspaceApi";
 
 export function AppHomePage() {
   const { user } = useAuth();
   const { activeWorkspace, workspaces, status } = useWorkspace();
+  const invitationsQuery = useQuery({
+    queryKey: ["user-invitations", user?.id],
+    queryFn: workspaceApi.invitations,
+    enabled: Boolean(user),
+  });
+  const managedWorkspaceCount = workspaces.filter((workspace) => workspace.type !== "CUSTOMER").length;
+  const pendingInvitationCount = (invitationsQuery.data?.businessInvitations.length ?? 0)
+    + (invitationsQuery.data?.roomInvitations.length ?? 0);
 
   return (
     <div className="app-home-grid">
@@ -27,13 +38,19 @@ export function AppHomePage() {
           ) : null}
           <ButtonLink to="/onboarding" variant="secondary">Yeni iş sahəsi əlavə et</ButtonLink>
         </div>
+        {pendingInvitationCount > 0 ? (
+          <div className="success-alert">
+            <strong>{pendingInvitationCount} gözləyən dəvətiniz var.</strong>{" "}
+            <ButtonLink variant="secondary" to="/onboarding#pending-invitations">Dəvətlərə bax və cavablandır</ButtonLink>
+          </div>
+        ) : null}
       </section>
       <aside className="account-panel" aria-labelledby="account-panel-title">
         <h2 id="account-panel-title">Hesab məlumatları</h2>
         <dl className="account-summary">
           <div><dt>Telefon</dt><dd>{user?.phone}</dd></div>
           <div><dt>Hesab vəziyyəti</dt><dd>{user?.status === "ACTIVE" ? "Aktiv" : user?.status}</dd></div>
-          <div><dt>İş sahələri</dt><dd>{workspaces.length}</dd></div>
+          <div><dt>İdarə olunan iş sahələri</dt><dd>{managedWorkspaceCount}</dd></div>
         </dl>
       </aside>
     </div>

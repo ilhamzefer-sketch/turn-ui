@@ -110,7 +110,7 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
             ) : null}
           </div>
           <TextAreaField label="Müştəri üçün açıqlama (istəyə bağlı)" rows={4} error={roomForm.formState.errors.description?.message} {...roomForm.register("description")} />
-          <TextAreaField label="Owner-lər üçün daxili qeyd (istəyə bağlı)" rows={3} error={roomForm.formState.errors.notes?.message} {...roomForm.register("notes")} />
+          <TextAreaField label="Otaq sahibləri üçün daxili qeyd (istəyə bağlı)" rows={3} error={roomForm.formState.errors.notes?.message} {...roomForm.register("notes")} />
           {selectedMode !== room.reservationMode ? <div className="warning-note">Rejim saxlanıldıqdan sonra aşağıdakı ayarlar yeni rejimə uyğun yenilənəcək.</div> : null}
           <div className="management-form__actions"><Button type="submit" loading={roomMutation.isPending}>Əsas məlumatları saxla</Button></div>
         </form>
@@ -119,7 +119,7 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
       <section className="management-panel" aria-labelledby="room-config-title">
         <div className="section-heading">
           <div><p className="eyebrow">{room.reservationMode === "LIVE_QUEUE" ? "Canlı növbə" : "Planlı rezervasiya"}</p><h2 id="room-config-title">Rejim ayarları</h2></div>
-          <p>Bu ayarlar bütün owner-lərin istifadə etdiyi ortaq otaq axınına tətbiq olunur.</p>
+          <p>Bu ayarlar bütün otaq sahiblərinin istifadə etdiyi ortaq otaq axınına tətbiq olunur.</p>
         </div>
         <form className="management-form" onSubmit={configForm.handleSubmit((values) => { setSuccessMessage(null); configurationMutation.mutate(values); })} noValidate>
           <div className="management-form__grid">
@@ -150,7 +150,7 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
             <>
               <label className="switch-field">
                 <input type="checkbox" {...configForm.register("liveQueueAcceptingNewEntries")} />
-                <span><strong>Yeni iştirakçıları qəbul et</strong><small>Owner bu ayarla canlı növbəyə qoşulmanı manual dayandıra bilər.</small></span>
+                <span><strong>Yeni iştirakçıları qəbul et</strong><small>Otaq sahibi bu ayarla canlı növbəyə qoşulmanı manual dayandıra bilər.</small></span>
               </label>
               <div className="warning-note"><strong>Sıfırlama xəbərdarlığı:</strong> sıfırlama baş verdikdə aktiv gözləyənlər `RESET` nəticəsi ilə cari növbədən çıxarılır. Köhnə sessiya tarixçədə saxlanılır.</div>
             </>

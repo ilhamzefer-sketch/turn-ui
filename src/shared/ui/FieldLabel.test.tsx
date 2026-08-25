@@ -9,7 +9,7 @@ describe("field information tooltip", () => {
     render(<TextField label="Telefon nömrəsi" />);
 
     const field = screen.getByLabelText("Telefon nömrəsi");
-    const infoButton = screen.getByRole("button", { name: "Telefon nömrəsi haqqında məlumat" });
+    const infoButton = screen.getByRole("button", { name: "Sahə haqqında məlumatı göstər" });
     const tooltip = screen.getByRole("tooltip");
     expect(infoButton).toHaveAttribute("aria-describedby", tooltip.id);
     expect(field).toHaveAttribute("aria-describedby", tooltip.id);
@@ -22,7 +22,7 @@ describe("field information tooltip", () => {
 
     await user.tab();
 
-    expect(screen.getByRole("button", { name: "Otaq adı haqqında məlumat" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Sahə haqqında məlumatı göstər" })).toHaveFocus();
     expect(screen.getByRole("tooltip")).toHaveTextContent("Müştərinin görəcəyi otaq adıdır.");
   });
 });

@@ -52,6 +52,7 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
     : scheduleQuery.data
       ? scheduleFromRules(scheduleQuery.data)
       : emptyWeek();
+  const hasUnsavedChanges = Boolean(scheduleDraft && scheduleDraft.source === scheduleQuery.data);
   const setDays = (updater: DaySchedule[] | ((current: DaySchedule[]) => DaySchedule[])) => {
     setScheduleDraft((current) => {
       const currentDays = current && current.source === scheduleQuery.data
@@ -82,10 +83,11 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
           : []),
       );
     },
-    onSuccess: async () => {
+    onSuccess: (savedRules) => {
       setScheduleError(null);
       setSuccessMessage("Həftəlik iş qrafiki saxlanıldı.");
-      await queryClient.invalidateQueries({ queryKey: ["management-room-schedule", room.id] });
+      queryClient.setQueryData(["management-room-schedule", room.id], savedRules);
+      setScheduleDraft(null);
     },
     onError: (error) => setScheduleError(apiMessage(error, "İş qrafiki saxlanılmadı.")),
   });
@@ -133,6 +135,7 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
           <p>Bir gündə birdən çox interval əlavə edərək nahar və digər fasilələri ayıra bilərsiniz.</p>
         </div>
         <div className="schedule-toolbar">
+          {hasUnsavedChanges ? <strong role="status">Saxlanmamış dəyişikliklər var</strong> : <span>Qrafik serverlə eynidir</span>}
           <Button
             variant="secondary"
             onClick={() => {
@@ -145,6 +148,7 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
               setSuccessMessage("Bazar ertəsinin saatları digər iş günlərinə kopyalandı. Saxlamağı unutmayın.");
             }}
           >B.e saatlarını iş günlərinə kopyala</Button>
+          <Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate()}>Dəyişiklikləri saxla</Button>
         </div>
         {scheduleQuery.isPending ? <p role="status">İş saatları açılır…</p> : (
           <div className="week-editor">
@@ -177,7 +181,7 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
             })}
           </div>
         )}
-        <div className="management-form__actions"><Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>İş qrafikini saxla</Button></div>
+        <div className="management-form__actions"><Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate()}>İş qrafikini saxla</Button></div>
       </section>
 
       <section className="management-panel" aria-labelledby="exceptions-title">

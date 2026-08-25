@@ -31,8 +31,8 @@ export function sourceLabel(source: LiveQueueEntrySource) {
 
 export function acceptanceLabel(value: LiveQueueAcceptanceOverride) {
   if (value === "AUTO") return "İş qrafikinə görə";
-  if (value === "FORCE_OPEN") return "Owner tərəfindən açıq";
-  return "Owner tərəfindən bağlı";
+  if (value === "FORCE_OPEN") return "Otaq sahibi tərəfindən açıq";
+  return "Otaq sahibi tərəfindən bağlı";
 }
 
 export function cancellationLabel(reason: BookingCancellationReason | null) {

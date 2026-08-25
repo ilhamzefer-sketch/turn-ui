@@ -402,7 +402,7 @@ function InvitationPanel({ loading, businessInvitations, roomInvitations, respon
               <div>
                 <span className="invitation-item__type">Otaq sahibi dəvəti</span>
                 <h3>{invitation.roomName}</h3>
-                <p>{invitationDate(invitation.invitedAt)} tarixində göndərilib. Qəbul etdikdən sonra otaq ayrıca iş sahəsi kimi görünəcək.</p>
+                <p>{invitationDate(invitation.invitedAt)} tarixində göndərilib. Qəbul etdikdə gözləyən biznes üzvlüyünüz də avtomatik təsdiqlənəcək və otaq ayrıca iş sahəsi kimi görünəcək.</p>
               </div>
               <div className="invitation-item__actions">
                 <Button

@@ -29,7 +29,7 @@ export function defaultFieldInfo(label: string) {
   if (normalized.includes("kateqoriya") || normalized.includes("biznes sahəsi")) return "Biznesi müştərilərin düzgün tapa bilməsi üçün uyğun fəaliyyət sahəsini seçin.";
   if (normalized.includes("əlaqə mənbəyi")) return "Müştərinin növbə və ya rezervasiya üçün hansı kanalla müraciət etdiyini seçin.";
   if (normalized.includes("rol")) return "İstifadəçinin biznes daxilində hansı səlahiyyətlərə malik olacağını seçin.";
-  if (normalized.includes("owner seç")) return "Bu otağı idarə edə biləcək komanda üzvünü seçin.";
+  if (normalized.includes("otaq sahibi seç")) return "Bu otağı idarə edə biləcək komanda üzvünü seçin.";
   if (normalized.includes("filial")) return "Otağın aid olacağı filialı seçin.";
   if (normalized.includes("hüquqi ad")) return "Rəsmi sənədlərdə istifadə olunan hüquqi biznes adını daxil edin.";
   if (normalized.includes("vöen")) return "Biznesin vergi ödəyicisinin eyniləşdirmə nömrəsini daxil edin.";

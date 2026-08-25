@@ -8,8 +8,10 @@ import {
   timeLabel,
   todayInTimezone,
 } from "../../features/discovery/discoveryFormatters";
+import { localDateTimeLabel } from "../../features/operations/operationFormatters";
 import { ApiError } from "../../shared/api/httpClient";
 import { publicApi } from "../../shared/api/publicApi";
+import { queueApi } from "../../shared/api/queueApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { ButtonLink } from "../../shared/ui/Button";
 
@@ -27,6 +29,12 @@ export function RoomProfilePage() {
     queryKey: ["public-room-slots", roomId, today],
     queryFn: () => publicApi.availableSlots(roomId, today),
     enabled: Boolean(room && room.reservationMode === "PLANNED_BOOKING" && today),
+  });
+  const liveQueueQuery = useQuery({
+    queryKey: ["public-live-queue", roomId],
+    queryFn: () => queueApi.publicRoom(roomId),
+    enabled: Boolean(room && room.reservationMode === "LIVE_QUEUE"),
+    refetchInterval: 30_000,
   });
 
   usePageMeta(
@@ -62,6 +70,7 @@ export function RoomProfilePage() {
   if (!room) return null;
 
   const category = room.category?.name || room.customSubcategory;
+  const acceptingNewEntries = liveQueueQuery.data?.acceptingNewEntries ?? false;
 
   return (
     <article className="room-profile">
@@ -145,10 +154,13 @@ export function RoomProfilePage() {
 
           {room.reservationMode === "LIVE_QUEUE" ? (
             <div className="live-status-panel">
-              <span className={room.liveQueueAcceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" />
+              <span className={acceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" />
               <div>
-                <strong>{room.liveQueueAcceptingNewEntries ? "Yeni iştirakçılar qəbul olunur" : "Hazırda qoşulmaq mümkün deyil"}</strong>
+                <strong>{liveQueueQuery.isPending ? "Cari vəziyyət yoxlanılır" : acceptingNewEntries ? "Yeni iştirakçılar qəbul olunur" : "Hazırda qoşulmaq mümkün deyil"}</strong>
                 <p>Hər iştirakçı üçün təxmini növbə müddəti {room.defaultSlotDurationMinutes} dəqiqədir.</p>
+                {!acceptingNewEntries && liveQueueQuery.data?.nextOpeningAt ? (
+                  <p>Növbəti açılış: {localDateTimeLabel(liveQueueQuery.data.nextOpeningAt, room.timezone)}</p>
+                ) : null}
               </div>
             </div>
           ) : (

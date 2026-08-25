@@ -147,6 +147,7 @@
 }
 
 .field__info-tooltip {
+  display: none;
   position: absolute;
   z-index: 30;
   inset-block-start: calc(100% + 0.5rem);
@@ -169,6 +170,7 @@
 
 .field__info:hover .field__info-tooltip,
 .field__info:focus-within .field__info-tooltip {
+  display: block;
   opacity: 1;
   transform: translateY(0);
 }

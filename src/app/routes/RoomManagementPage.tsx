@@ -58,13 +58,29 @@ export function RoomManagementPage() {
   const archiveMutation = useMutation({
     mutationFn: () => managementApi.archiveRoom(roomId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["management-business-rooms"] });
-      await navigate("/app");
+      const room = roomQuery.data;
+      queryClient.removeQueries({ queryKey: ["management-room", roomId] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["workspaces"] }),
+        room?.businessId
+          ? queryClient.invalidateQueries({ queryKey: ["management-business-rooms", room.businessId] })
+          : Promise.resolve(),
+        room?.individualWorkspaceId
+          ? queryClient.invalidateQueries({ queryKey: ["individual-workspace-rooms", room.individualWorkspaceId] })
+          : Promise.resolve(),
+      ]);
+      if (room?.businessId) {
+        await navigate(`/app/businesses/${room.businessId}/rooms`);
+      } else if (room?.individualWorkspaceId) {
+        await navigate(`/app/individual/${room.individualWorkspaceId}`);
+      } else {
+        await navigate("/app");
+      }
     },
   });
 
   const title = roomQuery.data ? `${roomQuery.data.name} — NövbəTime` : "Otaq idarəetməsi — NövbəTime";
-  usePageMeta(title, "Otaq owner-ləri, iş qrafiki, növbə rejimi və QR kodlarını idarə edin.");
+  usePageMeta(title, "Otaq sahibləri, iş qrafiki, növbə rejimi və QR kodlarını idarə edin.");
 
   if (!Number.isInteger(roomId)) return <ManagementError message="Otaq identifikatoru düzgün deyil." />;
   if (roomQuery.isPending || assignmentsQuery.isPending || scheduleQuery.isPending) return <ManagementLoading label="Otaq idarəetməsi açılır…" />;
@@ -111,7 +127,7 @@ export function RoomManagementPage() {
           <div><span>{readyCount}/4</span><strong>Yayıma hazırlıq</strong></div>
           <ul>
             <li className={room.name ? "is-complete" : ""}>Otaq məlumatları</li>
-            <li className={hasOwner ? "is-complete" : ""}>Aktiv owner</li>
+            <li className={hasOwner ? "is-complete" : ""}>Aktiv otaq sahibi</li>
             <li className={hasSchedule ? "is-complete" : ""}>İş qrafiki</li>
             <li className={hasModeConfiguration ? "is-complete" : ""}>Rejim ayarları</li>
           </ul>
@@ -121,7 +137,7 @@ export function RoomManagementPage() {
       <nav className="room-tabs" aria-label="Otaq ayarları">
         {[
           ["overview", "Əsas ayarlar"],
-          ["owners", "Owner-lər"],
+          ["owners", "Otaq sahibləri"],
           ["schedule", "İş qrafiki"],
           ["qr", "QR kodlar"],
         ].map(([value, label]) => (
@@ -142,7 +158,7 @@ export function RoomManagementPage() {
       {section === "schedule" ? <RoomScheduleSection room={room} /> : null}
       {section === "qr" ? <RoomQrSection room={room} /> : null}
 
-      <section className="danger-zone" aria-labelledby="room-danger-title">
+      {section === "overview" ? <section className="danger-zone" aria-labelledby="room-danger-title">
         <div><h2 id="room-danger-title">Otağı arxivləşdir</h2><p>Tarixçə və hesabatlar saxlanılır, yeni növbə qəbul edilmir.</p></div>
         <Button
           variant="quiet"
@@ -151,7 +167,7 @@ export function RoomManagementPage() {
             if (window.confirm(`${room.name} otağını arxivləşdirmək istəyirsiniz? Bu əməliyyat aktiv açıq növbə olduqda qəbul edilməyəcək.`)) archiveMutation.mutate();
           }}
         >Arxivləşdir</Button>
-      </section>
+      </section> : null}
     </div>
   );
 }

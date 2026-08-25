@@ -17,7 +17,7 @@ export function FieldLabel({ htmlFor, label, info, infoId }: FieldLabelProps) {
         <button
           className="field__info-trigger"
           type="button"
-          aria-label={`${label} haqqında məlumat`}
+          aria-label="Sahə haqqında məlumatı göstər"
           aria-describedby={infoId}
         >
           i

@@ -63,4 +63,17 @@ describe("http client", () => {
     expect(listener).toHaveBeenCalledWith("expired");
     unsubscribe();
   });
+
+  it("stops a request that exceeds its configured duration", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation((_input, init) => new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+    }));
+
+    const request = apiRequest("/api/slow", { retryAuthentication: false, timeoutMs: 5 });
+
+    await expect(request).rejects.toEqual(expect.objectContaining({
+      status: 408,
+      message: "Sorğu vaxt limitini keçdi. Yenidən cəhd edin.",
+    }));
+  });
 });

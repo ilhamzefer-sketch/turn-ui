@@ -1,9 +1,12 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 const SAME_ORIGIN_API_GATEWAY = "/_backend";
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const DEFAULT_REQUEST_TIMEOUT_MS = 20_000;
+const DOWNLOAD_REQUEST_TIMEOUT_MS = 60_000;
 
 type ApiRequestOptions = RequestInit & {
   retryAuthentication?: boolean;
+  timeoutMs?: number;
 };
 
 type ErrorPayload = {
@@ -57,10 +60,10 @@ async function ensureCsrfToken() {
     return csrfToken;
   }
 
-  const response = await fetch(endpoint("/api/auth/csrf"), {
+  const response = await fetchWithTimeout(endpoint("/api/auth/csrf"), {
     credentials: "include",
     headers: { Accept: "application/json" },
-  });
+  }, DEFAULT_REQUEST_TIMEOUT_MS);
   captureCsrfToken(response);
 
   if (!response.ok) {
@@ -77,14 +80,14 @@ async function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = withRefreshLock(async () => {
       const token = await ensureCsrfToken();
-      const response = await fetch(endpoint("/api/auth/refresh"), {
+      const response = await fetchWithTimeout(endpoint("/api/auth/refresh"), {
         method: "POST",
         credentials: "include",
         headers: {
           Accept: "application/json",
           "X-CSRF-TOKEN": token,
         },
-      });
+      }, DEFAULT_REQUEST_TIMEOUT_MS);
       captureCsrfToken(response);
 
       if (!response.ok) {
@@ -109,11 +112,12 @@ async function refreshAccessToken() {
 }
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const method = methodOf(options);
-  const headers = new Headers(options.headers);
+  const { retryAuthentication, timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS, ...requestOptions } = options;
+  const method = methodOf(requestOptions);
+  const headers = new Headers(requestOptions.headers);
   headers.set("Accept", "application/json");
 
-  if (options.body && !headers.has("Content-Type")) {
+  if (requestOptions.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -125,18 +129,18 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     headers.set("Authorization", `Bearer ${accessToken}`);
   }
 
-  const response = await fetch(endpoint(path), {
-    ...options,
+  const response = await fetchWithTimeout(endpoint(path), {
+    ...requestOptions,
     method,
     headers,
     credentials: "include",
-  });
+  }, timeoutMs);
   captureCsrfToken(response);
 
-  const mayRetry = options.retryAuthentication !== false && response.status === 401 && path !== "/api/auth/refresh";
+  const mayRetry = retryAuthentication !== false && response.status === 401 && path !== "/api/auth/refresh";
   if (mayRetry) {
     await refreshAccessToken();
-    return apiRequest<T>(path, { ...options, retryAuthentication: false });
+    return apiRequest<T>(path, { ...requestOptions, timeoutMs, retryAuthentication: false });
   }
 
   if (!response.ok) {
@@ -154,7 +158,11 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 export async function apiDownload(path: string, filename: string, retryAuthentication = true) {
   const headers = new Headers({ Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
-  const response = await fetch(endpoint(path), { headers, credentials: "include" });
+  const response = await fetchWithTimeout(
+    endpoint(path),
+    { headers, credentials: "include" },
+    DOWNLOAD_REQUEST_TIMEOUT_MS,
+  );
   captureCsrfToken(response);
   if (response.status === 401 && retryAuthentication) {
     await refreshAccessToken();
@@ -272,6 +280,22 @@ function readRefreshLease() {
 function captureCsrfToken(response: Response) {
   const rotatedToken = response.headers.get("X-CSRF-TOKEN");
   if (rotatedToken) csrfToken = rotatedToken;
+}
+
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs: number) {
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  const signal = init.signal ? AbortSignal.any([init.signal, timeoutSignal]) : timeoutSignal;
+  try {
+    return await fetch(input, { ...init, signal });
+  } catch (error) {
+    if (timeoutSignal.aborted && !init.signal?.aborted) {
+      throw new ApiError(408, "Sorğu vaxt limitini keçdi. Yenidən cəhd edin.", {
+        code: "REQUEST_TIMEOUT",
+        message: "Sorğu vaxt limitini keçdi. Yenidən cəhd edin.",
+      });
+    }
+    throw error;
+  }
 }
 
 function delay(milliseconds: number) {

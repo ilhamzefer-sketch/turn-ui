@@ -29,9 +29,11 @@ test("provider sees transparent subscription plans and starts checkout", async (
   await page.route("**/api/subscriptions/current?**", (route) => route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ message: "Abunəlik tapılmadı" }) }));
   await page.route("**/api/subscriptions/receipts?**", (route) => route.fulfill({ contentType: "application/json", body: "[]" }));
   await page.route("**/api/subscriptions/checkout", (route) => route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ id: 5, status: "PENDING", provider: "MOCK", paymentMode: "TEST", amount: 20, currency: "AZN", paymentReference: "PAY-5", checkoutUrl: null, subscription: null, createdAt: "2026-08-20T08:00:00", completedAt: null }) }));
+  await page.route("**/api/subscriptions/payments/5/confirm", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ id: 5, status: "COMPLETED", provider: "MOCK", paymentMode: "TEST", amount: 20, currency: "AZN", paymentReference: "PAY-5", checkoutUrl: null, subscription: null, createdAt: "2026-08-20T08:00:00", completedAt: "2026-08-20T08:00:01" }) }));
   await page.goto("/app/businesses/10/subscription");
   await expect(page.getByText("20", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Bu planı seç" }).click();
+  await expect(page.getByRole("heading", { name: "Ödəniş uğurla tamamlandı" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Bu planı seç" })).toBeEnabled();
 });
 
