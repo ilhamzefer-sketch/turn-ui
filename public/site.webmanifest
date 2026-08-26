@@ -1,0 +1,24 @@
+{
+  "name": "NövbəTime",
+  "short_name": "NövbəTime",
+  "description": "Canlı növbə və planlı rezervasiya platforması.",
+  "lang": "az",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f6ef",
+  "theme_color": "#0c4a43",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

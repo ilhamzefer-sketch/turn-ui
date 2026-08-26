@@ -4,6 +4,12 @@ test("landing page has a complete keyboard-visible first journey", async ({ page
   await page.goto("/");
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Nə etmək istəyirsiniz?");
+  const favicon = page.locator('link[rel="icon"]');
+  await expect(favicon).toHaveAttribute("href", "/favicon-96x96.png");
+  await expect(favicon).toHaveAttribute("sizes", "96x96");
+  const faviconResponse = await page.request.get("/favicon-96x96.png");
+  expect(faviconResponse.ok()).toBeTruthy();
+  expect(faviconResponse.headers()["content-type"]).toContain("image/png");
   await page.keyboard.press("Tab");
   await expect(page.getByText("Əsas məzmuna keç", { exact: true })).toBeFocused();
 
