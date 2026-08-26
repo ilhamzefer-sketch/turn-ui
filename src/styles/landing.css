@@ -414,6 +414,11 @@
   flex-direction: column;
   padding: clamp(1.5rem, 5vw, 3.5rem);
   border-radius: var(--radius-large);
+  box-shadow: 0 1rem 3rem rgb(6 54 48 / 0);
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
 }
 
 .landing-mode-card--live {
@@ -442,6 +447,7 @@
   height: 0.65rem;
   border-radius: 50%;
   background: var(--color-accent);
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 
 .landing-mode-card h3 {
@@ -491,6 +497,7 @@
   border-color: var(--color-warm);
   color: var(--landing-dark);
   background: var(--color-warm);
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 
 .landing-mode-card__slots {
@@ -507,6 +514,7 @@
   border-color: var(--color-brand-700);
   color: white;
   background: var(--color-brand-700);
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 
 .landing-business {
@@ -576,6 +584,7 @@
   border: 1px solid rgb(255 255 255 / 0.13);
   border-radius: 50%;
   content: "";
+  transition: transform 480ms var(--ease-out);
 }
 
 .landing-business__media > img {
@@ -587,6 +596,9 @@
   border-radius: var(--radius-large);
   object-fit: cover;
   box-shadow: 0 2.5rem 7rem rgb(0 0 0 / 0.3);
+  transition:
+    box-shadow 480ms var(--ease-out),
+    transform 480ms var(--ease-out);
 }
 
 .business-insight-card {
@@ -600,6 +612,9 @@
   color: var(--color-ink);
   background: var(--color-surface);
   box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 0.25);
+  transition:
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
 }
 
 .business-insight-card > span,
@@ -645,11 +660,18 @@
 }
 
 .landing-sectors__grid article {
+  position: relative;
   min-height: 15rem;
+  overflow: hidden;
   padding: clamp(1.5rem, 4vw, 2.5rem);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-medium);
   background: var(--color-surface);
+  box-shadow: 0 1rem 3rem rgb(6 54 48 / 0);
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
 }
 
 .landing-sectors__grid article > span {
@@ -658,6 +680,7 @@
   color: var(--color-accent);
   font-size: var(--text-small);
   font-weight: 800;
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 
 .landing-sectors__grid h3 {
@@ -758,6 +781,15 @@
 .landing-page--motion-ready [data-reveal].is-visible {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
+}
+
+.landing-page--motion-ready .landing-mode-card[data-reveal].is-visible,
+.landing-page--motion-ready .landing-sectors__grid article[data-reveal].is-visible {
+  transition:
+    opacity 620ms var(--ease-out),
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
 }
 
 .landing-page--motion-ready .landing-steps li:nth-child(2),
@@ -1014,6 +1046,48 @@
   .landing-choice-card:hover .landing-choice-card__footer .icon {
     transform: translateX(0.3rem);
   }
+
+  .landing-page .landing-mode-card:hover {
+    box-shadow: 0 2rem 5.5rem rgb(6 54 48 / 0.16);
+    transform: translate3d(0, -0.35rem, 0);
+  }
+
+  .landing-mode-card--planned:hover {
+    border-color: rgb(12 74 67 / 0.32);
+  }
+
+  .landing-mode-card:hover .landing-mode-card__topline i {
+    transform: scale(1.35);
+  }
+
+  .landing-mode-card:hover .is-current,
+  .landing-mode-card:hover .is-selected {
+    transform: translate3d(0, -0.18rem, 0);
+  }
+
+  .landing-business__media:hover::before {
+    transform: scale(1.06);
+  }
+
+  .landing-business__media:hover > img {
+    box-shadow: 0 3rem 8rem rgb(0 0 0 / 0.4);
+    transform: scale(1.018);
+  }
+
+  .landing-business__media:hover .business-insight-card {
+    box-shadow: 0 2rem 6rem rgb(0 0 0 / 0.32);
+    transform: translate3d(-0.25rem, -0.35rem, 0);
+  }
+
+  .landing-page .landing-sectors__grid article:hover {
+    border-color: rgb(12 74 67 / 0.3);
+    box-shadow: 0 1.75rem 4.5rem rgb(6 54 48 / 0.12);
+    transform: translate3d(0, -0.3rem, 0);
+  }
+
+  .landing-sectors__grid article:hover > span {
+    transform: translateX(0.25rem);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1029,5 +1103,29 @@
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  .landing-mode-card,
+  .landing-mode-card__topline i,
+  .landing-mode-card__queue .is-current,
+  .landing-mode-card__slots .is-selected,
+  .landing-business__media::before,
+  .landing-business__media > img,
+  .business-insight-card,
+  .landing-sectors__grid article,
+  .landing-sectors__grid article > span {
+    transition: none;
+  }
+
+  .landing-page .landing-mode-card:hover,
+  .landing-mode-card:hover .landing-mode-card__topline i,
+  .landing-mode-card:hover .is-current,
+  .landing-mode-card:hover .is-selected,
+  .landing-business__media:hover::before,
+  .landing-business__media:hover > img,
+  .landing-business__media:hover .business-insight-card,
+  .landing-page .landing-sectors__grid article:hover,
+  .landing-sectors__grid article:hover > span {
+    transform: none;
   }
 }

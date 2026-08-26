@@ -86,6 +86,28 @@ test("reduced motion keeps the page understandable", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Planlı rezervasiya" })).toBeVisible();
   await expect(page.getByRole("link", { name: /Növbə yarat/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Növbəyə qoşul/ })).toBeVisible();
+
+  const modeCard = page.getByRole("heading", { name: "Canlı növbə", exact: true }).locator("xpath=ancestor::article");
+  await modeCard.hover();
+  await expect.poll(() => modeCard.evaluate((element) => getComputedStyle(element).transform)).toBe("none");
+});
+
+test("landing detail cards share a restrained desktop hover treatment", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile-chromium", "Hover treatment is intentionally limited to fine pointers.");
+  await page.goto("/");
+
+  const modeCard = page.getByRole("heading", { name: "Canlı növbə", exact: true }).locator("xpath=ancestor::article");
+  await modeCard.hover();
+  await expect.poll(() => modeCard.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m42)).toBeLessThan(-1);
+
+  const businessMedia = page.locator(".landing-business__media");
+  const businessImage = businessMedia.locator(":scope > img");
+  await businessMedia.hover();
+  await expect.poll(() => businessImage.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a)).toBeGreaterThan(1.005);
+
+  const sectorCard = page.getByRole("heading", { name: "Klinika və tibbi qəbul" }).locator("xpath=ancestor::article");
+  await sectorCard.hover();
+  await expect.poll(() => sectorCard.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m42)).toBeLessThan(-1);
 });
 
 test("content survives 200 percent text sizing", async ({ page }, testInfo) => {
