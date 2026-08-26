@@ -6,7 +6,7 @@ import { AuthContext } from "../../shared/auth/authContext";
 import { LandingPage } from "./LandingPage";
 
 describe("LandingPage", () => {
-  it("presents one clear proposition and two factual product modes", () => {
+  it("presents two immediate actions without changing their authentication rules", () => {
     render(
       <AuthContext.Provider value={{
         status: "anonymous",
@@ -22,10 +22,12 @@ describe("LandingPage", () => {
       </AuthContext.Provider>,
     );
 
-    expect(screen.getByRole("heading", { level: 1, name: /Növbəni deyil/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Nə etmək istəyirsiniz?" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Növbə yarat/i })).toHaveAttribute("href", "/register");
+    expect(screen.getByRole("link", { name: /Növbəyə qoşul/i })).toHaveAttribute("href", "/rooms");
+    expect(screen.getByText("Davam etmək üçün hesab tələb olunur")).toBeInTheDocument();
+    expect(screen.getByText("Planlı qəbul üçün giriş tələb olunur")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Canlı növbə" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Planlı rezervasiya" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Otaq tap/i })).toBeInTheDocument();
-    expect(screen.getByRole("form", { name: "Otaq axtarışı" })).toBeInTheDocument();
   });
 });

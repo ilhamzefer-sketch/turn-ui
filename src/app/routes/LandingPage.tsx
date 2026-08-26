@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 
-import { RoomSearchForm } from "../../features/discovery/RoomSearchForm";
 import { useAuth } from "../../shared/auth/useAuth";
 import { homeStructuredData } from "../../shared/meta/siteMetadata";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
@@ -44,12 +44,11 @@ const frequentlyAskedQuestions = [
 export function LandingPage() {
   const { status } = useAuth();
   const pageRef = useRef<HTMLDivElement>(null);
-  const hasAccountSession = status === "authenticated" || status === "checking" || status === "idle";
-  const accountTarget = hasAccountSession ? "/app" : "/register";
+  const accountTarget = status === "authenticated" ? "/app" : "/register";
   const accountLabel = status === "authenticated"
     ? "İş sahəsinə keçin"
-    : hasAccountSession
-      ? "Hesab açılır…"
+    : status === "checking" || status === "idle"
+      ? "Hesab yoxlanılır…"
       : "Pulsuz hesab yaradın";
 
   usePageMeta(
@@ -65,13 +64,6 @@ export function LandingPage() {
 
     const items = Array.from(page.querySelectorAll<HTMLElement>("[data-reveal]"));
     page.classList.add("landing-page--motion-ready");
-
-    if (CSS.supports?.("animation-timeline: view()")) {
-      page.classList.add("landing-page--scroll-motion");
-      return () => {
-        page.classList.remove("landing-page--motion-ready", "landing-page--scroll-motion");
-      };
-    }
 
     if (!("IntersectionObserver" in window)) {
       page.classList.remove("landing-page--motion-ready");
@@ -94,43 +86,63 @@ export function LandingPage() {
   return (
     <div className="landing-page" ref={pageRef}>
       <section className="landing-hero" aria-labelledby="hero-title">
-        <div className="shell landing-hero__grid">
-          <div className="landing-hero__copy" data-reveal>
-            <p className="eyebrow">Vaxtınızı geri qazanın</p>
-            <h1 id="hero-title">Növbəni deyil, gününüzü planlayın.</h1>
+        <div className="shell landing-hero__inner">
+          <div className="landing-hero__intro" data-reveal>
+            <p className="eyebrow">Birbaşa başlayın</p>
+            <h1 id="hero-title">Nə etmək istəyirsiniz?</h1>
             <p className="landing-hero__lede">
-              Canlı növbəyə uzaqdan qoşulun və ya uyğun saatı əvvəlcədən rezervasiya edin.
-              Harada olduğunuzu yox, növbənizin harada olduğunu izləyin.
+              Sizə uyğun seçimi edin — qalan addımları NövbəTime aydın şəkildə göstərəcək.
             </p>
-            <RoomSearchForm compact />
-            <div className="landing-hero__trust" aria-label="Platformanın əsas imkanları">
-              <span><i aria-hidden="true" /> Qeydiyyatsız canlı növbə</span>
-              <span><i aria-hidden="true" /> Telefonla vahid hesab</span>
-            </div>
           </div>
 
-          <div className="landing-hero__media" data-reveal>
-            <img
-              src="/landing/hero-queue-studio.jpg"
-              width="1672"
-              height="941"
-              alt="Müasir qəbul məkanında telefondan idarə olunan rəqəmsal növbə"
-              fetchPriority="high"
-            />
-            <div className="live-status-card" aria-label="Canlı növbə nümunəsi">
-              <div className="live-status-card__header">
-                <span className="live-status-card__pulse" aria-hidden="true" />
-                <span>Canlı növbə</span>
-                <strong>A-15</strong>
+          <nav className="landing-hero__choices" aria-label="Sürətli başlanğıc seçimləri" data-reveal>
+            <Link className="landing-choice-card landing-choice-card--create" to={accountTarget}>
+              <span className="landing-choice-card__topline">
+                <span>01</span>
+                <span className="landing-choice-card__badge">Hesab ilə</span>
+              </span>
+              <div className="landing-choice-card__body">
+                <span className="landing-choice-card__artwork" aria-hidden="true">
+                  <svg viewBox="0 0 96 96">
+                    <rect x="12" y="12" width="72" height="72" rx="18" />
+                    <path d="M29 29h13v13H29zM54 29h13v13H54zM29 54h13v13H29zM55 54h5v5h-5zM63 54h5v14h-5zM54 63h5v5h-5z" />
+                  </svg>
+                </span>
+                <div>
+                  <h2>Növbə yarat</h2>
+                  <p>Canlı və ya planlı növbə qurun, QR kodunuzu paylaşın və axını idarə edin.</p>
+                </div>
               </div>
-              <div className="live-status-card__progress" aria-hidden="true"><span /></div>
-              <div className="live-status-card__footer">
-                <span>Sizdən əvvəl</span>
-                <strong>1 nəfər · təxminən 18 dəq.</strong>
+              <span className="landing-choice-card__footer">
+                <span>Davam etmək üçün hesab tələb olunur</span>
+                <ArrowIcon />
+              </span>
+            </Link>
+
+            <Link className="landing-choice-card landing-choice-card--join" to="/rooms">
+              <span className="landing-choice-card__topline">
+                <span>02</span>
+                <span className="landing-choice-card__badge">Sürətli giriş</span>
+              </span>
+              <div className="landing-choice-card__body">
+                <span className="landing-choice-card__artwork" aria-hidden="true">
+                  <svg viewBox="0 0 96 96">
+                    <rect x="13" y="20" width="70" height="56" rx="16" />
+                    <path d="M27 39h42M27 50h29M27 61h20" />
+                    <circle cx="70" cy="61" r="5" />
+                  </svg>
+                </span>
+                <div>
+                  <h2>Növbəyə qoşul</h2>
+                  <p>Otağı tapın, canlı növbəyə qeydiyyatsız qoşulun və yerinizi izləyin.</p>
+                </div>
               </div>
-            </div>
-            <p className="landing-hero__caption"><span>01</span> Gözləmə artıq görünür</p>
-          </div>
+              <span className="landing-choice-card__footer">
+                <span>Planlı qəbul üçün giriş tələb olunur</span>
+                <ArrowIcon />
+              </span>
+            </Link>
+          </nav>
         </div>
         <a className="landing-scroll-cue" href="#how-it-works" aria-label="Necə işlədiyini görmək üçün aşağı keçin">
           <span aria-hidden="true" /> Necə işləyir

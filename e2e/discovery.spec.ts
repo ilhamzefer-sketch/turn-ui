@@ -49,12 +49,15 @@ async function mockDiscovery(page: Page) {
 
 test.beforeEach(async ({ page }) => mockDiscovery(page));
 
-test("landing search opens filtered discovery and a complete room profile", async ({ page }) => {
+test("landing quick join opens filtered discovery and a complete room profile", async ({ page }) => {
   await page.goto("/");
-  const search = page.getByRole("form", { name: "Otaq axtarışı" });
-  await search.getByLabel("Nə axtarırsınız?").fill("saç");
-  await search.getByLabel("Növbə növü").selectOption("PLANNED_BOOKING");
-  await search.getByRole("button", { name: "Otaq tap" }).click();
+  await page.getByRole("link", { name: /Növbəyə qoşul/ }).click();
+  await expect(page).toHaveURL(/\/rooms$/);
+
+  const search = page.getByRole("form", { name: "Axtarış filterləri" });
+  await search.getByLabel("Axtarış").fill("saç");
+  await search.getByLabel("Planlı rezervasiya").check();
+  await search.getByRole("button", { name: "Nəticələri göstər" }).click();
 
   await expect(page).toHaveURL(/\/rooms\?q=sa%C3%A7&mode=PLANNED_BOOKING/);
   await expect(page.getByRole("heading", { name: "Leyla ilə saç baxımı" })).toBeVisible();

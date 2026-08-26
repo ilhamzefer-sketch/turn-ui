@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("landing page has a complete keyboard-visible first journey", async ({ page }, testInfo) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Növbəni deyil");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Nə etmək istəyirsiniz?");
   await page.keyboard.press("Tab");
   await expect(page.getByText("Əsas məzmuna keç", { exact: true })).toBeFocused();
 
@@ -67,6 +67,8 @@ test("compact layout has no horizontal overflow", async ({ page }) => {
 
   expect(widthState.scrollWidth).toBeLessThanOrEqual(widthState.clientWidth);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Növbə yarat/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Növbəyə qoşul/ })).toBeVisible();
   await expect(page.getByLabel("Menyunu aç")).toBeVisible();
 });
 
@@ -76,6 +78,8 @@ test("reduced motion keeps the page understandable", async ({ page }) => {
 
   await expect(page.getByRole("heading", { name: "Canlı növbə", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Planlı rezervasiya" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Növbə yarat/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Növbəyə qoşul/ })).toBeVisible();
 });
 
 test("content survives 200 percent text sizing", async ({ page }, testInfo) => {
@@ -91,5 +95,5 @@ test("content survives 200 percent text sizing", async ({ page }, testInfo) => {
 
   expect(widthState.scrollWidth).toBeLessThanOrEqual(widthState.clientWidth);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Otaq tap" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Növbəyə qoşul/ })).toBeVisible();
 });
