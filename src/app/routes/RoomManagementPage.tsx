@@ -27,11 +27,11 @@ function requestedSetupStep(value: string | null): ActiveSetupStep | null {
   return value === "owners" || value === "schedule" || value === "qr" ? value : null;
 }
 
-function activeSetupStep(value: string | null, hasOwner: boolean, hasSchedule: boolean): ActiveSetupStep {
+function activeSetupStep(value: string | null, hasOwner: boolean, hasSchedule: boolean, hasModeConfiguration: boolean): ActiveSetupStep {
   const requested = requestedSetupStep(value);
   if (!hasOwner) return "owners";
   if (requested === "owners") return "owners";
-  if (!hasSchedule) return "schedule";
+  if (!hasSchedule || !hasModeConfiguration) return "schedule";
   return requested ?? "qr";
 }
 
@@ -116,7 +116,7 @@ export function RoomManagementPage() {
     : Boolean(room.liveQueueResetPolicy && (room.liveQueueResetLocalTime || room.liveQueueResetIntervalMinutes));
   const readyCount = [Boolean(room.name), hasOwner, hasSchedule, hasModeConfiguration].filter(Boolean).length;
   const setupMode = room.status === "DRAFT";
-  const setupStep = activeSetupStep(searchParams.get("step"), hasOwner, hasSchedule);
+  const setupStep = activeSetupStep(searchParams.get("step"), hasOwner, hasSchedule, hasModeConfiguration);
   const goToSetupStep = (step: ActiveSetupStep) => setSearchParams({ step });
   const returnFromSetup = () => room.businessId
     ? navigate(`/app/businesses/${room.businessId}/rooms`)

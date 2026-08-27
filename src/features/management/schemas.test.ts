@@ -4,6 +4,7 @@ import {
   businessProfileSchema,
   branchSchema,
   configurationSchema,
+  liveQueueConfigurationSchema,
   memberInviteSchema,
   roomSchema,
 } from "./schemas";
@@ -50,5 +51,25 @@ describe("management form contracts", () => {
       liveQueueAcceptingNewEntries: true,
     });
     expect(result.success).toBe(false);
+  });
+
+  it("requires both a live queue reset rule and its matching time value", () => {
+    const missingRule = liveQueueConfigurationSchema.safeParse({
+      liveQueueResetPolicy: "",
+      liveQueueResetLocalTime: "",
+      liveQueueResetIntervalMinutes: "",
+      liveQueueMaxParticipants: "",
+      liveQueueAcceptingNewEntries: true,
+    });
+    const missingDailyTime = liveQueueConfigurationSchema.safeParse({
+      liveQueueResetPolicy: "DAILY_AT_TIME",
+      liveQueueResetLocalTime: "",
+      liveQueueResetIntervalMinutes: "",
+      liveQueueMaxParticipants: "",
+      liveQueueAcceptingNewEntries: true,
+    });
+
+    expect(missingRule.success).toBe(false);
+    expect(missingDailyTime.success).toBe(false);
   });
 });

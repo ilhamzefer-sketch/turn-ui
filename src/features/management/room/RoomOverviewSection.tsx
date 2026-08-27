@@ -10,15 +10,14 @@ import { Button } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 import { TextAreaField } from "../../../shared/ui/TextAreaField";
 import { TextField } from "../../../shared/ui/TextField";
-import { TimeField } from "../../../shared/ui/TimeField";
 import { apiMessage } from "../managementUtils";
-import { nullableNumber, nullableText } from "../managementLabels";
+import { nullableText } from "../managementLabels";
 import { roomErrorNavigation } from "./roomErrorNavigation";
 import {
-  configurationSchema,
   roomSchema,
-  type ConfigurationFormValues,
+  roomTimingSchema,
   type RoomFormValues,
+  type RoomTimingFormValues,
 } from "../schemas";
 
 export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
@@ -28,24 +27,16 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
     resolver: zodResolver(roomSchema),
     defaultValues: roomValues(room),
   });
-  const configForm = useForm<ConfigurationFormValues>({
-    resolver: zodResolver(configurationSchema),
-    defaultValues: configurationValues(room),
+  const configForm = useForm<RoomTimingFormValues>({
+    resolver: zodResolver(roomTimingSchema),
+    defaultValues: timingValues(room),
   });
   const selectedMode = useWatch({ control: roomForm.control, name: "reservationMode" });
-  const selectedResetPolicy = useWatch({ control: configForm.control, name: "liveQueueResetPolicy" });
 
   useEffect(() => {
     roomForm.reset(roomValues(room));
-    configForm.reset(configurationValues(room));
+    configForm.reset(timingValues(room));
   }, [configForm, room, roomForm]);
-
-  useEffect(() => {
-    if (window.location.hash !== "#live-queue-reset-policy") return;
-    const resetPolicyField = document.getElementById("live-queue-reset-policy");
-    resetPolicyField?.scrollIntoView({ block: "center" });
-    resetPolicyField?.focus();
-  }, [room.reservationMode]);
 
   const roomMutation = useMutation({
     mutationFn: (values: RoomFormValues) => managementApi.updateRoom(room.id, {
@@ -67,21 +58,17 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
     },
   });
   const configurationMutation = useMutation({
-    mutationFn: (values: ConfigurationFormValues) => managementApi.updateRoomConfiguration(room.id, {
+    mutationFn: (values: RoomTimingFormValues) => managementApi.updateRoomConfiguration(room.id, {
       defaultSlotDurationMinutes: Number(values.defaultSlotDurationMinutes),
       appointmentBufferMinutes: Number(values.appointmentBufferMinutes),
       bookingWindowDays: Number(values.bookingWindowDays),
       minimumAdvanceMinutes: Number(values.minimumAdvanceMinutes),
       cancellationCutoffMinutes: Number(values.cancellationCutoffMinutes),
-      liveQueueResetPolicy: room.reservationMode === "LIVE_QUEUE" ? values.liveQueueResetPolicy : null,
-      liveQueueResetLocalTime: room.reservationMode === "LIVE_QUEUE" && values.liveQueueResetPolicy === "DAILY_AT_TIME"
-        ? values.liveQueueResetLocalTime
-        : null,
-      liveQueueResetIntervalMinutes: room.reservationMode === "LIVE_QUEUE" && values.liveQueueResetPolicy === "EVERY_INTERVAL"
-        ? nullableNumber(values.liveQueueResetIntervalMinutes)
-        : null,
-      liveQueueMaxParticipants: room.reservationMode === "LIVE_QUEUE" ? nullableNumber(values.liveQueueMaxParticipants) : null,
-      liveQueueAcceptingNewEntries: values.liveQueueAcceptingNewEntries,
+      liveQueueResetPolicy: room.reservationMode === "LIVE_QUEUE" ? room.liveQueueResetPolicy : null,
+      liveQueueResetLocalTime: room.reservationMode === "LIVE_QUEUE" ? room.liveQueueResetLocalTime : null,
+      liveQueueResetIntervalMinutes: room.reservationMode === "LIVE_QUEUE" ? room.liveQueueResetIntervalMinutes : null,
+      liveQueueMaxParticipants: room.reservationMode === "LIVE_QUEUE" ? room.liveQueueMaxParticipants : null,
+      liveQueueAcceptingNewEntries: room.liveQueueAcceptingNewEntries,
     }),
     onSuccess: async () => {
       setSuccessMessage("Növbə rejiminin ayarları saxlanıldı.");
@@ -133,8 +120,8 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
 
       <section className="management-panel" aria-labelledby="room-config-title">
         <div className="section-heading">
-          <div><p className="eyebrow">{room.reservationMode === "LIVE_QUEUE" ? "Canlı növbə" : "Planlı rezervasiya"}</p><h2 id="room-config-title">Rejim ayarları</h2></div>
-          <p>Bu ayarlar bütün otaq sahiblərinin istifadə etdiyi ortaq otaq axınına tətbiq olunur.</p>
+          <div><p className="eyebrow">{room.reservationMode === "LIVE_QUEUE" ? "Ümumi vaxtlar" : "Planlı rezervasiya"}</p><h2 id="room-config-title">Vaxt ayarları</h2></div>
+          <p>Canlı növbənin sıfırlanma vaxtı “İş qrafiki” bölməsində idarə olunur.</p>
         </div>
         <form className="management-form" onSubmit={configForm.handleSubmit((values) => { setSuccessMessage(null); configurationMutation.mutate(values); })} noValidate>
           <div className="management-form__grid">
@@ -146,31 +133,9 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
                 <TextField label="Minimum əvvəlcədən vaxt (dəqiqə)" type="number" min="0" max="10080" error={configForm.formState.errors.minimumAdvanceMinutes?.message} {...configForm.register("minimumAdvanceMinutes")} />
                 <TextField label="Ləğv üçün son müddət (dəqiqə)" type="number" min="0" error={configForm.formState.errors.cancellationCutoffMinutes?.message} {...configForm.register("cancellationCutoffMinutes")} />
               </>
-            ) : (
-              <>
-                <SelectField id="live-queue-reset-policy" label="Növbənin sıfırlanması" error={configForm.formState.errors.liveQueueResetPolicy?.message} {...configForm.register("liveQueueResetPolicy")}>
-                  <option value="DAILY_AT_TIME">Hər gün seçilən saatda</option>
-                  <option value="EVERY_INTERVAL">Müəyyən intervaldan bir</option>
-                </SelectField>
-                {selectedResetPolicy === "DAILY_AT_TIME" ? (
-                  <TimeField label="Gündəlik sıfırlama saatı" error={configForm.formState.errors.liveQueueResetLocalTime?.message} {...configForm.register("liveQueueResetLocalTime")} />
-                ) : (
-                  <TextField label="Sıfırlama intervalı (dəqiqə)" type="number" min="1" error={configForm.formState.errors.liveQueueResetIntervalMinutes?.message} {...configForm.register("liveQueueResetIntervalMinutes")} />
-                )}
-                <TextField label="İştirakçı limiti (boş = limitsiz)" type="number" min="1" error={configForm.formState.errors.liveQueueMaxParticipants?.message} {...configForm.register("liveQueueMaxParticipants")} />
-              </>
-            )}
+            ) : null}
           </div>
-          {room.reservationMode === "LIVE_QUEUE" ? (
-            <>
-              <label className="switch-field">
-                <input type="checkbox" {...configForm.register("liveQueueAcceptingNewEntries")} />
-                <span><strong>Yeni iştirakçıları qəbul et</strong><small>Otaq sahibi bu ayarla canlı növbəyə qoşulmanı manual dayandıra bilər.</small></span>
-              </label>
-              <div className="warning-note"><strong>Sıfırlama xəbərdarlığı:</strong> sıfırlama baş verdikdə aktiv gözləyənlər `RESET` nəticəsi ilə cari növbədən çıxarılır. Köhnə sessiya tarixçədə saxlanılır.</div>
-            </>
-          ) : null}
-          <div className="management-form__actions"><Button type="submit" loading={configurationMutation.isPending}>Rejim ayarlarını saxla</Button></div>
+          <div className="management-form__actions"><Button type="submit" loading={configurationMutation.isPending}>Vaxt ayarlarını saxla</Button></div>
         </form>
       </section>
     </div>
@@ -190,17 +155,12 @@ function roomValues(room: ManagedRoom): RoomFormValues {
   };
 }
 
-function configurationValues(room: ManagedRoom): ConfigurationFormValues {
+function timingValues(room: ManagedRoom): RoomTimingFormValues {
   return {
     defaultSlotDurationMinutes: String(room.defaultSlotDurationMinutes),
     appointmentBufferMinutes: String(room.appointmentBufferMinutes),
     bookingWindowDays: String(room.bookingWindowDays),
     minimumAdvanceMinutes: String(room.minimumAdvanceMinutes),
     cancellationCutoffMinutes: String(room.cancellationCutoffMinutes),
-    liveQueueResetPolicy: room.liveQueueResetPolicy ?? "DAILY_AT_TIME",
-    liveQueueResetLocalTime: room.liveQueueResetLocalTime ?? "23:59",
-    liveQueueResetIntervalMinutes: room.liveQueueResetIntervalMinutes ? String(room.liveQueueResetIntervalMinutes) : "480",
-    liveQueueMaxParticipants: room.liveQueueMaxParticipants ? String(room.liveQueueMaxParticipants) : "",
-    liveQueueAcceptingNewEntries: room.liveQueueAcceptingNewEntries,
   };
 }

@@ -264,13 +264,13 @@ test("publish error opens an actionable popup with the correct recovery page", a
 
   await page.getByRole("button", { name: "Otağı yarat" }).click();
 
-  const popup = page.getByRole("alertdialog", { name: "Otaq yaradıla bilmədi" });
+  const popup = page.getByRole("alert", { name: "Otaq yaradıla bilmədi" });
   await expect(popup).toBeVisible();
   await expect(popup).toContainText("Aktiv abunəlik tələb olunur.");
   await expect(popup.getByRole("link", { name: "Abunəliyə keç" })).toHaveAttribute("href", "/app/businesses/10/subscription");
-  await expect(popup.getByRole("link", { name: "Abunəliyə keç" })).toBeFocused();
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
   const popupBox = await popup.boundingBox();
-  expect(popupBox?.width).toBeLessThanOrEqual(336);
+  expect(Math.round(popupBox?.width ?? 0)).toBeLessThanOrEqual(336);
   await page.screenshot({ path: testInfo.outputPath("actionable-error-popup-mobile.png"), fullPage: true });
 });
 
@@ -301,13 +301,13 @@ test("reset policy error links to and focuses the exact room setting", async ({ 
 
   await page.getByRole("button", { name: "Əsas məlumatları saxla" }).click();
 
-  const popup = page.getByRole("alertdialog", { name: "Əməliyyat tamamlanmadı" });
+  const popup = page.getByRole("alert", { name: "Əməliyyat tamamlanmadı" });
   const recoveryLink = popup.getByRole("link", { name: "Sıfırlama ayarına keç" });
-  await expect(recoveryLink).toHaveAttribute("href", "/app/rooms/30/settings?section=overview#live-queue-reset-policy");
+  await expect(recoveryLink).toHaveAttribute("href", "/app/rooms/30/settings?section=schedule#live-queue-reset-policy");
   await recoveryLink.click();
 
-  await expect(page).toHaveURL(/\/app\/rooms\/30\/settings\?section=overview#live-queue-reset-policy$/);
-  await expect(page.getByLabel("Növbənin sıfırlanması")).toBeFocused();
+  await expect(page).toHaveURL(/\/app\/rooms\/30\/settings\?section=schedule#live-queue-reset-policy$/);
+  await expect(page.getByLabel("Növbənin sıfırlanma qaydası")).toBeFocused();
 });
 
 test("individual workspace shows its room and returns to creation after deletion", async ({ page }) => {
@@ -339,12 +339,37 @@ test("edited weekend schedule is submitted and confirmed as saved", async ({ pag
   const rules = (request.postDataJSON() as { rules: Array<{ dayOfWeek: string }> }).rules;
 
   expect(rules.map((rule) => rule.dayOfWeek)).toEqual(expect.arrayContaining(["SATURDAY", "SUNDAY"]));
-  const confirmationPopup = page.getByRole("alertdialog", { name: "Əməliyyat tamamlandı" });
+  const confirmationPopup = page.getByRole("status", { name: "Əməliyyat tamamlandı" });
   await expect(confirmationPopup).toBeVisible();
   await expect(confirmationPopup).toContainText("Həftəlik iş qrafiki saxlanıldı.");
   await expect(page.locator(".success-alert, .form-alert")).toHaveCount(0);
-  await confirmationPopup.getByRole("button", { name: "Bağla" }).click();
+  await confirmationPopup.getByRole("button", { name: "Bildirişi bağla" }).click();
   await expect(page.getByText("Qrafik serverlə eynidir")).toBeVisible();
+});
+
+test("live queue setup cannot continue until reset rule and time are filled", async ({ page }) => {
+  const liveRoomWithoutReset = {
+    ...room,
+    reservationMode: "LIVE_QUEUE",
+    liveQueueResetPolicy: null,
+    liveQueueResetLocalTime: null,
+    liveQueueResetIntervalMinutes: null,
+  };
+  let configurationRequests = 0;
+  await page.route("**/api/rooms/30", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoomWithoutReset) }));
+  await page.route("**/api/rooms/30/configuration", (route) => {
+    configurationRequests += 1;
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoomWithoutReset) });
+  });
+  await page.goto("/app/rooms/30/settings?step=schedule");
+
+  await page.getByRole("button", { name: "Davam et" }).click();
+
+  await expect(page).toHaveURL(/\?step=schedule$/);
+  await expect(page.getByRole("alert", { name: "Əməliyyat tamamlanmadı" })).toContainText("sıfırlanma qaydasını və uyğun vaxtı doldurun");
+  await expect(page.getByText("Növbənin sıfırlanma qaydasını seçin.")).toBeVisible();
+  await expect(page.getByLabel("Növbənin sıfırlanma qaydası")).toBeFocused();
+  expect(configurationRequests).toBe(0);
 });
 
 test("management navigation and actions survive doubled text", async ({ page }, testInfo) => {

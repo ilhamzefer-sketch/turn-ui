@@ -46,7 +46,7 @@ describe("roomErrorNavigation", () => {
       setupMode: false,
     })).toEqual({
       label: "Sıfırlama ayarına keç",
-      to: "/app/rooms/12/settings?section=overview#live-queue-reset-policy",
+      to: "/app/rooms/12/settings?section=schedule#live-queue-reset-policy",
     });
   });
 

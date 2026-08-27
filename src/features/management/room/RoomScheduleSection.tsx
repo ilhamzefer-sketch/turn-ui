@@ -1,5 +1,7 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 
 import type {
   AvailabilityExceptionInput,
@@ -17,7 +19,8 @@ import { TimeField } from "../../../shared/ui/TimeField";
 import { isTime24 } from "../../../shared/time/time24Hour";
 import { StatusBadge } from "../ManagementUi";
 import { apiMessage } from "../managementUtils";
-import { weekdayOptions } from "../managementLabels";
+import { nullableNumber, weekdayOptions } from "../managementLabels";
+import { liveQueueConfigurationSchema, type LiveQueueConfigurationFormValues } from "../schemas";
 
 type ScheduleInterval = { key: string; startTime: string; endTime: string };
 type DaySchedule = { day: Weekday; enabled: boolean; intervals: ScheduleInterval[] };
@@ -31,6 +34,11 @@ type RoomScheduleSetupNavigation = {
 
 export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRoom; setupNavigation?: RoomScheduleSetupNavigation }) {
   const queryClient = useQueryClient();
+  const liveQueueForm = useForm<LiveQueueConfigurationFormValues>({
+    resolver: zodResolver(liveQueueConfigurationSchema),
+    defaultValues: liveQueueValues(room),
+  });
+  const selectedResetPolicy = useWatch({ control: liveQueueForm.control, name: "liveQueueResetPolicy" });
   const [scheduleDraft, setScheduleDraft] = useState<{
     source: WeeklyAvailabilityRule[] | undefined;
     days: DaySchedule[];
@@ -53,6 +61,17 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
     queryFn: () => managementApi.availabilityExceptions(room.id),
   });
 
+  useEffect(() => {
+    liveQueueForm.reset(liveQueueValues(room));
+  }, [liveQueueForm, room]);
+
+  useEffect(() => {
+    if (window.location.hash !== "#live-queue-reset-policy") return;
+    const resetPolicyField = document.getElementById("live-queue-reset-policy");
+    resetPolicyField?.scrollIntoView({ block: "center" });
+    resetPolicyField?.focus();
+  }, [room.id]);
+
   const days = scheduleDraft && scheduleDraft.source === scheduleQuery.data
     ? scheduleDraft.days
     : scheduleQuery.data
@@ -74,8 +93,7 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
   };
 
   const saveMutation = useMutation({
-    mutationFn: (continueAfterSave: boolean) => {
-      void continueAfterSave;
+    mutationFn: () => {
       const validation = validateSchedule(days);
       if (validation) throw new Error(validation);
       return managementApi.replaceWeeklyAvailability(
@@ -90,14 +108,53 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
           : []),
       );
     },
-    onSuccess: (savedRules, continueAfterSave) => {
+    onSuccess: (savedRules) => {
       setScheduleError(null);
       setSuccessMessage("Həftəlik iş qrafiki saxlanıldı.");
       queryClient.setQueryData(["management-room-schedule", room.id], savedRules);
       setScheduleDraft(null);
-      if (continueAfterSave) setupNavigation?.onContinue();
     },
     onError: (error) => setScheduleError(apiMessage(error, "İş qrafiki saxlanılmadı.")),
+  });
+  const configurationMutation = useMutation({
+    mutationFn: (values: LiveQueueConfigurationFormValues) => managementApi.updateRoomConfiguration(
+      room.id,
+      liveQueueConfigurationInput(room, values),
+    ),
+    onSuccess: async () => {
+      setScheduleError(null);
+      setSuccessMessage("Canlı növbənin sıfırlanma ayarları saxlanıldı.");
+      await queryClient.invalidateQueries({ queryKey: ["management-room", room.id] });
+    },
+    onError: (error) => setScheduleError(apiMessage(error, "Canlı növbə ayarları saxlanılmadı.")),
+  });
+  const continueMutation = useMutation({
+    mutationFn: async (values: LiveQueueConfigurationFormValues | null) => {
+      const hasSavedSchedule = (scheduleQuery.data ?? []).some((rule) => rule.active);
+      const savedRules = hasUnsavedChanges || !hasSavedSchedule
+        ? await managementApi.replaceWeeklyAvailability(
+            room.id,
+            days.flatMap((day) => day.enabled
+              ? day.intervals.map((interval) => ({
+                  dayOfWeek: day.day,
+                  startTime: interval.startTime,
+                  endTime: interval.endTime,
+                  active: true,
+                }))
+              : []),
+          )
+        : null;
+      if (values) await managementApi.updateRoomConfiguration(room.id, liveQueueConfigurationInput(room, values));
+      return savedRules;
+    },
+    onSuccess: async (savedRules) => {
+      setScheduleError(null);
+      if (savedRules) queryClient.setQueryData(["management-room-schedule", room.id], savedRules);
+      setScheduleDraft(null);
+      await queryClient.invalidateQueries({ queryKey: ["management-room", room.id] });
+      setupNavigation?.onContinue();
+    },
+    onError: (error) => setScheduleError(apiMessage(error, "Məcburi iş qrafiki ayarları saxlanılmadı.")),
   });
   const createExceptionMutation = useMutation({
     mutationFn: () => {
@@ -125,6 +182,25 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
     },
   });
   const error = scheduleQuery.error ?? exceptionsQuery.error ?? createExceptionMutation.error ?? deleteExceptionMutation.error;
+
+  const continueSetup = async () => {
+    setSuccessMessage(null);
+    const validation = validateSchedule(days);
+    if (validation) {
+      setScheduleError(`Davam etmək üçün iş qrafikini tamamlayın. ${validation}`);
+      return;
+    }
+    if (room.reservationMode === "LIVE_QUEUE") {
+      const isValid = await liveQueueForm.trigger(undefined, { shouldFocus: true });
+      if (!isValid) {
+        setScheduleError("Davam etmək üçün növbənin sıfırlanma qaydasını və uyğun vaxtı doldurun.");
+        return;
+      }
+      continueMutation.mutate(liveQueueForm.getValues());
+      return;
+    }
+    continueMutation.mutate(null);
+  };
 
   const updateDay = (day: Weekday, updater: (current: DaySchedule) => DaySchedule) => {
     setDays((current) => current.map((item) => item.day === day ? updater(item) : item));
@@ -156,7 +232,7 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
               setSuccessMessage("Bazar ertəsinin saatları digər iş günlərinə kopyalandı. Saxlamağı unutmayın.");
             }}
           >B.e saatlarını iş günlərinə kopyala</Button>
-          <Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate(false)}>Dəyişiklikləri saxla</Button>
+          <Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate()}>Dəyişiklikləri saxla</Button>
         </div>
         {scheduleQuery.isPending ? <p role="status">İş saatları açılır…</p> : (
           <div className="week-editor">
@@ -189,8 +265,64 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
             })}
           </div>
         )}
-        <div className="management-form__actions"><Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate(false)}>İş qrafikini saxla</Button></div>
+        <div className="management-form__actions"><Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate()}>İş qrafikini saxla</Button></div>
       </section>
+
+      {room.reservationMode === "LIVE_QUEUE" ? (
+        <section className="management-panel" aria-labelledby="live-queue-schedule-title">
+          <div className="section-heading">
+            <div><p className="eyebrow">Avtomatik növbə dövrü</p><h2 id="live-queue-schedule-title">Canlı növbənin sıfırlanması</h2></div>
+            <p>Gözləyənlər siyahısının nə vaxt yeni dövrə keçəcəyini iş qrafiki ilə birlikdə təyin edin.</p>
+          </div>
+          <form
+            className="management-form"
+            onSubmit={liveQueueForm.handleSubmit((values) => {
+              setSuccessMessage(null);
+              configurationMutation.mutate(values);
+            })}
+            noValidate
+          >
+            <div className="management-form__grid">
+              <SelectField
+                id="live-queue-reset-policy"
+                label="Növbənin sıfırlanma qaydası"
+                required
+                error={liveQueueForm.formState.errors.liveQueueResetPolicy?.message}
+                {...liveQueueForm.register("liveQueueResetPolicy")}
+              >
+                <option value="">Qaydanı seçin</option>
+                <option value="DAILY_AT_TIME">Hər gün seçilən saatda</option>
+                <option value="EVERY_INTERVAL">Müəyyən intervaldan bir</option>
+              </SelectField>
+              {selectedResetPolicy === "DAILY_AT_TIME" ? (
+                <TimeField
+                  label="Gündəlik sıfırlama saatı"
+                  required
+                  error={liveQueueForm.formState.errors.liveQueueResetLocalTime?.message}
+                  {...liveQueueForm.register("liveQueueResetLocalTime")}
+                />
+              ) : selectedResetPolicy === "EVERY_INTERVAL" ? (
+                <TextField
+                  label="Sıfırlama intervalı (dəqiqə)"
+                  type="number"
+                  min="1"
+                  max="10080"
+                  required
+                  error={liveQueueForm.formState.errors.liveQueueResetIntervalMinutes?.message}
+                  {...liveQueueForm.register("liveQueueResetIntervalMinutes")}
+                />
+              ) : null}
+              <TextField label="İştirakçı limiti (boş = limitsiz)" type="number" min="1" error={liveQueueForm.formState.errors.liveQueueMaxParticipants?.message} {...liveQueueForm.register("liveQueueMaxParticipants")} />
+            </div>
+            <label className="switch-field">
+              <input type="checkbox" {...liveQueueForm.register("liveQueueAcceptingNewEntries")} />
+              <span><strong>Yeni iştirakçıları qəbul et</strong><small>Otaq sahibi lazım olduqda canlı növbəyə qoşulmanı dayandıra bilər.</small></span>
+            </label>
+            <div className="warning-note"><strong>Sıfırlama zamanı:</strong> aktiv gözləyənlər cari növbədən çıxarılır, köhnə sessiya isə tarixçədə saxlanılır.</div>
+            <div className="management-form__actions"><Button type="submit" loading={configurationMutation.isPending}>Sıfırlama ayarlarını saxla</Button></div>
+          </form>
+        </section>
+      ) : null}
 
       <section className="management-panel" aria-labelledby="exceptions-title">
         <div className="section-heading">
@@ -228,17 +360,39 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
         <div className="room-setup-actions">
           <Button variant="secondary" onClick={setupNavigation.onBack}>Geri</Button>
           <Button
-            loading={saveMutation.isPending}
-            onClick={() => {
-              const hasSavedSchedule = (scheduleQuery.data ?? []).some((rule) => rule.active);
-              if (hasUnsavedChanges || !hasSavedSchedule) saveMutation.mutate(true);
-              else setupNavigation.onContinue();
-            }}
+            loading={continueMutation.isPending}
+            onClick={() => void continueSetup()}
           >Davam et</Button>
         </div>
       ) : null}
     </div>
   );
+}
+
+function liveQueueValues(room: ManagedRoom): LiveQueueConfigurationFormValues {
+  return {
+    liveQueueResetPolicy: room.liveQueueResetPolicy ?? "",
+    liveQueueResetLocalTime: room.liveQueueResetLocalTime?.slice(0, 5) ?? "",
+    liveQueueResetIntervalMinutes: room.liveQueueResetIntervalMinutes ? String(room.liveQueueResetIntervalMinutes) : "",
+    liveQueueMaxParticipants: room.liveQueueMaxParticipants ? String(room.liveQueueMaxParticipants) : "",
+    liveQueueAcceptingNewEntries: room.liveQueueAcceptingNewEntries,
+  };
+}
+
+function liveQueueConfigurationInput(room: ManagedRoom, values: LiveQueueConfigurationFormValues) {
+  if (!values.liveQueueResetPolicy) throw new Error("Növbənin sıfırlanma qaydasını seçin.");
+  return {
+    defaultSlotDurationMinutes: room.defaultSlotDurationMinutes,
+    appointmentBufferMinutes: room.appointmentBufferMinutes,
+    bookingWindowDays: room.bookingWindowDays,
+    minimumAdvanceMinutes: room.minimumAdvanceMinutes,
+    cancellationCutoffMinutes: room.cancellationCutoffMinutes,
+    liveQueueResetPolicy: values.liveQueueResetPolicy,
+    liveQueueResetLocalTime: values.liveQueueResetPolicy === "DAILY_AT_TIME" ? values.liveQueueResetLocalTime : null,
+    liveQueueResetIntervalMinutes: values.liveQueueResetPolicy === "EVERY_INTERVAL" ? nullableNumber(values.liveQueueResetIntervalMinutes) : null,
+    liveQueueMaxParticipants: nullableNumber(values.liveQueueMaxParticipants),
+    liveQueueAcceptingNewEntries: values.liveQueueAcceptingNewEntries,
+  };
 }
 
 function newInterval(startTime: string, endTime: string): ScheduleInterval {

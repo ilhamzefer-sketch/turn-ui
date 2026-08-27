@@ -78,6 +78,39 @@ export const configurationSchema = z.object({
 
 export type ConfigurationFormValues = z.infer<typeof configurationSchema>;
 
+export const roomTimingSchema = z.object({
+  defaultSlotDurationMinutes: z.string().refine(isIntegerBetween(1, 1440), "1–1440 dəqiqə yazın."),
+  appointmentBufferMinutes: z.string().refine(isIntegerBetween(0, 1440), "0–1440 dəqiqə yazın."),
+  bookingWindowDays: z.string().refine(isIntegerBetween(1, 90), "1–90 gün yazın."),
+  minimumAdvanceMinutes: z.string().refine(isIntegerBetween(0, 10080), "0–10080 dəqiqə yazın."),
+  cancellationCutoffMinutes: z.string().refine(isIntegerBetween(0, 525600), "Müsbət dəqiqə yazın."),
+});
+
+export type RoomTimingFormValues = z.infer<typeof roomTimingSchema>;
+
+export const liveQueueConfigurationSchema = z.object({
+  liveQueueResetPolicy: z.union([z.literal(""), z.enum(["DAILY_AT_TIME", "EVERY_INTERVAL"])]),
+  liveQueueResetLocalTime: z.string(),
+  liveQueueResetIntervalMinutes: z.string(),
+  liveQueueMaxParticipants: z.string(),
+  liveQueueAcceptingNewEntries: z.boolean(),
+}).superRefine((values, context) => {
+  if (!values.liveQueueResetPolicy) {
+    context.addIssue({ code: "custom", path: ["liveQueueResetPolicy"], message: "Növbənin sıfırlanma qaydasını seçin." });
+  }
+  if (values.liveQueueResetPolicy === "DAILY_AT_TIME" && !isTime24(values.liveQueueResetLocalTime)) {
+    context.addIssue({ code: "custom", path: ["liveQueueResetLocalTime"], message: "Sıfırlama saatını yazın (məsələn, 23:59)." });
+  }
+  if (values.liveQueueResetPolicy === "EVERY_INTERVAL" && !isIntegerBetween(1, 10080)(values.liveQueueResetIntervalMinutes)) {
+    context.addIssue({ code: "custom", path: ["liveQueueResetIntervalMinutes"], message: "Sıfırlama intervalını dəqiqə ilə yazın." });
+  }
+  if (values.liveQueueMaxParticipants && !isIntegerBetween(1, 100000)(values.liveQueueMaxParticipants)) {
+    context.addIssue({ code: "custom", path: ["liveQueueMaxParticipants"], message: "Müsbət limit yazın və ya boş saxlayın." });
+  }
+});
+
+export type LiveQueueConfigurationFormValues = z.infer<typeof liveQueueConfigurationSchema>;
+
 function isIntegerBetween(minimum: number, maximum: number) {
   return (value: string) => {
     const number = Number(value);
