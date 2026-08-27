@@ -10,6 +10,7 @@ import { Button } from "../../shared/ui/Button";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 
 type LoginLocationState = {
   from?: { pathname?: string; search?: string };
@@ -52,14 +53,11 @@ export function LoginPage() {
           <h1 id="login-title">Hesabınıza daxil olun</h1>
           <p>Telefon nömrəniz bütün müştəri və biznes rollarınızı bir hesabda açır.</p>
         </div>
-        {submitError ? (
-          <div className="form-alert" role="alert">
-            <p>{submitError}</p>
-            {showRegistrationCompletion ? (
-              <Link to="/register">Qeydiyyat formasında şifrə təyin edin</Link>
-            ) : null}
-          </div>
-        ) : null}
+        <NotificationEvent
+          tone="error"
+          message={submitError}
+          action={showRegistrationCompletion ? { label: "Qeydiyyat formasında şifrə təyin edin", to: "/register" } : undefined}
+        />
         <form className="auth-form" onSubmit={onSubmit} noValidate>
           <PhoneField
             label="Telefon nömrəsi"

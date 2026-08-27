@@ -11,6 +11,7 @@ import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 
 export function AccountRecoveryPage() {
   usePageMeta("Hesabı bərpa edin — NövbəTime", "NövbəTime hesabına giriş üçün dəstək müraciəti yaradın.");
@@ -61,7 +62,7 @@ export function AccountRecoveryPage() {
           <strong>Şifrəniz yalnız yoxlamadan sonra sıfırlanacaq.</strong>
           <p>Dəstək qərar verənədək hesabın mövcud məlumatları dəyişdirilmir.</p>
         </div>
-        {submitError ? <div className="form-alert" role="alert">{submitError}</div> : null}
+        <NotificationEvent tone="error" message={submitError} />
         <form className="auth-form" onSubmit={onSubmit} noValidate>
           <PhoneField
             label="Hesabın telefon nömrəsi"

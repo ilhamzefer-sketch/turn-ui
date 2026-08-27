@@ -7,6 +7,7 @@ import { stepSixApi } from "../../shared/api/stepSixApi";
 import { Button } from "../../shared/ui/Button";
 import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 
 export function AnalyticsPage({ scope }: { scope: "business" | "room" }) {
   const params = useParams();
@@ -22,7 +23,8 @@ export function AnalyticsPage({ scope }: { scope: "business" | "room" }) {
   return <div className="insight-page">
     <header className="insight-header"><div><p className="eyebrow">Əməliyyat hesabatı</p><h1>İş yükünü aydın görün</h1><p>Göstəricilər ödəniş və gəliri deyil, növbə əməliyyatlarını ölçür.</p></div><Button variant="secondary" loading={downloading} disabled={!report} onClick={() => void download()}>Excel hesabatını endir</Button></header>
     <section className="report-filter" aria-label="Hesabat tarix aralığı"><TextField label="Başlanğıc tarixi" type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} /><TextField label="Son tarix" type="date" value={to} min={from} onChange={(e) => setTo(e.target.value)} /><p>Maksimum 366 günlük aralıq seçilə bilər.</p></section>
-    {query.isPending ? <div className="management-state" role="status">Hesabat hazırlanır…</div> : query.isError ? <div className="form-alert" role="alert">{query.error.message}</div> : report ? <>
+    <NotificationEvent tone="error" message={query.error?.message ?? null} />
+    {query.isPending ? <div className="management-state" role="status">Hesabat hazırlanır…</div> : query.isError ? null : report ? <>
       <section className="metric-grid" aria-label="Əsas göstəricilər">
         <Metric label="Ümumi iştirakçı" value={report.totalPeople} /><Metric label="Tamamlanan" value={report.completed} /><Metric label="Canlı növbə" value={report.liveQueueEntries} /><Metric label="Planlı rezervasiya" value={report.plannedBookings} />
       </section>

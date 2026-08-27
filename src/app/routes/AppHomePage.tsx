@@ -8,6 +8,7 @@ import { ButtonLink } from "../../shared/ui/Button";
 import { useWorkspace } from "../../shared/workspace/useWorkspace";
 import { workspaceApi } from "../../shared/api/workspaceApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 
 export function AppHomePage() {
   usePageMeta("Hesabım — NövbəTime", "Növbələrinizi və iş sahələrinizi idarə edin.", { index: false });
@@ -33,6 +34,12 @@ export function AppHomePage() {
 
   return (
     <div className="app-home-grid">
+      <NotificationEvent
+        tone="info"
+        title="Gözləyən dəvət"
+        message={pendingInvitationCount > 0 ? `${pendingInvitationCount} gözləyən dəvətiniz var.` : null}
+        action={pendingInvitationCount > 0 ? { label: "Dəvətlərə bax və cavablandır", to: "/onboarding#pending-invitations" } : undefined}
+      />
       <section className="welcome-panel" aria-labelledby="welcome-title">
         <p className="eyebrow">{activeWorkspace ? workspaceTypeLabel(activeWorkspace.type) : "Şəxsi hesab"}</p>
         <h1 id="welcome-title">Xoş gəldiniz, {user?.firstName}.</h1>
@@ -50,12 +57,6 @@ export function AppHomePage() {
           ) : null}
           <ButtonLink to="/onboarding" variant="secondary">Yeni iş sahəsi əlavə et</ButtonLink>
         </div>
-        {pendingInvitationCount > 0 ? (
-          <div className="success-alert">
-            <strong>{pendingInvitationCount} gözləyən dəvətiniz var.</strong>{" "}
-            <ButtonLink variant="secondary" to="/onboarding#pending-invitations">Dəvətlərə bax və cavablandır</ButtonLink>
-          </div>
-        ) : null}
       </section>
       <aside className="account-panel" aria-labelledby="account-panel-title">
         <h2 id="account-panel-title">Hesab məlumatları</h2>

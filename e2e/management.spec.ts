@@ -235,9 +235,8 @@ test("room management remains usable on a compact viewport and exposes permanent
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/app");
   await page.getByLabel("Aktiv sahə").selectOption("ROOM:30");
-  await expect(page).toHaveURL(/\/app\/rooms\/30$/);
+  await expect(page).toHaveURL(/\/app\/rooms\/30\/settings/);
   await expect(page.getByRole("heading", { name: room.name })).toBeVisible();
-  await page.getByRole("link", { name: "QR kodlar" }).click();
   await expect(page.getByRole("heading", { name: "QR kodlar" })).toBeVisible();
   await expect(page.getByRole("img", { name: `${room.name} üçün QR kod 1` })).toBeVisible();
   await expect(page.getByRole("button", { name: "Arxivləşdir" })).toHaveCount(0);
@@ -281,7 +280,7 @@ test("individual workspace shows its room and returns to creation after deletion
 
   await expect(page).toHaveURL(/\/app\/individual\/11$/);
   await expect(page.getByRole("heading", { name: individualRoom.name })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Redaktə et" })).toHaveAttribute("href", "/app/rooms/31");
+  await expect(page.getByRole("link", { name: "Otaq ayarları" })).toHaveAttribute("href", "/app/rooms/31/settings");
 
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Otağı sil" }).click();
@@ -291,9 +290,7 @@ test("individual workspace shows its room and returns to creation after deletion
 });
 
 test("edited weekend schedule is submitted and confirmed as saved", async ({ page }) => {
-  await page.goto("/app");
-  await page.getByLabel("Aktiv sahə").selectOption("ROOM:30");
-  await page.getByRole("link", { name: "İş qrafiki" }).click();
+  await page.goto("/app/rooms/30/settings?step=schedule");
   await page.getByRole("group", { name: "Şənbə", exact: true }).getByRole("checkbox").check();
   await page.getByRole("group", { name: "Bazar", exact: true }).getByRole("checkbox").check();
   await expect(page.getByText("Saxlanmamış dəyişikliklər var")).toBeVisible();
@@ -306,7 +303,11 @@ test("edited weekend schedule is submitted and confirmed as saved", async ({ pag
   const rules = (request.postDataJSON() as { rules: Array<{ dayOfWeek: string }> }).rules;
 
   expect(rules.map((rule) => rule.dayOfWeek)).toEqual(expect.arrayContaining(["SATURDAY", "SUNDAY"]));
-  await expect(page.getByText("Həftəlik iş qrafiki saxlanıldı.")).toBeVisible();
+  const confirmationPopup = page.getByRole("alertdialog", { name: "Əməliyyat tamamlandı" });
+  await expect(confirmationPopup).toBeVisible();
+  await expect(confirmationPopup).toContainText("Həftəlik iş qrafiki saxlanıldı.");
+  await expect(page.locator(".success-alert, .form-alert")).toHaveCount(0);
+  await confirmationPopup.getByRole("button", { name: "Bağla" }).click();
   await expect(page.getByText("Qrafik serverlə eynidir")).toBeVisible();
 });
 

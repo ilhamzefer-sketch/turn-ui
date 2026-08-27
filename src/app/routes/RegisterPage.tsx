@@ -10,6 +10,7 @@ import { Button } from "../../shared/ui/Button";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 
 export function RegisterPage() {
   usePageMeta("Hesab yaradın — NövbəTime", "Telefon nömrənizlə vahid NövbəTime hesabı yaradın və ya gözləyən hesabınızı tamamlayın.");
@@ -49,7 +50,7 @@ export function RegisterPage() {
           <strong>Sizin üçün əvvəlcədən hesab yaradılıb?</strong>
           <p>Eyni telefon nömrəsi ilə bu formanı doldurun. Gözləyən hesabınız və tarixçəniz qorunacaq.</p>
         </div>
-        {submitError ? <div className="form-alert" role="alert">{submitError}</div> : null}
+        <NotificationEvent tone="error" message={submitError} />
         <form className="auth-form" onSubmit={onSubmit} noValidate>
           <div className="auth-form__name-grid">
             <TextField label="Ad" autoComplete="given-name" error={errors.firstName?.message} {...register("firstName")} />

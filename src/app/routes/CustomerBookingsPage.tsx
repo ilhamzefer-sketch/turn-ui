@@ -9,6 +9,7 @@ import type { PlannedBooking } from "../../shared/api/contracts";
 import { queueApi } from "../../shared/api/queueApi";
 import { stepSixApi } from "../../shared/api/stepSixApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 import { TextField } from "../../shared/ui/TextField";
 import { SelectField } from "../../shared/ui/SelectField";
@@ -39,8 +40,8 @@ export function CustomerBookingsPage() {
 function RatingForm({ type, id }: { type: "live" | "booking"; id: number }) {
   const [open, setOpen] = useState(false); const [score, setScore] = useState("5"); const [comment, setComment] = useState("");
   const rating = useMutation({ mutationFn: () => type === "live" ? stepSixApi.rateLive(id, Number(score), comment.trim() || null) : stepSixApi.rateBooking(id, Number(score), comment.trim() || null) });
-  if (rating.data) return <p className="rating-confirmation" role="status">Rəyiniz saxlanıldı · {rating.data.score}/5</p>;
-  return <div className="rating-form">{open ? <><SelectField label="Qiymət" value={score} onChange={(e) => setScore(e.target.value)}>{[5, 4, 3, 2, 1].map((value) => <option key={value} value={value}>{value} / 5</option>)}</SelectField><TextAreaField label="Qeyd (istəyə bağlı)" value={comment} onChange={(e) => setComment(e.target.value)} /><Button loading={rating.isPending} onClick={() => rating.mutate()}>Rəyi saxla</Button>{rating.error ? <div className="form-alert" role="alert">{rating.error.message}</div> : null}</> : <Button variant="quiet" onClick={() => setOpen(true)}>Rezervasiyanı qiymətləndir</Button>}</div>;
+  if (rating.data) return <NotificationEvent tone="success" message={`Rəyiniz saxlanıldı · ${rating.data.score}/5`} />;
+  return <div className="rating-form"><NotificationEvent tone="error" message={rating.error?.message ?? null} />{open ? <><SelectField label="Qiymət" value={score} onChange={(e) => setScore(e.target.value)}>{[5, 4, 3, 2, 1].map((value) => <option key={value} value={value}>{value} / 5</option>)}</SelectField><TextAreaField label="Qeyd (istəyə bağlı)" value={comment} onChange={(e) => setComment(e.target.value)} /><Button loading={rating.isPending} onClick={() => rating.mutate()}>Rəyi saxla</Button></> : <Button variant="quiet" onClick={() => setOpen(true)}>Rezervasiyanı qiymətləndir</Button>}</div>;
 }
 
 function CustomerBookingCard({ booking }: { booking: PlannedBooking }) {
@@ -57,7 +58,7 @@ function CustomerBookingCard({ booking }: { booking: PlannedBooking }) {
     <div className="customer-booking-card__time"><strong>{booking.startAt.slice(0, 10)}</strong><span>{localTimeLabel(booking.startAt)}</span></div>
     <div className="customer-booking-card__body"><div><p className="eyebrow">{booking.bookingReference}</p><h3>{booking.roomName}</h3><p>{bookingStatusLabel(booking.status)}</p></div>
       <div className="customer-booking-card__actions"><Button variant="secondary" onClick={() => setAction(action === "move" ? null : "move")}>Vaxtı dəyiş</Button><Button variant="quiet" onClick={() => setAction(action === "cancel" ? null : "cancel")}>Ləğv et</Button></div>
-      {mutation.error ? <div className="form-alert" role="alert">{mutation.error.message}</div> : null}
+      <NotificationEvent tone="error" message={mutation.error?.message ?? null} />
       {action === "cancel" ? <div className="inline-confirm" role="group" aria-label="Rezervasiyanı ləğv etmə təsdiqi"><p>Bu rezervasiyanı ləğv etmək istəyirsiniz?</p><Button loading={mutation.isPending} onClick={() => mutation.mutate()}>Bəli, ləğv et</Button><Button variant="quiet" onClick={() => setAction(null)}>Geri qayıt</Button></div> : null}
       {action === "move" ? <div className="reschedule-panel"><TextField label="Yeni tarix" type="date" min={todayInTimezone(booking.timezone)} value={date} onChange={(event) => { setDate(event.target.value); setSlot(""); }} />{slots.isPending ? <p role="status">Saatlar açılır…</p> : <div className="slot-picker">{(slots.data ?? []).map((item) => <button type="button" key={item.startAt} className={slot === item.startAt ? "slot-button is-selected" : "slot-button"} aria-pressed={slot === item.startAt} onClick={() => setSlot(item.startAt)}>{localTimeLabel(item.startAt)}</button>)}</div>}<Button disabled={!slot} loading={mutation.isPending} onClick={() => mutation.mutate()}>Yeni vaxtı saxla</Button></div> : null}
     </div>

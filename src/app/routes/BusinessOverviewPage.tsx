@@ -10,6 +10,7 @@ import { businessProfileSchema, type BusinessProfileFormValues } from "../../fea
 import { managementApi } from "../../shared/api/managementApi";
 import { publicApi } from "../../shared/api/publicApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { SelectField } from "../../shared/ui/SelectField";
@@ -143,8 +144,8 @@ export function BusinessOverviewPage() {
           <div><p className="eyebrow">Profil</p><h2 id="business-profile-title">Biznes məlumatları</h2></div>
           <p>Axtarışda və otaq səhifələrində istifadə olunan əsas məlumatlar.</p>
         </div>
-        {updateMutation.isError ? <div className="form-alert" role="alert">{apiMessage(updateMutation.error, "Dəyişiklik saxlanılmadı.")}</div> : null}
-        {savedMessage ? <div className="success-alert" role="status">{savedMessage}</div> : null}
+        <NotificationEvent tone="success" message={savedMessage} />
+        <NotificationEvent tone="error" message={updateMutation.isError ? apiMessage(updateMutation.error, "Dəyişiklik saxlanılmadı.") : null} />
         <form
           className="management-form"
           onSubmit={form.handleSubmit((values) => {

@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import type { LiveQueueEntry, LiveQueueSession } from "../../shared/api/contracts";
 import { queueApi } from "../../shared/api/queueApi";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button } from "../../shared/ui/Button";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { SelectField } from "../../shared/ui/SelectField";
@@ -22,7 +23,6 @@ const liveQueueRefreshIntervalMs = 2_000;
 export function LiveQueueOperator({ roomId, refreshIntervalMs = liveQueueRefreshIntervalMs }: { roomId: number; refreshIntervalMs?: number }) {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState<string | null>(null);
-  const messageRef = useRef<HTMLDivElement>(null);
   const form = useForm<ManualEntryFormValues>({ resolver: zodResolver(manualEntrySchema), defaultValues: emptyManual });
   const query = useQuery({
     queryKey: ["operator-live-queue", roomId],
@@ -58,10 +58,6 @@ export function LiveQueueOperator({ roomId, refreshIntervalMs = liveQueueRefresh
   });
   const error = sessionAction.error ?? entryAction.error ?? addManual.error;
 
-  useEffect(() => {
-    if (message) messageRef.current?.focus();
-  }, [message]);
-
   if (query.isPending) return <div className="management-state" role="status">Canlı növbə açılır…</div>;
   if (query.isError || !query.data) return <div className="management-state management-state--error" role="alert"><h2>Canlı növbə hazırlanmadı</h2><p>{query.error?.message ?? "Avtomatik sessiya yaradıla bilmədi."}</p><Button variant="secondary" onClick={() => query.refetch()}>Yenidən yoxla</Button></div>;
 
@@ -71,8 +67,8 @@ export function LiveQueueOperator({ roomId, refreshIntervalMs = liveQueueRefresh
   const skipped = session.entries.filter((entry) => entry.status === "SKIPPED");
   return <div className="live-operator">
     <p className="live-sync-status"><span aria-hidden="true" />Canlı siyahı avtomatik yenilənir</p>
-    {message ? <div ref={messageRef} className="success-alert" role="status" tabIndex={-1}>{message}</div> : null}
-    {error ? <div className="form-alert" role="alert">{apiMessage(error, "Əməliyyat tamamlanmadı.")}</div> : null}
+    <NotificationEvent tone="success" message={message} />
+    <NotificationEvent tone="error" message={error ? apiMessage(error, "Əməliyyat tamamlanmadı.") : null} />
     <section className="live-control-bar" aria-label="Canlı növbə idarəetməsi"><div><span className={session.acceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" /><div><strong>{session.acceptingNewEntries ? "Yeni iştirakçılar qəbul olunur" : "Yeni qəbul dayandırılıb"}</strong><p>{acceptanceLabel(session.acceptanceOverride)} · {session.waitingCount} nəfər gözləyir</p>{session.acceptanceOverride === "AUTO" && !session.acceptingNewEntries && session.nextOpeningAt ? <p>Növbəti açılış: {localDateTimeLabel(session.nextOpeningAt)}</p> : null}</div></div><div className="live-control-bar__actions">{session.acceptingNewEntries ? <Button variant="secondary" onClick={() => sessionAction.mutate("close")}>Qəbulu müvəqqəti bağla</Button> : <Button onClick={() => sessionAction.mutate("open")}>İndi qəbul aç</Button>}{session.acceptanceOverride !== "AUTO" ? <Button variant="quiet" onClick={() => sessionAction.mutate("automatic")}>İş qrafikinə qayıt</Button> : null}<Button variant="quiet" onClick={() => { if (window.confirm("Cari sessiya bağlanacaq və aktiv iştirakçılar sıfırlanacaq. Davam edilsin?")) sessionAction.mutate("reset"); }}>Növbəni sıfırla</Button></div></section>
     <section className="current-participant" aria-labelledby="current-participant-title"><div><p className="eyebrow">Hazırda qəbul olunur</p><h2 id="current-participant-title">{current ? current.displayName : "İştirakçı çağırılmayıb"}</h2>{current ? <p>{current.publicReference} · {current.phone}</p> : <p>Gözləyən ilk iştirakçını çağırın.</p>}</div>{current ? <Button loading={sessionAction.isPending} onClick={() => sessionAction.mutate("complete")}>Tamamla və növbətini çağır</Button> : <Button disabled={!waiting.length} loading={sessionAction.isPending} onClick={() => sessionAction.mutate("call")}>Növbəti iştirakçını çağır</Button>}</section>
     <div className="operator-grid">
@@ -89,5 +85,5 @@ function QueueEntryRow({ entry, busy, onAction, onUpdated, roomId }: { entry: Li
   const [phone, setPhone] = useState(toLocalPhoneInput(entry.phone));
   const [note, setNote] = useState(entry.internalNote ?? "");
   const update = useMutation({ mutationFn: () => queueApi.updateManual(roomId, entry.id, { displayName: name, phone, internalNote: note.trim() || null }), onSuccess: () => { setEditing(false); onUpdated(); } });
-  return <article className="operator-entry"><div className="operator-entry__position">{entry.queuePosition}</div><div className="operator-entry__identity"><div><h3>{entry.displayName}</h3><StatusBadge tone={entry.status === "SKIPPED" ? "warning" : "neutral"}>{queueStatusLabel(entry.status)}</StatusBadge></div><p className="operator-entry__meta"><span>{entry.publicReference}</span><span>{entry.phone}</span><span>{sourceLabel(entry.source)}</span></p>{entry.internalNote ? <small>{entry.internalNote}</small> : null}</div><div className="operator-entry__actions">{entry.status === "SKIPPED" ? <Button variant="secondary" disabled={busy} onClick={() => onAction("restore")}>Bərpa et</Button> : <Button variant="secondary" disabled={busy} onClick={() => onAction("skip")}>Skip et</Button>}<Button variant="quiet" disabled={busy} onClick={() => onAction("send-to-end")}>Sona göndər</Button>{entry.createdByUserId ? <Button variant="quiet" onClick={() => setEditing(!editing)}>Düzəliş et</Button> : null}<Button variant="quiet" disabled={busy} onClick={() => { if (window.confirm(`${entry.displayName} aktiv növbədən çıxarılsın?`)) onAction("remove"); }}>Sil</Button></div>{editing ? <div className="operator-entry__edit"><TextField label="Ad və soyad" value={name} onChange={(event) => setName(event.target.value)} /><PhoneField label="Telefon" value={phone} onChange={(event) => setPhone(event.target.value)} /><TextAreaField label="Daxili qeyd" value={note} onChange={(event) => setNote(event.target.value)} />{update.error ? <div className="form-alert" role="alert">{update.error.message}</div> : null}<Button disabled={!isLocalPhone(phone)} loading={update.isPending} onClick={() => update.mutate()}>Dəyişiklikləri saxla</Button></div> : null}</article>;
+  return <article className="operator-entry"><NotificationEvent tone="error" message={update.error?.message ?? null} /><div className="operator-entry__position">{entry.queuePosition}</div><div className="operator-entry__identity"><div><h3>{entry.displayName}</h3><StatusBadge tone={entry.status === "SKIPPED" ? "warning" : "neutral"}>{queueStatusLabel(entry.status)}</StatusBadge></div><p className="operator-entry__meta"><span>{entry.publicReference}</span><span>{entry.phone}</span><span>{sourceLabel(entry.source)}</span></p>{entry.internalNote ? <small>{entry.internalNote}</small> : null}</div><div className="operator-entry__actions">{entry.status === "SKIPPED" ? <Button variant="secondary" disabled={busy} onClick={() => onAction("restore")}>Bərpa et</Button> : <Button variant="secondary" disabled={busy} onClick={() => onAction("skip")}>Skip et</Button>}<Button variant="quiet" disabled={busy} onClick={() => onAction("send-to-end")}>Sona göndər</Button>{entry.createdByUserId ? <Button variant="quiet" onClick={() => setEditing(!editing)}>Düzəliş et</Button> : null}<Button variant="quiet" disabled={busy} onClick={() => { if (window.confirm(`${entry.displayName} aktiv növbədən çıxarılsın?`)) onAction("remove"); }}>Sil</Button></div>{editing ? <div className="operator-entry__edit"><TextField label="Ad və soyad" value={name} onChange={(event) => setName(event.target.value)} /><PhoneField label="Telefon" value={phone} onChange={(event) => setPhone(event.target.value)} /><TextAreaField label="Daxili qeyd" value={note} onChange={(event) => setNote(event.target.value)} /><Button disabled={!isLocalPhone(phone)} loading={update.isPending} onClick={() => update.mutate()}>Dəyişiklikləri saxla</Button></div> : null}</article>;
 }

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { ManagedRoom } from "../../../shared/api/contracts";
 import { managementApi } from "../../../shared/api/managementApi";
 import { useAuth } from "../../../shared/auth/useAuth";
+import { NotificationEvent } from "../../../shared/notifications/NotificationProvider";
 import { Button, ButtonLink } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 import { useWorkspace } from "../../../shared/workspace/useWorkspace";
@@ -76,8 +77,8 @@ export function RoomOwnersSection({ room, setupNavigation }: { room: ManagedRoom
 
   return (
     <div className="room-section-stack">
-      {successMessage ? <div className="success-alert" role="status">{successMessage}</div> : null}
-      {error ? <div className="form-alert" role="alert">{apiMessage(error, "Otaq sahibi əməliyyatı tamamlanmadı.")}</div> : null}
+      <NotificationEvent tone="success" message={successMessage} />
+      <NotificationEvent tone="error" message={error ? apiMessage(error, "Otaq sahibi əməliyyatı tamamlanmadı.") : null} />
 
       <section className="management-panel" aria-labelledby="room-owner-title">
         <div className="section-heading">

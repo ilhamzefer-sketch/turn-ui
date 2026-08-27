@@ -5,6 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 
 import type { ManagedRoom } from "../../../shared/api/contracts";
 import { managementApi } from "../../../shared/api/managementApi";
+import { NotificationEvent } from "../../../shared/notifications/NotificationProvider";
 import { Button } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 import { TextAreaField } from "../../../shared/ui/TextAreaField";
@@ -83,8 +84,8 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
 
   return (
     <div className="room-section-stack">
-      {successMessage ? <div className="success-alert" role="status">{successMessage}</div> : null}
-      {error ? <div className="form-alert" role="alert">{apiMessage(error, "Dəyişiklik saxlanılmadı.")}</div> : null}
+      <NotificationEvent tone="success" message={successMessage} />
+      <NotificationEvent tone="error" message={error ? apiMessage(error, "Dəyişiklik saxlanılmadı.") : null} />
 
       <section className="management-panel" aria-labelledby="room-details-title">
         <div className="section-heading">

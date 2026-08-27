@@ -11,6 +11,7 @@ import { nullableText } from "../../features/management/managementLabels";
 import type { Branch } from "../../shared/api/contracts";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button } from "../../shared/ui/Button";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
@@ -98,8 +99,8 @@ export function BusinessBranchesPage() {
         description="Biznes otaqları filialın ünvan və əlaqə məlumatlarından istifadə edir. Ən azı bir filial yaratdıqdan sonra otaq əlavə edə bilərsiniz."
         actions={<Button onClick={startCreate}>Yeni filial</Button>}
       />
-      {successMessage ? <div className="success-alert" role="status">{successMessage}</div> : null}
-      {archiveMutation.isError ? <div className="form-alert" role="alert">{apiMessage(archiveMutation.error, "Filial arxivləşdirilmədi.")}</div> : null}
+      <NotificationEvent tone="success" message={successMessage} />
+      <NotificationEvent tone="error" message={archiveMutation.isError ? apiMessage(archiveMutation.error, "Filial arxivləşdirilmədi.") : null} />
 
       {formVisible ? (
         <section className="management-panel management-panel--editor" aria-labelledby="branch-editor-title">
@@ -107,7 +108,7 @@ export function BusinessBranchesPage() {
             <div><p className="eyebrow">{editing ? "Düzəliş" : "Yeni məkan"}</p><h2 id="branch-editor-title">{editing ? editing.name : "Filial məlumatları"}</h2></div>
             <Button variant="quiet" onClick={() => setFormVisible(false)}>Bağla</Button>
           </div>
-          {saveMutation.isError ? <div className="form-alert" role="alert">{apiMessage(saveMutation.error, "Filial saxlanılmadı.")}</div> : null}
+          <NotificationEvent tone="error" message={saveMutation.isError ? apiMessage(saveMutation.error, "Filial saxlanılmadı.") : null} />
           <form className="management-form" onSubmit={form.handleSubmit((values) => saveMutation.mutate(values))} noValidate>
             <div className="management-form__grid">
               <TextField label="Filial adı" autoFocus error={form.formState.errors.name?.message} {...form.register("name")} />

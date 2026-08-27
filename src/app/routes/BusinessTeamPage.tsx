@@ -11,6 +11,7 @@ import { memberInviteSchema, type MemberInviteFormValues } from "../../features/
 import type { BusinessRole } from "../../shared/api/contracts";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button } from "../../shared/ui/Button";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { SelectField } from "../../shared/ui/SelectField";
@@ -79,8 +80,8 @@ export function BusinessTeamPage() {
         description="İstifadəçi telefon nömrəsi ilə tanınır. Sistemdə hesab yoxdursa müvəqqəti hesab yaradılır; istifadəçi qeydiyyatdan keçib dəvəti ayrıca qəbul edir."
         actions={<Button onClick={() => { setSuccessMessage(null); setInviteOpen(true); }}>Komanda üzvü əlavə et</Button>}
       />
-      {successMessage ? <div className="success-alert" role="status">{successMessage}</div> : null}
-      {mutationError ? <div className="form-alert" role="alert">{apiMessage(mutationError, "Əməliyyat tamamlanmadı.")}</div> : null}
+      <NotificationEvent tone="success" message={successMessage} />
+      <NotificationEvent tone="error" message={mutationError ? apiMessage(mutationError, "Əməliyyat tamamlanmadı.") : null} />
 
       {inviteOpen ? (
         <section className="management-panel management-panel--editor" aria-labelledby="team-invite-title">

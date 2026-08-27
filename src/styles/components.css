@@ -321,6 +321,14 @@
   box-shadow: 0 1.5rem 4rem rgb(8 25 23 / 0.28);
 }
 
+.action-error-popup__dialog--success {
+  border-color: #91cdbd;
+}
+
+.action-error-popup__dialog--info {
+  border-color: var(--color-border);
+}
+
 .action-error-popup__heading {
   display: flex;
   align-items: flex-start;
@@ -344,6 +352,16 @@
   font-weight: 800;
 }
 
+.action-error-popup__dialog--success .action-error-popup__mark {
+  color: var(--color-brand-800);
+  background: var(--color-success-soft);
+}
+
+.action-error-popup__dialog--info .action-error-popup__mark {
+  color: var(--color-brand-800);
+  background: var(--color-brand-100);
+}
+
 .action-error-popup__message {
   margin: var(--space-6) 0 0;
   padding: var(--space-4);
@@ -352,6 +370,18 @@
   color: #7e281f;
   background: var(--color-danger-soft);
   font-weight: 700;
+}
+
+.action-error-popup__dialog--success .action-error-popup__message {
+  border-left-color: var(--color-brand-600);
+  color: var(--color-brand-800);
+  background: var(--color-success-soft);
+}
+
+.action-error-popup__dialog--info .action-error-popup__message {
+  border-left-color: var(--color-brand-600);
+  color: var(--color-ink);
+  background: var(--color-brand-100);
 }
 
 .action-error-popup__guidance {

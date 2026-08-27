@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 
 import { AuthProvider } from "../shared/auth/AuthProvider";
+import { NotificationProvider } from "../shared/notifications/NotificationProvider";
 import { WorkspaceProvider } from "../shared/workspace/WorkspaceProvider";
 
 type AppProvidersProps = {
@@ -28,7 +29,9 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WorkspaceProvider>{children}</WorkspaceProvider>
+        <NotificationProvider>
+          <WorkspaceProvider>{children}</WorkspaceProvider>
+        </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

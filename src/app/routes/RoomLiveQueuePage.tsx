@@ -9,6 +9,7 @@ import { localDateTimeLabel } from "../../features/operations/operationFormatter
 import { queueApi } from "../../shared/api/queueApi";
 import { useAuth } from "../../shared/auth/useAuth";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button } from "../../shared/ui/Button";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextField } from "../../shared/ui/TextField";
@@ -78,7 +79,7 @@ export function RoomLiveQueuePage() {
           <p className="eyebrow">Növbəyə qoşul</p>
           <h2 id="join-title">Əlaqə məlumatınız</h2>
           <p>Ad və nömrə yalnız otağın səlahiyyətli əməkdaşlarına görünür.</p>
-          {joinError ? <div className="form-alert" role="alert">{joinError.message}</div> : null}
+          <NotificationEvent tone="error" message={joinError?.message ?? null} />
           {authStatus === "authenticated" && user ? (
             <div className="account-join">
               <div><strong>{user.firstName} {user.lastName}</strong><span>{user.phone}</span></div>

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { authApi } from "../../shared/api/authApi";
 import type { UserSession } from "../../shared/api/contracts";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button } from "../../shared/ui/Button";
 
 const SESSIONS_QUERY_KEY = ["account-sessions"] as const;
@@ -37,10 +38,8 @@ export function AccountSecurityPage() {
       </header>
 
       {sessions.isPending ? <div className="management-state" role="status">Sessiyalar yoxlanılır…</div> : null}
-      {sessions.isError ? <div className="form-alert" role="alert">{sessions.error.message}</div> : null}
-      {revoke.error || revokeOthers.error ? (
-        <div className="form-alert" role="alert">{(revoke.error ?? revokeOthers.error)?.message}</div>
-      ) : null}
+      <NotificationEvent tone="error" message={sessions.error?.message ?? null} />
+      <NotificationEvent tone="error" message={(revoke.error ?? revokeOthers.error)?.message ?? null} />
 
       <div className="session-list">
         {sessions.data?.map((session) => (

@@ -10,6 +10,7 @@ import { bookingNoteSchema, type BookingNoteFormValues } from "../../features/op
 import { bookingApi } from "../../shared/api/bookingApi";
 import { publicApi } from "../../shared/api/publicApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { TextField } from "../../shared/ui/TextField";
@@ -64,14 +65,15 @@ export function BookRoomPage() {
     <main className="booking-shell shell">
       <nav className="breadcrumbs" aria-label="Səhifə yolu"><Link to={`/rooms/${room.id}`}>{room.name}</Link><span>/</span><span aria-current="page">Rezervasiya</span></nav>
       <header><p className="eyebrow">Planlı rezervasiya</p><h1>Uyğun vaxtı seçin</h1><p>{room.providerName} · {room.name}. Saatlar {room.timezone} vaxtı ilə göstərilir.</p></header>
-      {mutation.error ? <div className="form-alert" role="alert">{mutation.error.message}</div> : null}
+      <NotificationEvent tone="error" message={mutation.error?.message ?? null} />
+      <NotificationEvent tone="error" message={slotsQuery.error ? "Boş saatları göstərmək mümkün olmadı." : null} />
       <form className="booking-layout" onSubmit={form.handleSubmit((values) => mutation.mutate(values))} noValidate>
         <section className="booking-step" aria-labelledby="booking-date-title">
           <span className="booking-step__number">1</span><div><h2 id="booking-date-title">Tarixi seçin</h2><TextField label="Rezervasiya tarixi" type="date" min={todayInTimezone(room.timezone)} value={effectiveDate} onChange={(event) => { setDate(event.target.value); setSelectedStart(""); }} /></div>
         </section>
         <section className="booking-step" aria-labelledby="booking-time-title">
           <span className="booking-step__number">2</span><div><h2 id="booking-time-title">Boş saatı seçin</h2>
-            {slotsQuery.isPending ? <p role="status">Boş saatlar yoxlanılır…</p> : slotsQuery.isError ? <p role="alert">Boş saatları göstərmək mümkün olmadı.</p> : !slotsQuery.data?.length ? <p>Bu tarix üçün boş saat yoxdur.</p> : (
+            {slotsQuery.isPending ? <p role="status">Boş saatlar yoxlanılır…</p> : slotsQuery.isError ? null : !slotsQuery.data?.length ? <p>Bu tarix üçün boş saat yoxdur.</p> : (
               <div className="slot-picker" role="group" aria-label="Boş rezervasiya saatları">{slotsQuery.data.map((slot) => <button key={slot.startAt} type="button" className={selectedStart === slot.startAt ? "slot-button is-selected" : "slot-button"} aria-pressed={selectedStart === slot.startAt} onClick={() => setSelectedStart(slot.startAt)}>{localTimeLabel(slot.startAt)}</button>)}</div>
             )}
           </div>

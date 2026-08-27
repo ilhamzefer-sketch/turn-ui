@@ -10,6 +10,7 @@ import { roomSchema, type RoomFormValues } from "../../features/management/schem
 import { RoomSetupProgress } from "../../features/management/room/RoomSetupProgress";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
@@ -104,7 +105,7 @@ export function IndividualWorkspacePage() {
           </>
         ) : undefined}
       />
-      {archiveMutation.isError ? <div className="form-alert" role="alert">{apiMessage(archiveMutation.error, "Otaq silinə bilmədi.")}</div> : null}
+      <NotificationEvent tone="error" message={archiveMutation.isError ? apiMessage(archiveMutation.error, "Otaq silinə bilmədi.") : null} />
       {existingRoom ? (
         <section className="management-panel individual-room-summary" aria-labelledby="individual-room-title">
           <div className="individual-room-summary__content">
@@ -128,7 +129,7 @@ export function IndividualWorkspacePage() {
             <p>Sonradan rejim və açıq saatları otaq idarəetməsindən dəyişə bilərsiniz.</p>
           </div>
           <RoomSetupProgress currentStep="basics" />
-          {createMutation.isError ? <div className="form-alert" role="alert">{apiMessage(createMutation.error, "Otaq yaradıla bilmədi.")}</div> : null}
+          <NotificationEvent tone="error" message={createMutation.isError ? apiMessage(createMutation.error, "Otaq yaradıla bilmədi.") : null} />
           <form className="management-form" onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} noValidate>
             <div className="management-form__grid">
               <TextField label="Otaq və ya mütəxəssis adı" error={form.formState.errors.name?.message} {...form.register("name")} />

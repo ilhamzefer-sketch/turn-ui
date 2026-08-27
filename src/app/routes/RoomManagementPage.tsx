@@ -13,7 +13,7 @@ import { RoomSetupProgress, type RoomSetupStep } from "../../features/management
 import { roomErrorNavigation } from "../../features/management/room/roomErrorNavigation";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
-import { ActionableErrorDialog } from "../../shared/ui/ActionableErrorDialog";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 
 type RoomSection = "overview" | "owners" | "schedule" | "qr";
@@ -122,11 +122,6 @@ export function RoomManagementPage() {
     ? navigate(`/app/businesses/${room.businessId}/rooms`)
     : navigate(`/app/individual/${room.individualWorkspaceId}`);
   const actionError = publishMutation.error ?? deactivateMutation.error ?? archiveMutation.error;
-  const closeActionError = () => {
-    publishMutation.reset();
-    deactivateMutation.reset();
-    archiveMutation.reset();
-  };
   const errorAction = actionError ? roomErrorNavigation(actionError, {
     roomId,
     businessId: room.businessId,
@@ -160,15 +155,13 @@ export function RoomManagementPage() {
         </div>
       </header>
 
-      {actionMessage ? <div className="success-alert" role="status">{actionMessage}</div> : null}
-      {actionError ? (
-        <ActionableErrorDialog
-          title={errorTitle}
-          message={apiMessage(actionError, "Otaq əməliyyatı tamamlanmadı.")}
-          action={errorAction}
-          onClose={closeActionError}
-        />
-      ) : null}
+      <NotificationEvent tone="success" message={actionMessage} />
+      <NotificationEvent
+        tone="error"
+        title={errorTitle}
+        message={actionError ? apiMessage(actionError, "Otaq əməliyyatı tamamlanmadı.") : null}
+        action={errorAction}
+      />
 
       {!setupMode && room.status !== "PUBLISHED" ? (
         <section className="readiness-strip" aria-label={`Otaq hazırlığı: 4 addımdan ${readyCount} addım tamamlanıb`}>

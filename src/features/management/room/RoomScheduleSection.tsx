@@ -9,6 +9,7 @@ import type {
   WeeklyAvailabilityRule,
 } from "../../../shared/api/contracts";
 import { managementApi } from "../../../shared/api/managementApi";
+import { NotificationEvent } from "../../../shared/notifications/NotificationProvider";
 import { Button } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 import { TextField } from "../../../shared/ui/TextField";
@@ -133,8 +134,8 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
 
   return (
     <div className="room-section-stack">
-      {successMessage ? <div className="success-alert" role="status">{successMessage}</div> : null}
-      {scheduleError || error ? <div className="form-alert" role="alert">{scheduleError ?? apiMessage(error, "Qrafik əməliyyatı tamamlanmadı.")}</div> : null}
+      <NotificationEvent tone="success" message={successMessage} />
+      <NotificationEvent tone="error" message={scheduleError ?? (error ? apiMessage(error, "Qrafik əməliyyatı tamamlanmadı.") : null)} />
 
       <section className="management-panel" aria-labelledby="weekly-hours-title">
         <div className="section-heading">

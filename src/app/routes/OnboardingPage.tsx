@@ -25,6 +25,7 @@ import { TextField } from "../../shared/ui/TextField";
 import { toLocalPhoneInput } from "../../shared/validation/phoneFormat";
 import { useWorkspace } from "../../shared/workspace/useWorkspace";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 
 type OnboardingMode = "choose" | "individual" | "business";
 
@@ -115,7 +116,7 @@ export function OnboardingPage() {
           </p>
         </div>
 
-        {pageError ? <div className="form-alert onboarding-alert" role="alert">{pageError}</div> : null}
+        <NotificationEvent tone="error" message={pageError} />
 
         {mode === "choose" ? (
           <OnboardingChoices
@@ -246,7 +247,7 @@ function IndividualOnboarding({ existingWorkspace, onBack, onExisting, onCreated
     <section className="onboarding-form-card" aria-labelledby="individual-form-title">
       <h2 id="individual-form-title">İş sahəsinin əsas məlumatları</h2>
       <p>Bu ad müştərilərə sizi tanımağa kömək edəcək. Otaq və açıq saatları növbəti mərhələdə əlavə edəcəksiniz.</p>
-      {submitError ? <div className="form-alert" role="alert">{submitError}</div> : null}
+      <NotificationEvent tone="error" message={submitError} />
       <form className="auth-form" onSubmit={onSubmit} noValidate>
         <TextField label="İş sahəsinin adı" autoComplete="organization" error={errors.name?.message} {...register("name")} />
         <div className="onboarding-form-actions">
@@ -313,7 +314,7 @@ function BusinessOnboarding({ defaultPhone, categories, categoriesLoading, onBac
     <section className="onboarding-form-card" aria-labelledby="business-form-title">
       <h2 id="business-form-title">Biznesin əsas məlumatları</h2>
       <p>Filial və otaqlar biznes yaradıldıqdan sonra əlavə ediləcək. Hüquqi məlumatları indi daxil etmək məcburi deyil.</p>
-      {submitError ? <div className="form-alert" role="alert">{submitError}</div> : null}
+      <NotificationEvent tone="error" message={submitError} />
       <form className="auth-form" onSubmit={onSubmit} noValidate>
         <TextField label="Biznes adı" autoComplete="organization" error={errors.name?.message} {...register("name")} />
         <PhoneField

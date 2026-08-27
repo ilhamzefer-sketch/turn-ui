@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 
 import type { ManagedRoom, QrCredential } from "../../../shared/api/contracts";
 import { managementApi } from "../../../shared/api/managementApi";
+import { NotificationEvent } from "../../../shared/notifications/NotificationProvider";
 import { Button } from "../../../shared/ui/Button";
 import { StatusBadge } from "../ManagementUi";
 import { apiMessage } from "../managementUtils";
@@ -48,8 +49,8 @@ export function RoomQrSection({ room, setupNavigation }: { room: ManagedRoom; se
 
   return (
     <div className="room-section-stack">
-      {successMessage ? <div className="success-alert" role="status">{successMessage}</div> : null}
-      {error ? <div className="form-alert" role="alert">{apiMessage(error, "QR əməliyyatı tamamlanmadı.")}</div> : null}
+      <NotificationEvent tone="success" message={successMessage} />
+      <NotificationEvent tone="error" message={error ? apiMessage(error, "QR əməliyyatı tamamlanmadı.") : null} />
       <section className="management-panel" aria-labelledby="qr-title">
         <div className="section-heading">
           <div><p className="eyebrow">Daimi giriş nöqtələri</p><h2 id="qr-title">QR kodlar</h2></div>
