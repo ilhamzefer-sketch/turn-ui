@@ -10,8 +10,10 @@ import { RoomOwnersSection } from "../../features/management/room/RoomOwnersSect
 import { RoomQrSection } from "../../features/management/room/RoomQrSection";
 import { RoomScheduleSection } from "../../features/management/room/RoomScheduleSection";
 import { RoomSetupProgress, type RoomSetupStep } from "../../features/management/room/RoomSetupProgress";
+import { roomErrorNavigation } from "../../features/management/room/roomErrorNavigation";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
+import { ActionableErrorDialog } from "../../shared/ui/ActionableErrorDialog";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 
 type RoomSection = "overview" | "owners" | "schedule" | "qr";
@@ -120,6 +122,22 @@ export function RoomManagementPage() {
     ? navigate(`/app/businesses/${room.businessId}/rooms`)
     : navigate(`/app/individual/${room.individualWorkspaceId}`);
   const actionError = publishMutation.error ?? deactivateMutation.error ?? archiveMutation.error;
+  const closeActionError = () => {
+    publishMutation.reset();
+    deactivateMutation.reset();
+    archiveMutation.reset();
+  };
+  const errorAction = actionError ? roomErrorNavigation(actionError, {
+    roomId,
+    businessId: room.businessId,
+    individualWorkspaceId: room.individualWorkspaceId,
+    setupMode,
+  }) : null;
+  const errorTitle = publishMutation.error
+    ? setupMode ? "Otaq yaradıla bilmədi" : "Otaq yayımlanmadı"
+    : deactivateMutation.error
+      ? "Qəbul dayandırılmadı"
+      : "Otaq arxivləşdirilmədi";
 
   return (
     <div className="management-page room-workspace">
@@ -143,7 +161,14 @@ export function RoomManagementPage() {
       </header>
 
       {actionMessage ? <div className="success-alert" role="status">{actionMessage}</div> : null}
-      {actionError ? <div className="form-alert" role="alert">{apiMessage(actionError, "Otaq əməliyyatı tamamlanmadı.")}</div> : null}
+      {actionError ? (
+        <ActionableErrorDialog
+          title={errorTitle}
+          message={apiMessage(actionError, "Otaq əməliyyatı tamamlanmadı.")}
+          action={errorAction}
+          onClose={closeActionError}
+        />
+      ) : null}
 
       {!setupMode && room.status !== "PUBLISHED" ? (
         <section className="readiness-strip" aria-label={`Otaq hazırlığı: 4 addımdan ${readyCount} addım tamamlanıb`}>

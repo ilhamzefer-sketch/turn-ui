@@ -235,6 +235,33 @@ test("room management remains usable on a compact viewport and exposes permanent
   await page.screenshot({ path: testInfo.outputPath("room-qr-compact.png"), fullPage: true });
 });
 
+test("publish error opens an actionable popup with the correct recovery page", async ({ page }, testInfo) => {
+  await page.route("**/api/rooms/30/publish", (route) => route.fulfill({
+    status: 402,
+    contentType: "application/json",
+    body: JSON.stringify({
+      status: 402,
+      error: "Payment Required",
+      code: "REQUEST_REJECTED",
+      message: "Aktiv abunəlik tələb olunur.",
+      path: "/api/rooms/30/publish",
+    }),
+  }));
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/app/rooms/30/settings?step=qr");
+
+  await page.getByRole("button", { name: "Otağı yarat" }).click();
+
+  const popup = page.getByRole("alertdialog", { name: "Otaq yaradıla bilmədi" });
+  await expect(popup).toBeVisible();
+  await expect(popup).toContainText("Aktiv abunəlik tələb olunur.");
+  await expect(popup.getByRole("link", { name: "Abunəliyə keç" })).toHaveAttribute("href", "/app/businesses/10/subscription");
+  await expect(popup.getByRole("link", { name: "Abunəliyə keç" })).toBeFocused();
+  const popupBox = await popup.boundingBox();
+  expect(popupBox?.width).toBeLessThanOrEqual(336);
+  await page.screenshot({ path: testInfo.outputPath("actionable-error-popup-mobile.png"), fullPage: true });
+});
+
 test("individual workspace shows its room and returns to creation after deletion", async ({ page }) => {
   await page.goto("/app");
   await page.getByLabel("Aktiv sahə").selectOption("INDIVIDUAL:11");
