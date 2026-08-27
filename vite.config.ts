@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
         "/_backend": {
           target: env.VITE_API_PROXY_TARGET || "http://localhost:8080",
           changeOrigin: true,
+          cookiePathRewrite: { "/api/auth": "/_backend/api/auth" },
           rewrite: (path) => path.replace(/^\/_backend/, ""),
         },
       },

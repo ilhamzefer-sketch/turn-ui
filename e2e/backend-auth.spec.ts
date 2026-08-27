@@ -26,6 +26,10 @@ test.describe("backend authentication integration", () => {
     await expect(page.getByRole("heading", { name: /Xoş gəldiniz, Test/i })).toBeVisible();
     await expect(page.getByText("+994")).toBeVisible();
 
+    await page.reload();
+    await expect(page).toHaveURL(/\/app$/);
+    await expect(page.getByRole("heading", { name: /Xoş gəldiniz, Test/i })).toBeVisible();
+
     await page.goto("/onboarding");
     await page.getByRole("button", { name: /Fərdi mütəxəssis/ }).click();
     await page.getByLabel("İş sahəsinin adı").fill(`Test Studio ${phone.slice(-4)}`);
