@@ -9,6 +9,7 @@ import { EmptyState, ManagementError, ManagementLoading, ManagementPageHeader, S
 import { apiMessage } from "../../features/management/managementUtils";
 import { reservationModeLabel, roomStatusLabel, visibilityLabel, nullableText } from "../../features/management/managementLabels";
 import { roomSchema, type RoomFormValues } from "../../features/management/schemas";
+import { RoomSetupProgress } from "../../features/management/room/RoomSetupProgress";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button, ButtonLink } from "../../shared/ui/Button";
@@ -70,7 +71,7 @@ export function BusinessRoomsPage() {
         queryClient.invalidateQueries({ queryKey: ["management-business-rooms", businessId] }),
         queryClient.invalidateQueries({ queryKey: ["workspaces"] }),
       ]);
-      await navigate(`/app/rooms/${room.id}`);
+      await navigate(`/app/rooms/${room.id}/settings?step=owners`);
     },
   });
 
@@ -99,6 +100,7 @@ export function BusinessRoomsPage() {
             <div><p className="eyebrow">Qaralama yaradın</p><h2 id="room-create-title">Yeni otaq</h2></div>
             <Button variant="quiet" onClick={() => setCreatorOpen(false)}>Bağla</Button>
           </div>
+          <RoomSetupProgress currentStep="basics" />
           {createMutation.isError ? <div className="form-alert" role="alert">{apiMessage(createMutation.error, "Otaq yaradıla bilmədi.")}</div> : null}
           <form className="management-form" onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} noValidate>
             <div className="management-form__grid">
@@ -124,7 +126,7 @@ export function BusinessRoomsPage() {
             <p className="form-note">Otaq əvvəl qaralama kimi yaranır. Otaq sahibi, iş qrafiki və rejim ayarlarını tamamladıqdan sonra ayrıca yayımlayacaqsınız.</p>
             <div className="management-form__actions">
               <Button type="button" variant="secondary" onClick={() => setCreatorOpen(false)}>Ləğv et</Button>
-              <Button type="submit" loading={createMutation.isPending}>Otağı yarat və qur</Button>
+              <Button type="submit" loading={createMutation.isPending}>Davam et</Button>
             </div>
           </form>
         </section>
@@ -159,7 +161,7 @@ export function BusinessRoomsPage() {
                 <div><dt>Müddət</dt><dd>{room.defaultSlotDurationMinutes} dəqiqə</dd></div>
                 <div><dt>Görünürlük</dt><dd>{visibilityLabel(room.visibility)}</dd></div>
               </dl>
-              <ButtonLink to={`/app/rooms/${room.id}/today`}>Otağı idarə et</ButtonLink>
+              <ButtonLink to={`/app/rooms/${room.id}`}>{room.status === "DRAFT" ? "Quruluma davam et" : "Otağı idarə et"}</ButtonLink>
             </article>
           ))}
         </section>

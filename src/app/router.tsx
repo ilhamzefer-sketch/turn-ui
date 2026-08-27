@@ -138,6 +138,10 @@ export const router = createBrowserRouter([
           },
           {
             path: "rooms/:roomId",
+            lazy: () => import("./routes/RoomEntryPage").then((module) => ({ Component: module.RoomEntryPage })),
+          },
+          {
+            path: "rooms/:roomId/settings",
             lazy: () => import("./routes/RoomManagementPage").then((module) => ({ Component: module.RoomManagementPage })),
           },
           {

@@ -127,7 +127,6 @@ export function OnboardingPage() {
         ) : mode === "individual" ? (
           <IndividualOnboarding
             existingWorkspace={existingIndividual}
-            defaultName={user ? `${user.firstName} ${user.lastName}` : ""}
             onBack={() => chooseMode("choose")}
             onExisting={(workspace) => void enterWorkspace(workspace)}
             onCreated={async (workspaceId) => {
@@ -203,13 +202,12 @@ function OnboardingChoices({ pendingInvitationCount, onCustomer, onIndividual, o
 
 type IndividualOnboardingProps = {
   existingWorkspace: WorkspaceContext | undefined;
-  defaultName: string;
   onBack: () => void;
   onExisting: (workspace: WorkspaceContext) => void;
   onCreated: (workspaceId: number) => Promise<void>;
 };
 
-function IndividualOnboarding({ existingWorkspace, defaultName, onBack, onExisting, onCreated }: IndividualOnboardingProps) {
+function IndividualOnboarding({ existingWorkspace, onBack, onExisting, onCreated }: IndividualOnboardingProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const {
     register,
@@ -217,7 +215,7 @@ function IndividualOnboarding({ existingWorkspace, defaultName, onBack, onExisti
     formState: { errors, isSubmitting },
   } = useForm<IndividualWorkspaceFormValues>({
     resolver: zodResolver(individualWorkspaceSchema),
-    defaultValues: { name: defaultName },
+    defaultValues: { name: "" },
   });
 
   if (existingWorkspace) {
@@ -253,7 +251,7 @@ function IndividualOnboarding({ existingWorkspace, defaultName, onBack, onExisti
         <TextField label="İş sahəsinin adı" autoComplete="organization" error={errors.name?.message} {...register("name")} />
         <div className="onboarding-form-actions">
           <Button type="button" variant="secondary" onClick={onBack}>Geri</Button>
-          <Button type="submit" loading={isSubmitting}>Fərdi sahə yarat</Button>
+          <Button type="submit" loading={isSubmitting}>Davam et</Button>
         </div>
       </form>
     </section>

@@ -20,7 +20,7 @@ export function workspaceKey(workspace: WorkspaceContext) {
 export function workspaceHomePath(workspace: WorkspaceContext) {
   if (workspace.type === "BUSINESS") return `/app/businesses/${workspace.contextId}`;
   if (workspace.type === "INDIVIDUAL") return `/app/individual/${workspace.contextId}`;
-  if (workspace.type === "ROOM") return `/app/rooms/${workspace.contextId}/today`;
+  if (workspace.type === "ROOM") return `/app/rooms/${workspace.contextId}`;
   return "/app";
 }
 

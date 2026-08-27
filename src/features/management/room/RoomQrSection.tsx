@@ -9,7 +9,13 @@ import { StatusBadge } from "../ManagementUi";
 import { apiMessage } from "../managementUtils";
 import { formatManagementDate } from "../managementLabels";
 
-export function RoomQrSection({ room }: { room: ManagedRoom }) {
+type RoomQrSetupNavigation = {
+  finishing: boolean;
+  onBack: () => void;
+  onFinish: () => void;
+};
+
+export function RoomQrSection({ room, setupNavigation }: { room: ManagedRoom; setupNavigation?: RoomQrSetupNavigation }) {
   const queryClient = useQueryClient();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const qrQuery = useQuery({
@@ -71,6 +77,15 @@ export function RoomQrSection({ room }: { room: ManagedRoom }) {
           </div>
         )}
       </section>
+      {setupNavigation ? (
+        <div className="room-setup-actions room-setup-actions--final">
+          <Button variant="secondary" onClick={setupNavigation.onBack}>Geri</Button>
+          <div>
+            <p>QR kod istəyə bağlıdır. Otağı yaratdıqdan sonra da əlavə edə və yeniləyə bilərsiniz.</p>
+            <Button loading={setupNavigation.finishing} onClick={setupNavigation.onFinish}>Otağı yarat</Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

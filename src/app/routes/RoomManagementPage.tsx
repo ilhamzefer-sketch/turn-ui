@@ -9,14 +9,28 @@ import { RoomOverviewSection } from "../../features/management/room/RoomOverview
 import { RoomOwnersSection } from "../../features/management/room/RoomOwnersSection";
 import { RoomQrSection } from "../../features/management/room/RoomQrSection";
 import { RoomScheduleSection } from "../../features/management/room/RoomScheduleSection";
+import { RoomSetupProgress, type RoomSetupStep } from "../../features/management/room/RoomSetupProgress";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 
 type RoomSection = "overview" | "owners" | "schedule" | "qr";
+type ActiveSetupStep = Exclude<RoomSetupStep, "basics">;
 
 function roomSection(value: string | null): RoomSection {
   return value === "owners" || value === "schedule" || value === "qr" ? value : "overview";
+}
+
+function requestedSetupStep(value: string | null): ActiveSetupStep | null {
+  return value === "owners" || value === "schedule" || value === "qr" ? value : null;
+}
+
+function activeSetupStep(value: string | null, hasOwner: boolean, hasSchedule: boolean): ActiveSetupStep {
+  const requested = requestedSetupStep(value);
+  if (!hasOwner) return "owners";
+  if (requested === "owners") return "owners";
+  if (!hasSchedule) return "schedule";
+  return requested ?? "qr";
 }
 
 export function RoomManagementPage() {
@@ -42,10 +56,14 @@ export function RoomManagementPage() {
     enabled: Number.isInteger(roomId),
   });
   const publishMutation = useMutation({
-    mutationFn: () => managementApi.publishRoom(roomId),
-    onSuccess: async () => {
+    mutationFn: (finishSetup: boolean) => {
+      void finishSetup;
+      return managementApi.publishRoom(roomId);
+    },
+    onSuccess: async (_, finishSetup) => {
       setActionMessage("Otaq yayımlandı və yeni növbələr üçün hazırdır.");
       await queryClient.invalidateQueries({ queryKey: ["management-room", roomId] });
+      if (finishSetup) await navigate(`/app/rooms/${roomId}/today`);
     },
   });
   const deactivateMutation = useMutation({
@@ -95,6 +113,12 @@ export function RoomManagementPage() {
     ? room.bookingWindowDays > 0
     : Boolean(room.liveQueueResetPolicy && (room.liveQueueResetLocalTime || room.liveQueueResetIntervalMinutes));
   const readyCount = [Boolean(room.name), hasOwner, hasSchedule, hasModeConfiguration].filter(Boolean).length;
+  const setupMode = room.status === "DRAFT";
+  const setupStep = activeSetupStep(searchParams.get("step"), hasOwner, hasSchedule);
+  const goToSetupStep = (step: ActiveSetupStep) => setSearchParams({ step });
+  const returnFromSetup = () => room.businessId
+    ? navigate(`/app/businesses/${room.businessId}/rooms`)
+    : navigate(`/app/individual/${room.individualWorkspaceId}`);
   const actionError = publishMutation.error ?? deactivateMutation.error ?? archiveMutation.error;
 
   return (
@@ -109,12 +133,11 @@ export function RoomManagementPage() {
           <p>{visibilityLabel(room.visibility)} · {room.defaultSlotDurationMinutes} dəqiqəlik standart aralıq</p>
         </div>
         <div className="room-workspace__actions">
-          <ButtonLink to={`/app/rooms/${room.id}/today`}>Bu günün işinə qayıt</ButtonLink>
           {room.status === "PUBLISHED" && room.visibility !== "PRIVATE" ? <ButtonLink variant="secondary" to={`/rooms/${room.id}`}>İctimai səhifə</ButtonLink> : null}
           {room.status === "PUBLISHED" ? (
             <Button variant="secondary" loading={deactivateMutation.isPending} onClick={() => deactivateMutation.mutate()}>Qəbulu dayandır</Button>
-          ) : room.status !== "ARCHIVED" ? (
-            <Button loading={publishMutation.isPending} onClick={() => publishMutation.mutate()}>Otağı yayımla</Button>
+          ) : room.status === "INACTIVE" ? (
+            <Button loading={publishMutation.isPending} onClick={() => publishMutation.mutate(false)}>Qəbulu yenidən başlat</Button>
           ) : null}
         </div>
       </header>
@@ -122,7 +145,7 @@ export function RoomManagementPage() {
       {actionMessage ? <div className="success-alert" role="status">{actionMessage}</div> : null}
       {actionError ? <div className="form-alert" role="alert">{apiMessage(actionError, "Otaq əməliyyatı tamamlanmadı.")}</div> : null}
 
-      {room.status !== "PUBLISHED" ? (
+      {!setupMode && room.status !== "PUBLISHED" ? (
         <section className="readiness-strip" aria-label={`Otaq hazırlığı: 4 addımdan ${readyCount} addım tamamlanıb`}>
           <div><span>{readyCount}/4</span><strong>Yayıma hazırlıq</strong></div>
           <ul>
@@ -134,7 +157,9 @@ export function RoomManagementPage() {
         </section>
       ) : null}
 
-      <nav className="room-tabs" aria-label="Otaq ayarları">
+      {setupMode ? <RoomSetupProgress currentStep={setupStep} /> : null}
+
+      {!setupMode ? <nav className="room-tabs" aria-label="Otaq ayarları">
         {[
           ["overview", "Əsas ayarlar"],
           ["owners", "Otaq sahibləri"],
@@ -151,14 +176,33 @@ export function RoomManagementPage() {
             }}
           >{label}</NavLink>
         ))}
-      </nav>
+      </nav> : null}
 
-      {section === "overview" ? <RoomOverviewSection room={room} /> : null}
-      {section === "owners" ? <RoomOwnersSection room={room} /> : null}
-      {section === "schedule" ? <RoomScheduleSection room={room} /> : null}
-      {section === "qr" ? <RoomQrSection room={room} /> : null}
+      {!setupMode && section === "overview" ? <RoomOverviewSection room={room} /> : null}
+      {!setupMode && section === "owners" ? <RoomOwnersSection room={room} /> : null}
+      {!setupMode && section === "schedule" ? <RoomScheduleSection room={room} /> : null}
+      {!setupMode && section === "qr" ? <RoomQrSection room={room} /> : null}
 
-      {section === "overview" ? <section className="danger-zone" aria-labelledby="room-danger-title">
+      {setupMode && setupStep === "owners" ? (
+        <RoomOwnersSection
+          room={room}
+          setupNavigation={{ canContinue: hasOwner, onBack: () => void returnFromSetup(), onContinue: () => goToSetupStep("schedule") }}
+        />
+      ) : null}
+      {setupMode && setupStep === "schedule" ? (
+        <RoomScheduleSection
+          room={room}
+          setupNavigation={{ onBack: () => goToSetupStep("owners"), onContinue: () => goToSetupStep("qr") }}
+        />
+      ) : null}
+      {setupMode && setupStep === "qr" ? (
+        <RoomQrSection
+          room={room}
+          setupNavigation={{ finishing: publishMutation.isPending, onBack: () => goToSetupStep("schedule"), onFinish: () => publishMutation.mutate(true) }}
+        />
+      ) : null}
+
+      {!setupMode && section === "overview" ? <section className="danger-zone" aria-labelledby="room-danger-title">
         <div><h2 id="room-danger-title">Otağı arxivləşdir</h2><p>Tarixçə və hesabatlar saxlanılır, yeni növbə qəbul edilmir.</p></div>
         <Button
           variant="quiet"

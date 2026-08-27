@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -8,6 +7,7 @@ import { ManagementError, ManagementLoading, ManagementPageHeader, StatusBadge }
 import { apiMessage } from "../../features/management/managementUtils";
 import { nullableText, reservationModeLabel, roomStatusLabel, visibilityLabel } from "../../features/management/managementLabels";
 import { roomSchema, type RoomFormValues } from "../../features/management/schemas";
+import { RoomSetupProgress } from "../../features/management/room/RoomSetupProgress";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button, ButtonLink } from "../../shared/ui/Button";
@@ -35,7 +35,7 @@ export function IndividualWorkspacePage() {
   const form = useForm<RoomFormValues>({
     resolver: zodResolver(roomSchema),
     defaultValues: {
-      name: workspaceQuery.data?.name ?? "",
+      name: "",
       roomNumberOrCode: "",
       description: "",
       notes: "",
@@ -61,7 +61,7 @@ export function IndividualWorkspacePage() {
     }),
     onSuccess: async (room) => {
       await Promise.all([refreshWorkspaces(), queryClient.invalidateQueries({ queryKey: ["individual-workspace-rooms", workspaceId] })]);
-      await navigate(`/app/rooms/${room.id}`);
+      await navigate(`/app/rooms/${room.id}/settings?step=owners`);
     },
   });
   const archiveMutation = useMutation({
@@ -74,12 +74,6 @@ export function IndividualWorkspacePage() {
       ]);
     },
   });
-
-  useEffect(() => {
-    if (workspaceQuery.data && !form.getValues("name")) {
-      form.setValue("name", workspaceQuery.data.name);
-    }
-  }, [form, workspaceQuery.data]);
 
   if (!Number.isInteger(workspaceId)) return <ManagementError message="İş sahəsi identifikatoru düzgün deyil." />;
   if (workspaceQuery.isPending || existingRoomQuery.isPending) return <ManagementLoading label="Fərdi sahə açılır…" />;
@@ -97,7 +91,7 @@ export function IndividualWorkspacePage() {
         description="Fərdi sahədə bir otaq və bir ortaq qrafik olur. Otağın sahibi avtomatik olaraq siz olursunuz."
         actions={existingRoom ? (
           <>
-            <ButtonLink variant="secondary" to={`/app/rooms/${existingRoom.id}`}>Redaktə et</ButtonLink>
+            <ButtonLink variant="secondary" to={`/app/rooms/${existingRoom.id}/settings`}>Otaq ayarları</ButtonLink>
             <Button
               variant="danger"
               loading={archiveMutation.isPending}
@@ -125,7 +119,7 @@ export function IndividualWorkspacePage() {
               <div><dt>Görünürlük</dt><dd>{visibilityLabel(existingRoom.visibility)}</dd></div>
             </dl>
           </div>
-          <ButtonLink to={`/app/rooms/${existingRoom.id}/today`}>Otağın idarəetməsini aç</ButtonLink>
+          <ButtonLink to={`/app/rooms/${existingRoom.id}`}>{existingRoom.status === "DRAFT" ? "Quruluma davam et" : "Otağın idarəetməsini aç"}</ButtonLink>
         </section>
       ) : (
         <section className="management-panel management-panel--editor" aria-labelledby="individual-room-create-title">
@@ -133,6 +127,7 @@ export function IndividualWorkspacePage() {
             <div><p className="eyebrow">İlk və yeganə otaq</p><h2 id="individual-room-create-title">Otağınızı yaradın</h2></div>
             <p>Sonradan rejim və açıq saatları otaq idarəetməsindən dəyişə bilərsiniz.</p>
           </div>
+          <RoomSetupProgress currentStep="basics" />
           {createMutation.isError ? <div className="form-alert" role="alert">{apiMessage(createMutation.error, "Otaq yaradıla bilmədi.")}</div> : null}
           <form className="management-form" onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} noValidate>
             <div className="management-form__grid">
@@ -152,7 +147,7 @@ export function IndividualWorkspacePage() {
             </div>
             <TextAreaField label="Müştəri üçün açıqlama (istəyə bağlı)" rows={3} error={form.formState.errors.description?.message} {...form.register("description")} />
             <TextAreaField label="Şəxsi qeyd (istəyə bağlı)" rows={3} error={form.formState.errors.notes?.message} {...form.register("notes")} />
-            <div className="management-form__actions"><Button type="submit" loading={createMutation.isPending}>Otağı yarat və qur</Button></div>
+            <div className="management-form__actions"><Button type="submit" loading={createMutation.isPending}>Davam et</Button></div>
           </form>
         </section>
       )}

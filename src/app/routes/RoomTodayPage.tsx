@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 
 import { LiveQueueOperator } from "../../features/operations/LiveQueueOperator";
 import { RoomBookingOperator } from "../../features/operations/RoomBookingOperator";
@@ -15,5 +15,6 @@ export function RoomTodayPage() {
   if (room.isPending) return <ManagementLoading label="Bugünkü iş sahəsi açılır…" />;
   if (room.isError || !room.data) return <ManagementError message={room.error?.message ?? "Otaq açıla bilmədi."} />;
   const value = room.data;
-  return <div className="management-page room-today"><ManagementPageHeader eyebrow="Otağın gündəlik işi" title={value.name} description={value.reservationMode === "LIVE_QUEUE" ? "İştirakçıları ardıcıllıqla çağırın və canlı növbəni idarə edin." : "Günün rezervasiyalarını və manual müraciətləri idarə edin."} actions={<><StatusBadge tone={value.status === "PUBLISHED" ? "success" : "warning"}>{reservationModeLabel(value.reservationMode)}</StatusBadge><Link className="button button--secondary" to={`/app/rooms/${value.id}`}>Otaq ayarları</Link></>} />{value.reservationMode === "LIVE_QUEUE" ? <LiveQueueOperator roomId={value.id} /> : <RoomBookingOperator roomId={value.id} timezone={value.timezone} />}</div>;
+  if (value.status === "DRAFT") return <Navigate to={`/app/rooms/${value.id}/settings`} replace />;
+  return <div className="management-page room-today"><ManagementPageHeader eyebrow="Otağın gündəlik işi" title={value.name} description={value.reservationMode === "LIVE_QUEUE" ? "İştirakçıları ardıcıllıqla çağırın və canlı növbəni idarə edin." : "Günün rezervasiyalarını və manual müraciətləri idarə edin."} actions={<><StatusBadge tone={value.status === "PUBLISHED" ? "success" : "warning"}>{reservationModeLabel(value.reservationMode)}</StatusBadge><Link className="button button--secondary" to={`/app/rooms/${value.id}/settings`}>Otaq ayarları</Link></>} />{value.reservationMode === "LIVE_QUEUE" ? <LiveQueueOperator roomId={value.id} /> : <RoomBookingOperator roomId={value.id} timezone={value.timezone} />}</div>;
 }

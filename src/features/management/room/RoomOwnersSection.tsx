@@ -11,7 +11,13 @@ import { StatusBadge } from "../ManagementUi";
 import { apiMessage } from "../managementUtils";
 import { assignmentStatusLabel } from "../managementLabels";
 
-export function RoomOwnersSection({ room }: { room: ManagedRoom }) {
+type RoomOwnersSetupNavigation = {
+  canContinue: boolean;
+  onBack: () => void;
+  onContinue: () => void;
+};
+
+export function RoomOwnersSection({ room, setupNavigation }: { room: ManagedRoom; setupNavigation?: RoomOwnersSetupNavigation }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { workspaces } = useWorkspace();
@@ -144,6 +150,16 @@ export function RoomOwnersSection({ room }: { room: ManagedRoom }) {
           <div><strong>Telefon siyahıda yoxdur?</strong><p>Əvvəl istifadəçini biznes komandasına əlavə edin, sonra bu otağa sahib kimi dəvət edin.</p></div>
           <ButtonLink variant="secondary" to={`/app/businesses/${room.businessId}/team`}>Komandanı aç</ButtonLink>
         </aside>
+      ) : null}
+
+      {setupNavigation ? (
+        <div className="room-setup-actions">
+          <Button variant="secondary" onClick={setupNavigation.onBack}>Geri</Button>
+          <div>
+            {!setupNavigation.canContinue ? <p role="status">Davam etmək üçün ən azı bir aktiv otaq sahibi olmalıdır.</p> : null}
+            <Button disabled={!setupNavigation.canContinue} onClick={setupNavigation.onContinue}>Davam et</Button>
+          </div>
+        </div>
       ) : null}
     </div>
   );

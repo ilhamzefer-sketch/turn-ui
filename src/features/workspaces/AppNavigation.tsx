@@ -33,7 +33,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
   if (type === "ROOM") {
     return [
       { to: `/app/rooms/${contextId}/today`, label: "Bu gün", end: true },
-      { to: `/app/rooms/${contextId}`, label: "Otaq ayarları", end: true },
+      { to: `/app/rooms/${contextId}/settings`, label: "Otaq ayarları", end: true },
       { to: `/app/rooms/${contextId}/analytics`, label: "Analitika" },
       { to: `/app/rooms/${contextId}/trust`, label: "Etibar" },
     ];

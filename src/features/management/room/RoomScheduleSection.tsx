@@ -23,7 +23,12 @@ type DaySchedule = { day: Weekday; enabled: boolean; intervals: ScheduleInterval
 
 let intervalSequence = 0;
 
-export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
+type RoomScheduleSetupNavigation = {
+  onBack: () => void;
+  onContinue: () => void;
+};
+
+export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRoom; setupNavigation?: RoomScheduleSetupNavigation }) {
   const queryClient = useQueryClient();
   const [scheduleDraft, setScheduleDraft] = useState<{
     source: WeeklyAvailabilityRule[] | undefined;
@@ -68,7 +73,8 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
   };
 
   const saveMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (continueAfterSave: boolean) => {
+      void continueAfterSave;
       const validation = validateSchedule(days);
       if (validation) throw new Error(validation);
       return managementApi.replaceWeeklyAvailability(
@@ -83,11 +89,12 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
           : []),
       );
     },
-    onSuccess: (savedRules) => {
+    onSuccess: (savedRules, continueAfterSave) => {
       setScheduleError(null);
       setSuccessMessage("Həftəlik iş qrafiki saxlanıldı.");
       queryClient.setQueryData(["management-room-schedule", room.id], savedRules);
       setScheduleDraft(null);
+      if (continueAfterSave) setupNavigation?.onContinue();
     },
     onError: (error) => setScheduleError(apiMessage(error, "İş qrafiki saxlanılmadı.")),
   });
@@ -148,7 +155,7 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
               setSuccessMessage("Bazar ertəsinin saatları digər iş günlərinə kopyalandı. Saxlamağı unutmayın.");
             }}
           >B.e saatlarını iş günlərinə kopyala</Button>
-          <Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate()}>Dəyişiklikləri saxla</Button>
+          <Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate(false)}>Dəyişiklikləri saxla</Button>
         </div>
         {scheduleQuery.isPending ? <p role="status">İş saatları açılır…</p> : (
           <div className="week-editor">
@@ -181,7 +188,7 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
             })}
           </div>
         )}
-        <div className="management-form__actions"><Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate()}>İş qrafikini saxla</Button></div>
+        <div className="management-form__actions"><Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate(false)}>İş qrafikini saxla</Button></div>
       </section>
 
       <section className="management-panel" aria-labelledby="exceptions-title">
@@ -215,6 +222,20 @@ export function RoomScheduleSection({ room }: { room: ManagedRoom }) {
           ))}
         </div>
       </section>
+
+      {setupNavigation ? (
+        <div className="room-setup-actions">
+          <Button variant="secondary" onClick={setupNavigation.onBack}>Geri</Button>
+          <Button
+            loading={saveMutation.isPending}
+            onClick={() => {
+              const hasSavedSchedule = (scheduleQuery.data ?? []).some((rule) => rule.active);
+              if (hasUnsavedChanges || !hasSavedSchedule) saveMutation.mutate(true);
+              else setupNavigation.onContinue();
+            }}
+          >Davam et</Button>
+        </div>
+      ) : null}
     </div>
   );
 }
