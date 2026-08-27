@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import type { LiveQueueEntry, LiveQueueSession } from "../../shared/api/contracts";
-import { ApiError } from "../../shared/api/httpClient";
 import { queueApi } from "../../shared/api/queueApi";
 import { Button } from "../../shared/ui/Button";
 import { SelectField } from "../../shared/ui/SelectField";
@@ -12,7 +11,7 @@ import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { TextField } from "../../shared/ui/TextField";
 import { StatusBadge } from "../management/ManagementUi";
 import { apiMessage } from "../management/managementUtils";
-import { acceptanceLabel, queueStatusLabel, sourceLabel } from "./operationFormatters";
+import { acceptanceLabel, localDateTimeLabel, queueStatusLabel, sourceLabel } from "./operationFormatters";
 import { manualEntrySchema, type ManualEntryFormValues } from "./schemas";
 
 const emptyManual: ManualEntryFormValues = { displayName: "", phone: "", source: "OWNER_WALK_IN", internalNote: "" };
@@ -51,7 +50,6 @@ export function LiveQueueOperator({ roomId }: { roomId: number }) {
     mutationFn: (values: ManualEntryFormValues) => queueApi.addManual(roomId, { ...values, internalNote: values.internalNote.trim() || null }),
     onSuccess: async () => { form.reset(emptyManual); setMessage("Manual iştirakçı növbənin sonuna əlavə edildi."); await queryClient.invalidateQueries({ queryKey: ["operator-live-queue", roomId] }); },
   });
-  const currentError = query.error instanceof ApiError && (query.error.status === 404 || query.error.status === 409);
   const error = sessionAction.error ?? entryAction.error ?? addManual.error;
 
   useEffect(() => {
@@ -59,8 +57,7 @@ export function LiveQueueOperator({ roomId }: { roomId: number }) {
   }, [message]);
 
   if (query.isPending) return <div className="management-state" role="status">Canlı növbə açılır…</div>;
-  if (query.isError && !currentError) return <div className="management-state management-state--error" role="alert"><h2>Növbə açıla bilmədi</h2><p>{query.error.message}</p></div>;
-  if (!query.data) return <section className="today-empty"><p className="eyebrow">Canlı növbə</p><h2>Bu otaqda açıq sessiya yoxdur</h2><p>İlk iştirakçını qəbul etməzdən əvvəl bugünkü canlı növbəni açın.</p>{error ? <div className="form-alert" role="alert">{apiMessage(error, "Növbə açıla bilmədi.")}</div> : null}<Button loading={sessionAction.isPending} onClick={() => sessionAction.mutate("open")}>Canlı növbəni aç</Button></section>;
+  if (query.isError || !query.data) return <div className="management-state management-state--error" role="alert"><h2>Canlı növbə hazırlanmadı</h2><p>{query.error?.message ?? "Avtomatik sessiya yaradıla bilmədi."}</p><Button variant="secondary" onClick={() => query.refetch()}>Yenidən yoxla</Button></div>;
 
   const session = query.data;
   const current = session.entries.find((entry) => entry.status === "CURRENT");
@@ -69,7 +66,7 @@ export function LiveQueueOperator({ roomId }: { roomId: number }) {
   return <div className="live-operator">
     {message ? <div ref={messageRef} className="success-alert" role="status" tabIndex={-1}>{message}</div> : null}
     {error ? <div className="form-alert" role="alert">{apiMessage(error, "Əməliyyat tamamlanmadı.")}</div> : null}
-    <section className="live-control-bar" aria-label="Canlı növbə idarəetməsi"><div><span className={session.acceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" /><div><strong>{session.acceptingNewEntries ? "Yeni iştirakçılar qəbul olunur" : "Yeni qəbul dayandırılıb"}</strong><p>{acceptanceLabel(session.acceptanceOverride)} · {session.waitingCount} nəfər gözləyir</p></div></div><div className="live-control-bar__actions">{session.acceptingNewEntries ? <Button variant="secondary" onClick={() => sessionAction.mutate("close")}>Qəbulu bağla</Button> : <Button onClick={() => sessionAction.mutate("open")}>Qəbulu aç</Button>}<Button variant="quiet" onClick={() => sessionAction.mutate("automatic")}>Avtomatik rejim</Button><Button variant="quiet" onClick={() => { if (window.confirm("Cari sessiya bağlanacaq və aktiv iştirakçılar sıfırlanacaq. Davam edilsin?")) sessionAction.mutate("reset"); }}>Növbəni sıfırla</Button></div></section>
+    <section className="live-control-bar" aria-label="Canlı növbə idarəetməsi"><div><span className={session.acceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" /><div><strong>{session.acceptingNewEntries ? "Yeni iştirakçılar qəbul olunur" : "Yeni qəbul dayandırılıb"}</strong><p>{acceptanceLabel(session.acceptanceOverride)} · {session.waitingCount} nəfər gözləyir</p>{session.acceptanceOverride === "AUTO" && !session.acceptingNewEntries && session.nextOpeningAt ? <p>Növbəti açılış: {localDateTimeLabel(session.nextOpeningAt)}</p> : null}</div></div><div className="live-control-bar__actions">{session.acceptingNewEntries ? <Button variant="secondary" onClick={() => sessionAction.mutate("close")}>Qəbulu müvəqqəti bağla</Button> : <Button onClick={() => sessionAction.mutate("open")}>İndi qəbul aç</Button>}{session.acceptanceOverride !== "AUTO" ? <Button variant="quiet" onClick={() => sessionAction.mutate("automatic")}>İş qrafikinə qayıt</Button> : null}<Button variant="quiet" onClick={() => { if (window.confirm("Cari sessiya bağlanacaq və aktiv iştirakçılar sıfırlanacaq. Davam edilsin?")) sessionAction.mutate("reset"); }}>Növbəni sıfırla</Button></div></section>
     <section className="current-participant" aria-labelledby="current-participant-title"><div><p className="eyebrow">Hazırda qəbul olunur</p><h2 id="current-participant-title">{current ? current.displayName : "İştirakçı çağırılmayıb"}</h2>{current ? <p>{current.publicReference} · {current.phone}</p> : <p>Gözləyən ilk iştirakçını çağırın.</p>}</div>{current ? <Button loading={sessionAction.isPending} onClick={() => sessionAction.mutate("complete")}>Tamamla və növbətini çağır</Button> : <Button disabled={!waiting.length} loading={sessionAction.isPending} onClick={() => sessionAction.mutate("call")}>Növbəti iştirakçını çağır</Button>}</section>
     <div className="operator-grid">
       <section className="management-panel" aria-labelledby="waiting-title"><div className="management-panel__header"><div><p className="eyebrow">Ardıcıllıq</p><h2 id="waiting-title">Gözləyənlər</h2></div><span>{waiting.length}</span></div>{waiting.length ? <div className="operator-entry-list">{waiting.map((entry) => <QueueEntryRow key={entry.id} entry={entry} busy={entryAction.isPending} onAction={(action) => entryAction.mutate({ entryId: entry.id, action })} onUpdated={() => query.refetch()} roomId={roomId} />)}</div> : <p>Hazırda gözləyən iştirakçı yoxdur.</p>}</section>

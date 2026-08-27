@@ -55,7 +55,7 @@ Step 5 includes:
 - public or QR-based passwordless live-queue joining with name and phone;
 - one-click live joining for an authenticated account;
 - private participant status with anonymous references, people ahead and estimated waiting time;
-- room-owner queue opening, closing, automatic acceptance, reset and progression;
+- schedule-driven automatic live-queue activation with optional room-owner overrides, reset and progression;
 - owner-created guest entries with source, private note and editable guest details;
 - skip, restore, send-to-end and remove operations without arbitrary drag reordering;
 - registered-customer slot selection and immediately confirmed planned bookings;
