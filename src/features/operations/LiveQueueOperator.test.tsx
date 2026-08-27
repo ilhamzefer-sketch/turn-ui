@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { LiveQueueSession } from "../../shared/api/contracts";
@@ -43,9 +44,11 @@ const initialSession: LiveQueueSession = {
 function renderOperator(refreshIntervalMs?: number) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <QueryClientProvider client={client}>
-      <LiveQueueOperator roomId={30} refreshIntervalMs={refreshIntervalMs} />
-    </QueryClientProvider>,
+    <MemoryRouter>
+      <QueryClientProvider client={client}>
+        <LiveQueueOperator roomId={30} refreshIntervalMs={refreshIntervalMs} />
+      </QueryClientProvider>
+    </MemoryRouter>,
   );
 }
 
@@ -94,5 +97,17 @@ describe("LiveQueueOperator", () => {
     expect(await screen.findByText("İş qrafikinə görə · 0 nəfər gözləyir")).toBeInTheDocument();
     expect(await screen.findByText("Yeni iştirakçı")).toBeInTheDocument();
     await waitFor(() => expect(vi.mocked(queueApi.current).mock.calls.length).toBeGreaterThanOrEqual(2));
+  });
+
+  it("links missing required reset settings to the schedule section", async () => {
+    vi.mocked(queueApi.current).mockRejectedValue(new Error("Canlı növbə otağı üçün reset qaydası seçilməlidir."));
+
+    renderOperator();
+
+    expect(await screen.findByRole("alert", { name: "" })).toHaveTextContent("reset qaydası seçilməlidir");
+    expect(screen.getByRole("link", { name: "Sıfırlama ayarına keç" })).toHaveAttribute(
+      "href",
+      "/app/rooms/30/settings?section=schedule#live-queue-reset-policy",
+    );
   });
 });

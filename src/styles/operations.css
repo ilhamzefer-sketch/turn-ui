@@ -238,6 +238,8 @@
 .operation-history-list a { color: var(--color-brand-700); font-weight: 720; }
 
 .room-today { display: grid; gap: var(--space-8); }
+.operation-recovery { min-height: 0; place-content: initial; justify-items: start; padding: var(--space-6); text-align: left; }
+.operation-recovery__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .live-operator,
 .booking-operator { display: grid; gap: var(--space-6); }
 .live-sync-status { display: flex; align-items: center; justify-self: end; gap: var(--space-2); margin: 0; color: var(--color-muted); font-size: var(--text-small); }

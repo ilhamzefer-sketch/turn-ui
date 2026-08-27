@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import type { LiveQueueEntry, LiveQueueSession } from "../../shared/api/contracts";
 import { queueApi } from "../../shared/api/queueApi";
 import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
-import { Button } from "../../shared/ui/Button";
+import { Button, ButtonLink } from "../../shared/ui/Button";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
@@ -14,13 +14,26 @@ import { TextField } from "../../shared/ui/TextField";
 import { isLocalPhone, toLocalPhoneInput } from "../../shared/validation/phoneFormat";
 import { StatusBadge } from "../management/ManagementUi";
 import { apiMessage } from "../management/managementUtils";
+import { roomErrorNavigation } from "../management/room/roomErrorNavigation";
 import { acceptanceLabel, localDateTimeLabel, queueStatusLabel, sourceLabel } from "./operationFormatters";
 import { manualEntrySchema, type ManualEntryFormValues } from "./schemas";
 
 const emptyManual: ManualEntryFormValues = { displayName: "", phone: "", source: "OWNER_WALK_IN", internalNote: "" };
 const liveQueueRefreshIntervalMs = 2_000;
 
-export function LiveQueueOperator({ roomId, refreshIntervalMs = liveQueueRefreshIntervalMs }: { roomId: number; refreshIntervalMs?: number }) {
+type LiveQueueOperatorProps = {
+  roomId: number;
+  businessId?: number | null;
+  individualWorkspaceId?: number | null;
+  refreshIntervalMs?: number;
+};
+
+export function LiveQueueOperator({
+  roomId,
+  businessId = null,
+  individualWorkspaceId = null,
+  refreshIntervalMs = liveQueueRefreshIntervalMs,
+}: LiveQueueOperatorProps) {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState<string | null>(null);
   const form = useForm<ManualEntryFormValues>({ resolver: zodResolver(manualEntrySchema), defaultValues: emptyManual });
@@ -59,7 +72,16 @@ export function LiveQueueOperator({ roomId, refreshIntervalMs = liveQueueRefresh
   const error = sessionAction.error ?? entryAction.error ?? addManual.error;
 
   if (query.isPending) return <div className="management-state" role="status">Canlı növbə açılır…</div>;
-  if (query.isError || !query.data) return <div className="management-state management-state--error" role="alert"><h2>Canlı növbə hazırlanmadı</h2><p>{query.error?.message ?? "Avtomatik sessiya yaradıla bilmədi."}</p><Button variant="secondary" onClick={() => query.refetch()}>Yenidən yoxla</Button></div>;
+  if (query.isError || !query.data) {
+    const message = query.error?.message ?? "Avtomatik sessiya yaradıla bilmədi.";
+    const recoveryAction = roomErrorNavigation(query.error, {
+      roomId,
+      businessId,
+      individualWorkspaceId,
+      setupMode: false,
+    });
+    return <><NotificationEvent tone="error" message={message} action={recoveryAction} /><section className="management-state operation-recovery" role="alert"><strong>Otağın qurulmasını tamamlayın</strong><p>{message}</p><div className="operation-recovery__actions">{recoveryAction ? <ButtonLink to={recoveryAction.to}>{recoveryAction.label}</ButtonLink> : null}<Button variant="secondary" onClick={() => query.refetch()}>Yenidən yoxla</Button></div></section></>;
+  }
 
   const session = query.data;
   const current = session.entries.find((entry) => entry.status === "CURRENT");
