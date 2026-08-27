@@ -17,8 +17,9 @@ import { acceptanceLabel, localDateTimeLabel, queueStatusLabel, sourceLabel } fr
 import { manualEntrySchema, type ManualEntryFormValues } from "./schemas";
 
 const emptyManual: ManualEntryFormValues = { displayName: "", phone: "", source: "OWNER_WALK_IN", internalNote: "" };
+const liveQueueRefreshIntervalMs = 2_000;
 
-export function LiveQueueOperator({ roomId }: { roomId: number }) {
+export function LiveQueueOperator({ roomId, refreshIntervalMs = liveQueueRefreshIntervalMs }: { roomId: number; refreshIntervalMs?: number }) {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState<string | null>(null);
   const messageRef = useRef<HTMLDivElement>(null);
@@ -27,7 +28,10 @@ export function LiveQueueOperator({ roomId }: { roomId: number }) {
     queryKey: ["operator-live-queue", roomId],
     queryFn: () => queueApi.current(roomId),
     retry: false,
-    refetchInterval: 5_000,
+    refetchInterval: refreshIntervalMs,
+    refetchIntervalInBackground: true,
+    refetchOnReconnect: "always",
+    refetchOnWindowFocus: "always",
   });
   const updateSession = (session: LiveQueueSession, success: string) => {
     queryClient.setQueryData(["operator-live-queue", roomId], session);
@@ -66,6 +70,7 @@ export function LiveQueueOperator({ roomId }: { roomId: number }) {
   const waiting = session.entries.filter((entry) => entry.status === "WAITING");
   const skipped = session.entries.filter((entry) => entry.status === "SKIPPED");
   return <div className="live-operator">
+    <p className="live-sync-status"><span aria-hidden="true" />Canlı siyahı avtomatik yenilənir</p>
     {message ? <div ref={messageRef} className="success-alert" role="status" tabIndex={-1}>{message}</div> : null}
     {error ? <div className="form-alert" role="alert">{apiMessage(error, "Əməliyyat tamamlanmadı.")}</div> : null}
     <section className="live-control-bar" aria-label="Canlı növbə idarəetməsi"><div><span className={session.acceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" /><div><strong>{session.acceptingNewEntries ? "Yeni iştirakçılar qəbul olunur" : "Yeni qəbul dayandırılıb"}</strong><p>{acceptanceLabel(session.acceptanceOverride)} · {session.waitingCount} nəfər gözləyir</p>{session.acceptanceOverride === "AUTO" && !session.acceptingNewEntries && session.nextOpeningAt ? <p>Növbəti açılış: {localDateTimeLabel(session.nextOpeningAt)}</p> : null}</div></div><div className="live-control-bar__actions">{session.acceptingNewEntries ? <Button variant="secondary" onClick={() => sessionAction.mutate("close")}>Qəbulu müvəqqəti bağla</Button> : <Button onClick={() => sessionAction.mutate("open")}>İndi qəbul aç</Button>}{session.acceptanceOverride !== "AUTO" ? <Button variant="quiet" onClick={() => sessionAction.mutate("automatic")}>İş qrafikinə qayıt</Button> : null}<Button variant="quiet" onClick={() => { if (window.confirm("Cari sessiya bağlanacaq və aktiv iştirakçılar sıfırlanacaq. Davam edilsin?")) sessionAction.mutate("reset"); }}>Növbəni sıfırla</Button></div></section>

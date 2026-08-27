@@ -238,6 +238,8 @@
 .room-today { display: grid; gap: var(--space-8); }
 .live-operator,
 .booking-operator { display: grid; gap: var(--space-6); }
+.live-sync-status { display: flex; align-items: center; justify-self: end; gap: var(--space-2); margin: 0; color: var(--color-muted); font-size: var(--text-small); }
+.live-sync-status span { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--color-success); }
 .live-control-bar,
 .current-participant,
 .date-control { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); padding: var(--space-5); }
