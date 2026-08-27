@@ -56,7 +56,7 @@ test("authenticated landing replaces account creation actions with the current a
     await expect(page.locator(".desktop-nav").getByRole("link", { name: "Hesabım" })).toBeVisible();
   }
   await expect(page.getByRole("link", { name: "Daxil ol" })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Pulsuz hesab yarat" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Hesab yarat" })).toHaveCount(0);
   const workspaceLinks = page.getByRole("link", { name: "İş sahəsinə keçin" });
   await expect(workspaceLinks).toHaveCount(2);
   await expect(workspaceLinks.first()).toBeVisible();
@@ -76,6 +76,27 @@ test("compact layout has no horizontal overflow", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Növbə yarat/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Növbəyə qoşul/ })).toBeVisible();
   await expect(page.getByLabel("Menyunu aç")).toBeVisible();
+});
+
+test("registration Tab order skips subdued field info controls", async ({ page }) => {
+  await page.goto("/register");
+
+  const firstName = page.getByLabel("Ad", { exact: true });
+  const lastName = page.getByLabel("Soyad", { exact: true });
+  const infoControls = page.getByRole("button", { name: "Sahə haqqında məlumatı göstər" });
+  await expect(infoControls.first()).toHaveAttribute("tabindex", "-1");
+
+  await firstName.focus();
+  await page.keyboard.press("Tab");
+  await expect(lastName).toBeFocused();
+
+  const infoStyle = await infoControls.first().evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { width: Number.parseFloat(style.width), opacity: Number.parseFloat(style.opacity), fontSize: Number.parseFloat(style.fontSize) };
+  });
+  expect(infoStyle.width).toBeLessThanOrEqual(24);
+  expect(infoStyle.opacity).toBeLessThan(0.7);
+  expect(infoStyle.fontSize).toBeLessThan(12);
 });
 
 test("reduced motion keeps the page understandable", async ({ page }) => {

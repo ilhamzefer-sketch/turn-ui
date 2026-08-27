@@ -49,7 +49,7 @@ export function LandingPage() {
     ? "İş sahəsinə keçin"
     : status === "checking" || status === "idle"
       ? "Hesab yoxlanılır…"
-      : "Pulsuz hesab yaradın";
+      : "Hesab yarat";
 
   usePageMeta(
     "Onlayn növbə və rezervasiya sistemi | NövbəTime",

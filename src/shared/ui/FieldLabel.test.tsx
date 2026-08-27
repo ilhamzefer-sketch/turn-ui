@@ -16,13 +16,16 @@ describe("field information tooltip", () => {
     expect(tooltip).toHaveTextContent("Əlaqə");
   });
 
-  it("keeps the tooltip reachable with a keyboard", async () => {
+  it("keeps info out of the Tab order while describing the input", async () => {
     const user = userEvent.setup();
     render(<TextField label="Otaq adı" info="Müştərinin görəcəyi otaq adıdır." />);
 
     await user.tab();
 
-    expect(screen.getByRole("button", { name: "Sahə haqqında məlumatı göstər" })).toHaveFocus();
-    expect(screen.getByRole("tooltip")).toHaveTextContent("Müştərinin görəcəyi otaq adıdır.");
+    const field = screen.getByLabelText("Otaq adı");
+    const infoButton = screen.getByRole("button", { name: "Sahə haqqında məlumatı göstər" });
+    expect(field).toHaveFocus();
+    expect(field).toHaveAccessibleDescription("Müştərinin görəcəyi otaq adıdır.");
+    expect(infoButton).toHaveAttribute("tabindex", "-1");
   });
 });

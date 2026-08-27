@@ -43,7 +43,7 @@ export function PublicLayout() {
               <Button variant="quiet" loading={isLoggingOut} onClick={() => void handleLogout()}>Çıxış et</Button>
             ) : null}
             {!isAuthenticated && !isChecking ? (
-              <ButtonLink to="/register" variant="primary">Pulsuz hesab yarat</ButtonLink>
+              <ButtonLink to="/register" variant="primary">Hesab yarat</ButtonLink>
             ) : null}
             {isChecking ? <span className="auth-button-placeholder" aria-hidden="true" /> : null}
           </div>
@@ -63,7 +63,7 @@ export function PublicLayout() {
                 <Button variant="quiet" loading={isLoggingOut} onClick={() => void handleLogout()}>Çıxış et</Button>
               ) : null}
               {!isAuthenticated && !isChecking ? <Link to="/login">Daxil ol</Link> : null}
-              {!isAuthenticated && !isChecking ? <ButtonLink to="/register">Pulsuz hesab yarat</ButtonLink> : null}
+              {!isAuthenticated && !isChecking ? <ButtonLink to="/register">Hesab yarat</ButtonLink> : null}
               {isChecking ? <span className="mobile-auth-status">Hesab yoxlanılır…</span> : null}
             </nav>
           </details>

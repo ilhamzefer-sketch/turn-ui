@@ -121,17 +121,18 @@
 
 .field__info-trigger {
   display: inline-grid;
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   padding: 0;
   border: 1px solid #9db2aa;
   border-radius: 50%;
   place-items: center;
   color: var(--color-brand-700);
   background: var(--color-brand-100);
-  font: 800 0.88rem/1 var(--font-sans);
+  font: 750 0.68rem/1 var(--font-sans);
+  opacity: 0.58;
   cursor: help;
-  transition: color var(--duration-fast) ease, background var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  transition: color var(--duration-fast) ease, background var(--duration-fast) ease, border-color var(--duration-fast) ease, opacity var(--duration-fast) ease;
 }
 
 .field__info-trigger:hover,
@@ -139,6 +140,7 @@
   border-color: var(--color-brand-700);
   color: white;
   background: var(--color-brand-700);
+  opacity: 0.86;
 }
 
 .field__info-trigger:focus-visible {
@@ -177,8 +179,8 @@
 
 @media (pointer: coarse) {
   .field__info-trigger {
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 1.75rem;
+    height: 1.75rem;
   }
 }
 

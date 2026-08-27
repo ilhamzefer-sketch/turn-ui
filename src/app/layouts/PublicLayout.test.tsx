@@ -43,14 +43,14 @@ describe("PublicLayout", () => {
     expect(screen.getAllByRole("link", { name: "Hesabım" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "Çıxış et" })).toHaveLength(2);
     expect(screen.queryByRole("link", { name: "Daxil ol" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Pulsuz hesab yarat" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Hesab yarat" })).not.toBeInTheDocument();
   });
 
   it("does not flash anonymous actions while the session is being restored", () => {
     renderLayout("checking");
 
     expect(screen.queryByRole("link", { name: "Daxil ol" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Pulsuz hesab yarat" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Hesab yarat" })).not.toBeInTheDocument();
     expect(screen.getByText("Hesab yoxlanılır…")).toBeInTheDocument();
   });
 
@@ -58,6 +58,6 @@ describe("PublicLayout", () => {
     renderLayout("anonymous");
 
     expect(screen.getAllByRole("link", { name: "Daxil ol" })).toHaveLength(2);
-    expect(screen.getAllByRole("link", { name: "Pulsuz hesab yarat" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Hesab yarat" })).toHaveLength(2);
   });
 });
