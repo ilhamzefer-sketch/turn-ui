@@ -40,6 +40,7 @@ const initialSession: LiveQueueSession = {
   closedAt: null,
   entries: [],
 };
+const acceptingSession: LiveQueueSession = { ...initialSession, acceptingNewEntries: true, nextOpeningAt: null };
 
 function renderOperator(refreshIntervalMs?: number) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -61,18 +62,19 @@ describe("LiveQueueOperator", () => {
     renderOperator();
 
     expect(await screen.findByText("İş qrafikinə görə · 0 nəfər gözləyir")).toBeInTheDocument();
+    expect(screen.getByText("Hazırda iş qrafiki xaricindəsiniz")).toBeInTheDocument();
     expect(screen.getByText(/Növbəti açılış:/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Canlı növbəni aç" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "İş qrafikinə qayıt" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "İndi qəbul aç" })).toBeInTheDocument();
-    expect(screen.getByText("Canlı siyahı avtomatik yenilənir")).toBeInTheDocument();
+    expect(screen.getByText("Qəbul bağlıdır · vəziyyət seyrək yenilənir")).toBeInTheDocument();
   });
 
   it("shows participants who join after the operator screen is opened", async () => {
     vi.mocked(queueApi.current)
-      .mockResolvedValueOnce(initialSession)
+      .mockResolvedValueOnce(acceptingSession)
       .mockResolvedValue({
-        ...initialSession,
+        ...acceptingSession,
         waitingCount: 1,
         activeCount: 1,
         entries: [{
@@ -94,9 +96,17 @@ describe("LiveQueueOperator", () => {
 
     renderOperator(20);
 
-    expect(await screen.findByText("İş qrafikinə görə · 0 nəfər gözləyir")).toBeInTheDocument();
+    expect(await screen.findByText("Yeni iştirakçılar qəbul olunur")).toBeInTheDocument();
     expect(await screen.findByText("Yeni iştirakçı")).toBeInTheDocument();
     await waitFor(() => expect(vi.mocked(queueApi.current).mock.calls.length).toBeGreaterThanOrEqual(2));
+  });
+
+  it("does not poll a closed queue at the live refresh rate", async () => {
+    renderOperator(20);
+
+    expect(await screen.findByText("Hazırda iş qrafiki xaricindəsiniz")).toBeInTheDocument();
+    await new Promise((resolve) => window.setTimeout(resolve, 80));
+    expect(vi.mocked(queueApi.current)).toHaveBeenCalledTimes(1);
   });
 
   it("links missing required reset settings to the schedule section", async () => {
@@ -105,6 +115,20 @@ describe("LiveQueueOperator", () => {
     renderOperator();
 
     expect(await screen.findByRole("alert", { name: "" })).toHaveTextContent("reset qaydası seçilməlidir");
+    expect(screen.getByRole("link", { name: "Sıfırlama ayarına keç" })).toHaveAttribute(
+      "href",
+      "/app/rooms/30/settings?section=schedule#live-queue-reset-policy",
+    );
+    await new Promise((resolve) => window.setTimeout(resolve, 80));
+    expect(vi.mocked(queueApi.current)).toHaveBeenCalledTimes(1);
+  });
+
+  it("explains the legacy missing-session error and links to its real setting", async () => {
+    vi.mocked(queueApi.current).mockRejectedValue(new Error("Açıq canlı növbə sessiyası yoxdur."));
+
+    renderOperator(20);
+
+    expect(await screen.findByRole("alert", { name: "" })).toHaveTextContent("sıfırlama qaydası tamamlanmadığı üçün");
     expect(screen.getByRole("link", { name: "Sıfırlama ayarına keç" })).toHaveAttribute(
       "href",
       "/app/rooms/30/settings?section=schedule#live-queue-reset-policy",

@@ -20,6 +20,7 @@ import { manualEntrySchema, type ManualEntryFormValues } from "./schemas";
 
 const emptyManual: ManualEntryFormValues = { displayName: "", phone: "", source: "OWNER_WALK_IN", internalNote: "" };
 const liveQueueRefreshIntervalMs = 2_000;
+const closedLiveQueueRefreshIntervalMs = 60_000;
 
 type LiveQueueOperatorProps = {
   roomId: number;
@@ -41,7 +42,13 @@ export function LiveQueueOperator({
     queryKey: ["operator-live-queue", roomId],
     queryFn: () => queueApi.current(roomId),
     retry: false,
-    refetchInterval: refreshIntervalMs,
+    refetchInterval: (liveQueueQuery) => {
+      if (liveQueueQuery.state.status === "error") return false;
+      const session = liveQueueQuery.state.data;
+      return session?.status === "OPEN" && session.acceptingNewEntries
+        ? refreshIntervalMs
+        : closedLiveQueueRefreshIntervalMs;
+    },
     refetchIntervalInBackground: true,
     refetchOnReconnect: "always",
     refetchOnWindowFocus: "always",
@@ -73,8 +80,9 @@ export function LiveQueueOperator({
 
   if (query.isPending) return <div className="management-state" role="status">Canlı növbə açılır…</div>;
   if (query.isError || !query.data) {
-    const message = query.error?.message ?? "Avtomatik sessiya yaradıla bilmədi.";
-    const recoveryAction = roomErrorNavigation(query.error, {
+    const resolvedError = liveQueueOperatorError(query.error);
+    const message = resolvedError.message;
+    const recoveryAction = roomErrorNavigation(resolvedError, {
       roomId,
       businessId,
       individualWorkspaceId,
@@ -88,10 +96,10 @@ export function LiveQueueOperator({
   const waiting = session.entries.filter((entry) => entry.status === "WAITING");
   const skipped = session.entries.filter((entry) => entry.status === "SKIPPED");
   return <div className="live-operator">
-    <p className="live-sync-status"><span aria-hidden="true" />Canlı siyahı avtomatik yenilənir</p>
+    <p className="live-sync-status"><span aria-hidden="true" />{session.acceptingNewEntries ? "Canlı siyahı avtomatik yenilənir" : "Qəbul bağlıdır · vəziyyət seyrək yenilənir"}</p>
     <NotificationEvent tone="success" message={message} />
     <NotificationEvent tone="error" message={error ? apiMessage(error, "Əməliyyat tamamlanmadı.") : null} />
-    <section className="live-control-bar" aria-label="Canlı növbə idarəetməsi"><div><span className={session.acceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" /><div><strong>{session.acceptingNewEntries ? "Yeni iştirakçılar qəbul olunur" : "Yeni qəbul dayandırılıb"}</strong><p>{acceptanceLabel(session.acceptanceOverride)} · {session.waitingCount} nəfər gözləyir</p>{session.acceptanceOverride === "AUTO" && !session.acceptingNewEntries && session.nextOpeningAt ? <p>Növbəti açılış: {localDateTimeLabel(session.nextOpeningAt)}</p> : null}</div></div><div className="live-control-bar__actions">{session.acceptingNewEntries ? <Button variant="secondary" onClick={() => sessionAction.mutate("close")}>Qəbulu müvəqqəti bağla</Button> : <Button onClick={() => sessionAction.mutate("open")}>İndi qəbul aç</Button>}{session.acceptanceOverride !== "AUTO" ? <Button variant="quiet" onClick={() => sessionAction.mutate("automatic")}>İş qrafikinə qayıt</Button> : null}<Button variant="quiet" onClick={() => { if (window.confirm("Cari sessiya bağlanacaq və aktiv iştirakçılar sıfırlanacaq. Davam edilsin?")) sessionAction.mutate("reset"); }}>Növbəni sıfırla</Button></div></section>
+    <section className="live-control-bar" aria-label="Canlı növbə idarəetməsi"><div><span className={session.acceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" /><div><strong>{liveQueueAvailabilityMessage(session)}</strong><p>{acceptanceLabel(session.acceptanceOverride)} · {session.waitingCount} nəfər gözləyir</p>{session.acceptanceOverride === "AUTO" && !session.acceptingNewEntries && session.nextOpeningAt ? <p>Növbəti açılış: {localDateTimeLabel(session.nextOpeningAt)}</p> : null}</div></div><div className="live-control-bar__actions">{session.acceptingNewEntries ? <Button variant="secondary" onClick={() => sessionAction.mutate("close")}>Qəbulu müvəqqəti bağla</Button> : <Button onClick={() => sessionAction.mutate("open")}>İndi qəbul aç</Button>}{session.acceptanceOverride !== "AUTO" ? <Button variant="quiet" onClick={() => sessionAction.mutate("automatic")}>İş qrafikinə qayıt</Button> : null}<Button variant="quiet" onClick={() => { if (window.confirm("Cari sessiya bağlanacaq və aktiv iştirakçılar sıfırlanacaq. Davam edilsin?")) sessionAction.mutate("reset"); }}>Növbəni sıfırla</Button></div></section>
     <section className="current-participant" aria-labelledby="current-participant-title"><div><p className="eyebrow">Hazırda qəbul olunur</p><h2 id="current-participant-title">{current ? current.displayName : "İştirakçı çağırılmayıb"}</h2>{current ? <p>{current.publicReference} · {current.phone}</p> : <p>Gözləyən ilk iştirakçını çağırın.</p>}</div>{current ? <Button loading={sessionAction.isPending} onClick={() => sessionAction.mutate("complete")}>Tamamla və növbətini çağır</Button> : <Button disabled={!waiting.length} loading={sessionAction.isPending} onClick={() => sessionAction.mutate("call")}>Növbəti iştirakçını çağır</Button>}</section>
     <div className="operator-grid">
       <section className="management-panel" aria-labelledby="waiting-title"><div className="management-panel__header"><div><p className="eyebrow">Ardıcıllıq</p><h2 id="waiting-title">Gözləyənlər</h2></div><span>{waiting.length}</span></div>{waiting.length ? <div className="operator-entry-list">{waiting.map((entry) => <QueueEntryRow key={entry.id} entry={entry} busy={entryAction.isPending} onAction={(action) => entryAction.mutate({ entryId: entry.id, action })} onUpdated={() => query.refetch()} roomId={roomId} />)}</div> : <p>Hazırda gözləyən iştirakçı yoxdur.</p>}</section>
@@ -99,6 +107,22 @@ export function LiveQueueOperator({
     </div>
     {skipped.length ? <section className="management-panel" aria-labelledby="skipped-title"><div className="management-panel__header"><div><p className="eyebrow">Müvəqqəti kənarda</p><h2 id="skipped-title">Skip edilənlər</h2></div><span>{skipped.length}</span></div><div className="operator-entry-list">{skipped.map((entry) => <QueueEntryRow key={entry.id} entry={entry} busy={entryAction.isPending} onAction={(action) => entryAction.mutate({ entryId: entry.id, action })} onUpdated={() => query.refetch()} roomId={roomId} />)}</div></section> : null}
   </div>;
+}
+
+function liveQueueOperatorError(error: Error | null): Error {
+  if (!error) return new Error("Canlı növbənin vəziyyəti müəyyən edilə bilmədi.");
+  if (error.message.includes("Açıq canlı növbə sessiyası yoxdur")) {
+    return new Error("Canlı növbənin sıfırlama qaydası tamamlanmadığı üçün sessiya yaradılmayıb.");
+  }
+  return error;
+}
+
+function liveQueueAvailabilityMessage(session: LiveQueueSession): string {
+  if (session.acceptingNewEntries) return "Yeni iştirakçılar qəbul olunur";
+  if (session.acceptanceOverride === "FORCE_CLOSED") return "Otaq sahibi qəbulu müvəqqəti dayandırıb";
+  if (session.acceptanceOverride === "AUTO" && session.nextOpeningAt) return "Hazırda iş qrafiki xaricindəsiniz";
+  if (session.acceptanceOverride === "AUTO") return "İş qrafikinə görə qəbul bağlıdır";
+  return "Otaq ayarlarında yeni iştirakçı qəbulu dayandırılıb";
 }
 
 function QueueEntryRow({ entry, busy, onAction, onUpdated, roomId }: { entry: LiveQueueEntry; busy: boolean; onAction: (action: "skip" | "restore" | "send-to-end" | "remove") => void; onUpdated: () => void; roomId: number }) {

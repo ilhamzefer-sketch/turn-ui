@@ -35,7 +35,7 @@ export function roomErrorNavigation(error: unknown, context: RoomErrorContext): 
     };
   }
 
-  if (!context.setupMode && message.includes("reset qaydası")) {
+  if (!context.setupMode && (message.includes("reset qaydası") || message.includes("sıfırlama qaydası"))) {
     return {
       label: "Sıfırlama ayarına keç",
       to: `${roomSettingsPath}?section=schedule#live-queue-reset-policy`,
