@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { workspaceForPath, workspaceHomePath, workspaceKey, workspaceTypeLabel } from "./workspaceLabels";
@@ -7,6 +8,12 @@ export function WorkspaceSwitcher() {
   const { status, workspaces, activeWorkspace, selectWorkspace } = useWorkspace();
   const navigate = useNavigate();
   const location = useLocation();
+  const routedWorkspace = workspaceForPath(workspaces, location.pathname);
+
+  useEffect(() => {
+    if (!routedWorkspace || workspaceKey(routedWorkspace) === (activeWorkspace ? workspaceKey(activeWorkspace) : null)) return;
+    selectWorkspace(routedWorkspace);
+  }, [activeWorkspace, routedWorkspace, selectWorkspace]);
 
   if (status === "loading") {
     return <span className="workspace-switcher__status" role="status">İş sahələri açılır…</span>;
@@ -16,7 +23,7 @@ export function WorkspaceSwitcher() {
     return <span className="workspace-switcher__status workspace-switcher__status--error">İş sahələri açıla bilmədi</span>;
   }
 
-  const displayedWorkspace = workspaceForPath(workspaces, location.pathname) ?? activeWorkspace;
+  const displayedWorkspace = routedWorkspace ?? activeWorkspace;
   if (!displayedWorkspace) return null;
 
   return (

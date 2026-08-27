@@ -204,6 +204,19 @@ test("business workspace presents the setup sequence and management navigation",
   await page.screenshot({ path: testInfo.outputPath("business-overview.png"), fullPage: true });
 });
 
+test("active workspace remains selected after a full page refresh", async ({ page }) => {
+  await page.goto("/app");
+  await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");
+  await expect(page).toHaveURL(/\/app\/businesses\/10$/);
+
+  await page.goto("/app");
+  await expect(page.getByLabel("Aktiv sahə")).toHaveValue("BUSINESS:10");
+  await page.reload();
+
+  await expect(page.getByLabel("Aktiv sahə")).toHaveValue("BUSINESS:10");
+  await expect(page.getByText("Sakit Studio aktivdir.")).toBeVisible();
+});
+
 test("creates a branch without losing entered management context", async ({ page }) => {
   await page.goto("/app");
   await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");

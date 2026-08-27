@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type { WorkspaceContext } from "../api/contracts";
 import { workspaceApi } from "../api/workspaceApi";
 import { useAuth } from "../auth/useAuth";
 import { WorkspaceContextState, type WorkspaceStatus } from "./workspaceContext";
+import { clearWorkspaceSelection, readWorkspaceSelection, saveWorkspaceSelection } from "./workspaceSelectionStorage";
 
 type WorkspaceProviderProps = {
   children: ReactNode;
@@ -24,16 +25,28 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   });
 
   const workspaces = useMemo(() => query.data ?? [], [query.data]);
+  const selectedKey = selection && selection.userId === user?.id
+    ? selection.key
+    : user ? readWorkspaceSelection(user.id) : null;
   const activeWorkspace = useMemo(() => {
-    const selectedKey = selection && selection.userId === user?.id ? selection.key : null;
     const selected = selectedKey
       ? workspaces.find((workspace) => workspaceKey(workspace) === selectedKey)
       : null;
     return selected ?? workspaces.find((workspace) => workspace.type === "CUSTOMER") ?? workspaces[0] ?? null;
-  }, [selection, user?.id, workspaces]);
+  }, [selectedKey, workspaces]);
+
+  useEffect(() => {
+    if (!user || !query.isSuccess || !selectedKey) return;
+    if (workspaces.some((workspace) => workspaceKey(workspace) === selectedKey)) return;
+
+    clearWorkspaceSelection(user.id);
+  }, [query.isSuccess, selectedKey, user, workspaces]);
 
   const selectWorkspace = useCallback((workspace: WorkspaceContext) => {
-    if (user) setSelection({ userId: user.id, key: workspaceKey(workspace) });
+    if (!user) return;
+    const key = workspaceKey(workspace);
+    saveWorkspaceSelection(user.id, key);
+    setSelection({ userId: user.id, key });
   }, [user]);
 
   const refreshWorkspaces = useCallback(async () => {
