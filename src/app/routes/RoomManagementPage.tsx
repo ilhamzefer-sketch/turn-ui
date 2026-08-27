@@ -109,7 +109,7 @@ export function RoomManagementPage() {
           <p>{visibilityLabel(room.visibility)} · {room.defaultSlotDurationMinutes} dəqiqəlik standart aralıq</p>
         </div>
         <div className="room-workspace__actions">
-          <ButtonLink to={`/app/rooms/${room.id}/today`}>Bu günün işini aç</ButtonLink>
+          <ButtonLink to={`/app/rooms/${room.id}/today`}>Bu günün işinə qayıt</ButtonLink>
           {room.status === "PUBLISHED" && room.visibility !== "PRIVATE" ? <ButtonLink variant="secondary" to={`/rooms/${room.id}`}>İctimai səhifə</ButtonLink> : null}
           {room.status === "PUBLISHED" ? (
             <Button variant="secondary" loading={deactivateMutation.isPending} onClick={() => deactivateMutation.mutate()}>Qəbulu dayandır</Button>

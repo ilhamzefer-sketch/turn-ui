@@ -159,7 +159,7 @@ export function BusinessRoomsPage() {
                 <div><dt>Müddət</dt><dd>{room.defaultSlotDurationMinutes} dəqiqə</dd></div>
                 <div><dt>Görünürlük</dt><dd>{visibilityLabel(room.visibility)}</dd></div>
               </dl>
-              <ButtonLink to={`/app/rooms/${room.id}`}>Otağı idarə et</ButtonLink>
+              <ButtonLink to={`/app/rooms/${room.id}/today`}>Otağı idarə et</ButtonLink>
             </article>
           ))}
         </section>

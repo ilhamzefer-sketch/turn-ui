@@ -125,7 +125,7 @@ export function IndividualWorkspacePage() {
               <div><dt>Görünürlük</dt><dd>{visibilityLabel(existingRoom.visibility)}</dd></div>
             </dl>
           </div>
-          <ButtonLink to={`/app/rooms/${existingRoom.id}`}>Otağın idarəetməsini aç</ButtonLink>
+          <ButtonLink to={`/app/rooms/${existingRoom.id}/today`}>Otağın idarəetməsini aç</ButtonLink>
         </section>
       ) : (
         <section className="management-panel management-panel--editor" aria-labelledby="individual-room-create-title">
