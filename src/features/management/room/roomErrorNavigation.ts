@@ -35,9 +35,15 @@ export function roomErrorNavigation(error: unknown, context: RoomErrorContext): 
     };
   }
 
+  if (!context.setupMode && message.includes("reset qaydası")) {
+    return {
+      label: "Sıfırlama ayarına keç",
+      to: `${roomSettingsPath}?section=overview#live-queue-reset-policy`,
+    };
+  }
+
   if (!context.setupMode && (
     message.includes("əsas məlumat")
-    || message.includes("reset qaydası")
     || message.includes("rezervasiya və ləğv parametrləri")
   )) {
     return { label: "Əsas ayarlara keç", to: `${roomSettingsPath}?section=overview` };

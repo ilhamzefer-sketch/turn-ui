@@ -13,6 +13,7 @@ import { TextField } from "../../../shared/ui/TextField";
 import { TimeField } from "../../../shared/ui/TimeField";
 import { apiMessage } from "../managementUtils";
 import { nullableNumber, nullableText } from "../managementLabels";
+import { roomErrorNavigation } from "./roomErrorNavigation";
 import {
   configurationSchema,
   roomSchema,
@@ -38,6 +39,13 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
     roomForm.reset(roomValues(room));
     configForm.reset(configurationValues(room));
   }, [configForm, room, roomForm]);
+
+  useEffect(() => {
+    if (window.location.hash !== "#live-queue-reset-policy") return;
+    const resetPolicyField = document.getElementById("live-queue-reset-policy");
+    resetPolicyField?.scrollIntoView({ block: "center" });
+    resetPolicyField?.focus();
+  }, [room.reservationMode]);
 
   const roomMutation = useMutation({
     mutationFn: (values: RoomFormValues) => managementApi.updateRoom(room.id, {
@@ -81,11 +89,17 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
     },
   });
   const error = roomMutation.error ?? configurationMutation.error;
+  const errorAction = error ? roomErrorNavigation(error, {
+    roomId: room.id,
+    businessId: room.businessId,
+    individualWorkspaceId: room.individualWorkspaceId,
+    setupMode: false,
+  }) : null;
 
   return (
     <div className="room-section-stack">
       <NotificationEvent tone="success" message={successMessage} />
-      <NotificationEvent tone="error" message={error ? apiMessage(error, "Dəyişiklik saxlanılmadı.") : null} />
+      <NotificationEvent tone="error" message={error ? apiMessage(error, "Dəyişiklik saxlanılmadı.") : null} action={errorAction} />
 
       <section className="management-panel" aria-labelledby="room-details-title">
         <div className="section-heading">
@@ -134,7 +148,7 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
               </>
             ) : (
               <>
-                <SelectField label="Növbənin sıfırlanması" error={configForm.formState.errors.liveQueueResetPolicy?.message} {...configForm.register("liveQueueResetPolicy")}>
+                <SelectField id="live-queue-reset-policy" label="Növbənin sıfırlanması" error={configForm.formState.errors.liveQueueResetPolicy?.message} {...configForm.register("liveQueueResetPolicy")}>
                   <option value="DAILY_AT_TIME">Hər gün seçilən saatda</option>
                   <option value="EVERY_INTERVAL">Müəyyən intervaldan bir</option>
                 </SelectField>

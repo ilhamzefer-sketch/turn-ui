@@ -40,6 +40,16 @@ describe("roomErrorNavigation", () => {
     });
   });
 
+  it("links a missing live queue reset policy to the exact setting", () => {
+    expect(roomErrorNavigation(new Error("Canlı növbə otağı üçün reset qaydası seçilməlidir."), {
+      ...individualContext,
+      setupMode: false,
+    })).toEqual({
+      label: "Sıfırlama ayarına keç",
+      to: "/app/rooms/12/settings?section=overview#live-queue-reset-policy",
+    });
+  });
+
   it("does not invent a navigation target for an unrelated error", () => {
     expect(roomErrorNavigation(new Error("Daxili server xətası baş verdi."), individualContext)).toBeNull();
   });

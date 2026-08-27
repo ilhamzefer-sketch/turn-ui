@@ -274,6 +274,42 @@ test("publish error opens an actionable popup with the correct recovery page", a
   await page.screenshot({ path: testInfo.outputPath("actionable-error-popup-mobile.png"), fullPage: true });
 });
 
+test("reset policy error links to and focuses the exact room setting", async ({ page }) => {
+  const liveRoom = {
+    ...room,
+    reservationMode: "LIVE_QUEUE",
+    status: "PUBLISHED",
+    liveQueueResetPolicy: null,
+  };
+  await page.route("**/api/rooms/30", (route) => {
+    if (route.request().method() === "PUT") {
+      return route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({
+          status: 400,
+          error: "Bad Request",
+          code: "VALIDATION_FAILED",
+          message: "Canlı növbə otağı üçün reset qaydası seçilməlidir.",
+          path: "/api/rooms/30",
+        }),
+      });
+    }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoom) });
+  });
+  await page.goto("/app/rooms/30/settings?section=overview");
+
+  await page.getByRole("button", { name: "Əsas məlumatları saxla" }).click();
+
+  const popup = page.getByRole("alertdialog", { name: "Əməliyyat tamamlanmadı" });
+  const recoveryLink = popup.getByRole("link", { name: "Sıfırlama ayarına keç" });
+  await expect(recoveryLink).toHaveAttribute("href", "/app/rooms/30/settings?section=overview#live-queue-reset-policy");
+  await recoveryLink.click();
+
+  await expect(page).toHaveURL(/\/app\/rooms\/30\/settings\?section=overview#live-queue-reset-policy$/);
+  await expect(page.getByLabel("Növbənin sıfırlanması")).toBeFocused();
+});
+
 test("individual workspace shows its room and returns to creation after deletion", async ({ page }) => {
   await page.goto("/app");
   await page.getByLabel("Aktiv sahə").selectOption("INDIVIDUAL:11");
