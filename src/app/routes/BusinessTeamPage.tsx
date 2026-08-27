@@ -12,6 +12,7 @@ import type { BusinessRole } from "../../shared/api/contracts";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button } from "../../shared/ui/Button";
+import { PhoneField } from "../../shared/ui/PhoneField";
 import { SelectField } from "../../shared/ui/SelectField";
 import { TextField } from "../../shared/ui/TextField";
 
@@ -89,7 +90,7 @@ export function BusinessTeamPage() {
           </div>
           <form className="management-form" onSubmit={form.handleSubmit((values) => inviteMutation.mutate(values))} noValidate>
             <div className="management-form__grid">
-              <TextField label="Telefon nömrəsi" type="tel" inputMode="tel" autoFocus error={form.formState.errors.phone?.message} {...form.register("phone")} />
+              <PhoneField label="Telefon nömrəsi" autoFocus error={form.formState.errors.phone?.message} {...form.register("phone")} />
               <SelectField label="Biznes rolu" error={form.formState.errors.role?.message} {...form.register("role")}>
                 <option value="EMPLOYEE">İşçi</option>
                 <option value="ADMIN">Administrator</option>

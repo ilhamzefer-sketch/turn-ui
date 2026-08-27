@@ -7,6 +7,7 @@ import { loginSchema, type LoginFormValues } from "../../features/auth/schemas";
 import { ApiError } from "../../shared/api/httpClient";
 import { useAuth } from "../../shared/auth/useAuth";
 import { Button } from "../../shared/ui/Button";
+import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 
@@ -60,12 +61,8 @@ export function LoginPage() {
           </div>
         ) : null}
         <form className="auth-form" onSubmit={onSubmit} noValidate>
-          <TextField
+          <PhoneField
             label="Telefon nömrəsi"
-            type="tel"
-            autoComplete="tel"
-            inputMode="tel"
-            placeholder="050 123 45 67"
             error={errors.phone?.message}
             {...register("phone")}
           />

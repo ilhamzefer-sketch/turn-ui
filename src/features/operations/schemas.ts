@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-const phone = z.string().trim().min(7, "Telefon nömrəsini tam yazın.").max(30, "Telefon nömrəsi çox uzundur.");
+import { phoneSchema } from "../../shared/validation/phone";
 
 export const guestQueueSchema = z.object({
   displayName: z.string().trim().min(2, "Adı ən az 2 simvol yazın.").max(160, "Ad maksimum 160 simvol ola bilər."),
-  phone,
+  phone: phoneSchema,
 });
 
 export type GuestQueueFormValues = z.infer<typeof guestQueueSchema>;

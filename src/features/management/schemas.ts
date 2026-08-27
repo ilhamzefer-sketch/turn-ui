@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { isTime24 } from "../../shared/time/time24Hour";
+import { optionalPhoneSchema, phoneSchema } from "../../shared/validation/phone";
 
 const optionalText = (maximum: number) => z.string().trim().max(maximum, `Maksimum ${maximum} simvol ola bilər.`);
 
@@ -9,7 +10,7 @@ export const branchSchema = z.object({
   address: z.string().trim().min(1, "Ünvanı yazın.").max(500, "Maksimum 500 simvol ola bilər."),
   city: z.string().trim().min(1, "Şəhəri yazın.").max(120, "Maksimum 120 simvol ola bilər."),
   district: z.string().trim().min(1, "Rayonu yazın.").max(120, "Maksimum 120 simvol ola bilər."),
-  phone: optionalText(40),
+  phone: optionalPhoneSchema,
   notes: optionalText(2000),
 });
 
@@ -17,7 +18,7 @@ export type BranchFormValues = z.infer<typeof branchSchema>;
 
 export const businessProfileSchema = z.object({
   name: z.string().trim().min(1, "Biznes adını yazın.").max(160, "Maksimum 160 simvol ola bilər."),
-  phone: z.string().trim().min(7, "Telefon nömrəsini düzgün yazın.").max(32, "Telefon nömrəsi çox uzundur."),
+  phone: phoneSchema,
   legalName: optionalText(200),
   taxId: optionalText(40),
   description: optionalText(2000),
@@ -28,7 +29,7 @@ export const businessProfileSchema = z.object({
 export type BusinessProfileFormValues = z.infer<typeof businessProfileSchema>;
 
 export const memberInviteSchema = z.object({
-  phone: z.string().trim().min(7, "Telefon nömrəsini düzgün yazın.").max(32, "Telefon nömrəsi çox uzundur."),
+  phone: phoneSchema,
   firstName: optionalText(80),
   lastName: optionalText(80),
   role: z.enum(["ADMIN", "EMPLOYEE"]),

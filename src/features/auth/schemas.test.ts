@@ -5,7 +5,9 @@ import { loginSchema, registrationSchema } from "./schemas";
 describe("authentication schemas", () => {
   it("keeps login validation aligned with the backend contract", () => {
     expect(loginSchema.safeParse({ phone: "", password: "" }).success).toBe(false);
-    expect(loginSchema.safeParse({ phone: "050 123 45 67", password: "strong-password" }).success).toBe(true);
+    expect(loginSchema.safeParse({ phone: "0501234567", password: "strong-password" }).success).toBe(true);
+    expect(loginSchema.safeParse({ phone: "+994501234567", password: "strong-password" }).success).toBe(false);
+    expect(loginSchema.safeParse({ phone: "050 123 45 67", password: "strong-password" }).success).toBe(false);
   });
 
   it("accepts Azerbaijani names and rejects weak registration passwords", () => {
@@ -13,7 +15,7 @@ describe("authentication schemas", () => {
       registrationSchema.safeParse({
         firstName: "Əli",
         lastName: "Məmmədov",
-        phone: "050 123 45 67",
+        phone: "0501234567",
         password: "short",
         confirmPassword: "short",
       }).success,
@@ -23,7 +25,7 @@ describe("authentication schemas", () => {
       registrationSchema.safeParse({
         firstName: "Əli",
         lastName: "Məmmədov",
-        phone: "050 123 45 67",
+        phone: "0501234567",
         password: "etibarli-sifre",
         confirmPassword: "etibarli-sifre",
       }).success,
@@ -35,7 +37,7 @@ describe("authentication schemas", () => {
       registrationSchema.safeParse({
         firstName: "Əli",
         lastName: "Məmmədov",
-        phone: "050 123 45 67",
+        phone: "0501234567",
         password: "etibarli-sifre",
         confirmPassword: "başqa-sifre",
       }).success,

@@ -13,7 +13,7 @@ describe("onboarding schemas", () => {
     expect(
       businessOnboardingSchema.safeParse({
         name: "Sahil Studio",
-        phone: "050 123 45 67",
+        phone: "0501234567",
         categoryId: "2",
         customSubcategory: "",
         description: "",

@@ -11,9 +11,11 @@ import { managementApi } from "../../shared/api/managementApi";
 import { publicApi } from "../../shared/api/publicApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button, ButtonLink } from "../../shared/ui/Button";
+import { PhoneField } from "../../shared/ui/PhoneField";
 import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { TextField } from "../../shared/ui/TextField";
+import { toLocalPhoneInput } from "../../shared/validation/phoneFormat";
 import { nullableText } from "../../features/management/managementLabels";
 
 export function BusinessOverviewPage() {
@@ -60,7 +62,7 @@ export function BusinessOverviewPage() {
     if (!business) return;
     form.reset({
       name: business.name,
-      phone: business.phone,
+      phone: toLocalPhoneInput(business.phone),
       legalName: business.legalName ?? "",
       taxId: business.taxId ?? "",
       description: business.description ?? "",
@@ -153,7 +155,7 @@ export function BusinessOverviewPage() {
         >
           <div className="management-form__grid">
             <TextField label="Biznes adı" autoComplete="organization" error={form.formState.errors.name?.message} {...form.register("name")} />
-            <TextField label="Əlaqə telefonu" type="tel" inputMode="tel" error={form.formState.errors.phone?.message} {...form.register("phone")} />
+            <PhoneField label="Əlaqə telefonu" error={form.formState.errors.phone?.message} {...form.register("phone")} />
             <TextField label="Hüquqi ad (istəyə bağlı)" error={form.formState.errors.legalName?.message} {...form.register("legalName")} />
             <TextField label="VÖEN (istəyə bağlı)" error={form.formState.errors.taxId?.message} {...form.register("taxId")} />
             <SelectField label="Kateqoriya" error={form.formState.errors.categoryId?.message} {...form.register("categoryId")}>

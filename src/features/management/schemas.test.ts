@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  businessProfileSchema,
   branchSchema,
   configurationSchema,
+  memberInviteSchema,
   roomSchema,
 } from "./schemas";
 
@@ -10,6 +12,14 @@ describe("management form contracts", () => {
   it("requires the business branch location fields", () => {
     const result = branchSchema.safeParse({ name: "", address: "", city: "", district: "", phone: "", notes: "" });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts only exact local phone values across management forms", () => {
+    expect(memberInviteSchema.safeParse({ phone: "0501234567", firstName: "", lastName: "", role: "EMPLOYEE" }).success).toBe(true);
+    expect(memberInviteSchema.safeParse({ phone: "+994501234567", firstName: "", lastName: "", role: "EMPLOYEE" }).success).toBe(false);
+    expect(branchSchema.safeParse({ name: "Filial", address: "Ünvan", city: "Bakı", district: "Nəsimi", phone: "", notes: "" }).success).toBe(true);
+    expect(branchSchema.safeParse({ name: "Filial", address: "Ünvan", city: "Bakı", district: "Nəsimi", phone: "050-123-45-67", notes: "" }).success).toBe(false);
+    expect(businessProfileSchema.safeParse({ name: "Biznes", phone: "050123456", legalName: "", taxId: "", description: "", categoryId: "", customSubcategory: "" }).success).toBe(false);
   });
 
   it("rejects an invalid room duration", () => {

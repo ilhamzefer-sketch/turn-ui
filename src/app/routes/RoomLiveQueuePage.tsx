@@ -10,6 +10,7 @@ import { queueApi } from "../../shared/api/queueApi";
 import { useAuth } from "../../shared/auth/useAuth";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button } from "../../shared/ui/Button";
+import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextField } from "../../shared/ui/TextField";
 
 export function RoomLiveQueuePage() {
@@ -87,7 +88,7 @@ export function RoomLiveQueuePage() {
           ) : null}
           <form className="operation-form" onSubmit={form.handleSubmit((values) => guestJoin.mutate(values))} noValidate>
             <TextField label="Ad və soyad" autoComplete="name" error={form.formState.errors.displayName?.message} {...form.register("displayName")} />
-            <TextField label="Telefon nömrəsi" type="tel" inputMode="tel" autoComplete="tel" placeholder="050 123 45 67" error={form.formState.errors.phone?.message} {...form.register("phone")} />
+            <PhoneField label="Telefon nömrəsi" error={form.formState.errors.phone?.message} {...form.register("phone")} />
             <Button type="submit" disabled={!queue.acceptingNewEntries} loading={guestJoin.isPending}>Qonaq kimi növbəyə qoşul</Button>
           </form>
         </section>

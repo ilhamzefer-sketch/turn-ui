@@ -7,6 +7,7 @@ import { recoverySchema, type RecoveryFormValues } from "../../features/auth/sch
 import { supportApi } from "../../shared/api/supportApi";
 import { ApiError } from "../../shared/api/httpClient";
 import { Button } from "../../shared/ui/Button";
+import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
@@ -62,21 +63,14 @@ export function AccountRecoveryPage() {
         </div>
         {submitError ? <div className="form-alert" role="alert">{submitError}</div> : null}
         <form className="auth-form" onSubmit={onSubmit} noValidate>
-          <TextField
+          <PhoneField
             label="Hesabın telefon nömrəsi"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="050 123 45 67"
             error={errors.disputedPhone?.message}
             {...register("disputedPhone")}
           />
           <TextField label="Ad və soyad" autoComplete="name" error={errors.claimantName?.message} {...register("claimantName")} />
-          <TextField
+          <PhoneField
             label="Sizinlə əlaqə üçün telefon"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
             error={errors.claimantContactPhone?.message}
             {...register("claimantContactPhone")}
           />

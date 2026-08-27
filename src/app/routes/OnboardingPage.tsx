@@ -18,9 +18,11 @@ import { workspaceApi } from "../../shared/api/workspaceApi";
 import { useAuth } from "../../shared/auth/useAuth";
 import { Brand } from "../../shared/ui/Brand";
 import { Button } from "../../shared/ui/Button";
+import { PhoneField } from "../../shared/ui/PhoneField";
 import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { TextField } from "../../shared/ui/TextField";
+import { toLocalPhoneInput } from "../../shared/validation/phoneFormat";
 import { useWorkspace } from "../../shared/workspace/useWorkspace";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 
@@ -276,7 +278,7 @@ function BusinessOnboarding({ defaultPhone, categories, categoriesLoading, onBac
     formState: { errors, isSubmitting },
   } = useForm<BusinessOnboardingFormValues>({
     resolver: zodResolver(businessOnboardingSchema),
-    defaultValues: { phone: defaultPhone, categoryId: "", customSubcategory: "", description: "" },
+    defaultValues: { phone: toLocalPhoneInput(defaultPhone), categoryId: "", customSubcategory: "", description: "" },
   });
   const selectedCategoryId = useWatch({ control, name: "categoryId" });
   const selectedCategory = useMemo(
@@ -316,11 +318,8 @@ function BusinessOnboarding({ defaultPhone, categories, categoriesLoading, onBac
       {submitError ? <div className="form-alert" role="alert">{submitError}</div> : null}
       <form className="auth-form" onSubmit={onSubmit} noValidate>
         <TextField label="Biznes adı" autoComplete="organization" error={errors.name?.message} {...register("name")} />
-        <TextField
+        <PhoneField
           label="Biznes telefonu"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
           error={errors.phone?.message}
           {...register("phone")}
         />

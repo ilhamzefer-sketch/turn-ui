@@ -12,8 +12,10 @@ import type { Branch } from "../../shared/api/contracts";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button } from "../../shared/ui/Button";
+import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { TextField } from "../../shared/ui/TextField";
+import { toLocalPhoneInput } from "../../shared/validation/phoneFormat";
 
 const emptyBranch: BranchFormValues = { name: "", address: "", city: "Bakı", district: "", phone: "", notes: "" };
 
@@ -76,7 +78,7 @@ export function BusinessBranchesPage() {
       address: branch.address,
       city: branch.city,
       district: branch.district,
-      phone: branch.phone ?? "",
+      phone: toLocalPhoneInput(branch.phone),
       notes: branch.notes ?? "",
     });
     setFormVisible(true);
@@ -109,7 +111,7 @@ export function BusinessBranchesPage() {
           <form className="management-form" onSubmit={form.handleSubmit((values) => saveMutation.mutate(values))} noValidate>
             <div className="management-form__grid">
               <TextField label="Filial adı" autoFocus error={form.formState.errors.name?.message} {...form.register("name")} />
-              <TextField label="Əlaqə telefonu (istəyə bağlı)" type="tel" inputMode="tel" hint="Boş saxlanarsa biznes telefonu istifadə olunur." error={form.formState.errors.phone?.message} {...form.register("phone")} />
+              <PhoneField label="Əlaqə telefonu (istəyə bağlı)" hint="Boş saxlanarsa biznes telefonu istifadə olunur. Format: 0504059961" error={form.formState.errors.phone?.message} {...form.register("phone")} />
               <TextField label="Şəhər" autoComplete="address-level2" error={form.formState.errors.city?.message} {...form.register("city")} />
               <TextField label="Rayon" autoComplete="address-level3" error={form.formState.errors.district?.message} {...form.register("district")} />
             </div>

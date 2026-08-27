@@ -7,6 +7,7 @@ import { registrationSchema, type RegistrationFormValues } from "../../features/
 import { ApiError } from "../../shared/api/httpClient";
 import { useAuth } from "../../shared/auth/useAuth";
 import { Button } from "../../shared/ui/Button";
+import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextField } from "../../shared/ui/TextField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 
@@ -54,13 +55,8 @@ export function RegisterPage() {
             <TextField label="Ad" autoComplete="given-name" error={errors.firstName?.message} {...register("firstName")} />
             <TextField label="Soyad" autoComplete="family-name" error={errors.lastName?.message} {...register("lastName")} />
           </div>
-          <TextField
+          <PhoneField
             label="Telefon nömrəsi"
-            type="tel"
-            autoComplete="tel"
-            inputMode="tel"
-            placeholder="050 123 45 67"
-            hint="Hazırda yalnız Azərbaycan telefon nömrələri dəstəklənir."
             error={errors.phone?.message}
             {...register("phone")}
           />

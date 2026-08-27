@@ -7,6 +7,9 @@ describe("step 5 operation contracts", () => {
   it("requires both a guest name and phone", () => {
     expect(guestQueueSchema.safeParse({ displayName: "", phone: "" }).success).toBe(false);
     expect(guestQueueSchema.safeParse({ displayName: "Leyla Məmmədova", phone: "0501234567" }).success).toBe(true);
+    expect(guestQueueSchema.safeParse({ displayName: "Leyla Məmmədova", phone: "+994501234567" }).success).toBe(false);
+    expect(guestQueueSchema.safeParse({ displayName: "Leyla Məmmədova", phone: "050 123 45 67" }).success).toBe(false);
+    expect(guestQueueSchema.safeParse({ displayName: "Leyla Məmmədova", phone: "05012345678" }).success).toBe(false);
   });
 
   it("does not allow a public source for owner-created bookings", () => {
