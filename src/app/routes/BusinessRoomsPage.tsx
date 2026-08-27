@@ -24,7 +24,7 @@ const emptyRoom: RoomFormValues = {
   description: "",
   notes: "",
   reservationMode: "LIVE_QUEUE",
-  defaultSlotDurationMinutes: "20",
+  defaultSlotDurationMinutes: "30",
   visibility: "UNLISTED",
   personalPublicAddress: "",
 };

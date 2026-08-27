@@ -82,8 +82,8 @@ export function RoomQrSection({ room, setupNavigation }: { room: ManagedRoom; se
         <div className="room-setup-actions room-setup-actions--final">
           <Button variant="secondary" onClick={setupNavigation.onBack}>Geri</Button>
           <div>
-            <p>QR kod istəyə bağlıdır. Otağı yaratdıqdan sonra da əlavə edə və yeniləyə bilərsiniz.</p>
-            <Button loading={setupNavigation.finishing} onClick={setupNavigation.onFinish}>Otağı yarat</Button>
+            <p>QR kod istəyə bağlıdır. Otağı yayımladıqdan sonra da əlavə edə və yeniləyə bilərsiniz.</p>
+            <Button loading={setupNavigation.finishing} onClick={setupNavigation.onFinish}>Otağı yayımla</Button>
           </div>
         </div>
       ) : null}

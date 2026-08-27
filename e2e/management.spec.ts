@@ -217,6 +217,31 @@ test("active workspace remains selected after a full page refresh", async ({ pag
   await expect(page.getByText("Sakit Studio aktivdir.")).toBeVisible();
 });
 
+test("workspace cards do not flash before the saved workspace is restored", async ({ page }) => {
+  let releaseWorkspaces: (() => void) | undefined;
+  const workspacesReady = new Promise<void>((resolve) => {
+    releaseWorkspaces = resolve;
+  });
+  await page.route("**/api/users/me/workspaces", async (route) => {
+    await workspacesReady;
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify([
+        { type: "CUSTOMER", contextId: 44, name: "Leyla Məmmədova", role: "CUSTOMER" },
+        { type: "BUSINESS", contextId: 10, name: "Sakit Studio", role: "PRIMARY_OWNER" },
+      ]),
+    });
+  });
+  await page.goto("/app");
+
+  await expect(page.getByText("İş sahəniz hazırlanır…", { exact: true })).toBeVisible();
+  await expect(page.locator(".welcome-panel, .account-panel")).toHaveCount(0);
+  releaseWorkspaces?.();
+
+  await expect(page.getByRole("heading", { name: "Xoş gəldiniz, Leyla." })).toBeVisible();
+  await expect(page.locator(".welcome-panel, .account-panel")).toHaveCount(2);
+});
+
 test("creates a branch without losing entered management context", async ({ page }) => {
   await page.goto("/app");
   await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");
@@ -262,9 +287,9 @@ test("publish error opens an actionable popup with the correct recovery page", a
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/app/rooms/30/settings?step=qr");
 
-  await page.getByRole("button", { name: "Otağı yarat" }).click();
+  await page.getByRole("button", { name: "Otağı yayımla" }).click();
 
-  const popup = page.getByRole("alert", { name: "Otaq yaradıla bilmədi" });
+  const popup = page.getByRole("alert", { name: "Otaq yayımlanmadı" });
   await expect(popup).toBeVisible();
   await expect(popup).toContainText("Aktiv abunəlik tələb olunur.");
   await expect(popup.getByRole("link", { name: "Abunəliyə keç" })).toHaveAttribute("href", "/app/businesses/10/subscription");
@@ -347,29 +372,66 @@ test("edited weekend schedule is submitted and confirmed as saved", async ({ pag
   await expect(page.getByText("Qrafik serverlə eynidir")).toBeVisible();
 });
 
-test("live queue setup cannot continue until reset rule and time are filled", async ({ page }) => {
-  const liveRoomWithoutReset = {
+test("live queue setup uses daily midnight by default and publishes an active room", async ({ page }) => {
+  let liveRoom = {
     ...room,
     reservationMode: "LIVE_QUEUE",
     liveQueueResetPolicy: null,
     liveQueueResetLocalTime: null,
     liveQueueResetIntervalMinutes: null,
   };
-  let configurationRequests = 0;
-  await page.route("**/api/rooms/30", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoomWithoutReset) }));
+  let configurationPayload: Record<string, unknown> | null = null;
+  let publishRequests = 0;
+  await page.route("**/api/rooms/30", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoom) }));
   await page.route("**/api/rooms/30/configuration", (route) => {
-    configurationRequests += 1;
-    return route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoomWithoutReset) });
+    configurationPayload = route.request().postDataJSON() as Record<string, unknown>;
+    liveRoom = { ...liveRoom, ...configurationPayload };
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoom) });
   });
+  await page.route("**/api/rooms/30/publish", (route) => {
+    publishRequests += 1;
+    liveRoom = { ...liveRoom, status: "PUBLISHED" };
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoom) });
+  });
+  await page.route("**/api/rooms/30/live-queue", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({
+      id: 90,
+      roomId: 30,
+      roomName: liveRoom.name,
+      serviceDate: "2026-08-27",
+      status: "OPEN",
+      acceptanceOverride: "AUTO",
+      acceptingNewEntries: true,
+      nextOpeningAt: null,
+      nextResetAt: "2026-08-28T00:00:00",
+      currentPublicReference: null,
+      waitingCount: 0,
+      skippedCount: 0,
+      activeCount: 0,
+      openedAt: "2026-08-27T09:00:00",
+      closedAt: null,
+      entries: [],
+    }),
+  }));
   await page.goto("/app/rooms/30/settings?step=schedule");
 
+  await expect(page.getByLabel("Növbənin sıfırlanma qaydası")).toHaveValue("DAILY_AT_TIME");
+  await expect(page.getByLabel("Gündəlik sıfırlama saatı")).toHaveValue("00:00");
   await page.getByRole("button", { name: "Davam et" }).click();
 
-  await expect(page).toHaveURL(/\?step=schedule$/);
-  await expect(page.getByRole("alert", { name: "Əməliyyat tamamlanmadı" })).toContainText("sıfırlanma qaydasını və uyğun vaxtı doldurun");
-  await expect(page.getByText("Növbənin sıfırlanma qaydasını seçin.")).toBeVisible();
-  await expect(page.getByLabel("Növbənin sıfırlanma qaydası")).toBeFocused();
-  expect(configurationRequests).toBe(0);
+  await expect(page).toHaveURL(/\?step=qr$/);
+  expect(configurationPayload).toMatchObject({
+    liveQueueResetPolicy: "DAILY_AT_TIME",
+    liveQueueResetLocalTime: "00:00",
+    liveQueueResetIntervalMinutes: null,
+    liveQueueAcceptingNewEntries: true,
+  });
+  await page.getByRole("button", { name: "Otağı yayımla" }).click();
+
+  await expect(page).toHaveURL(/\/app\/rooms\/30\/today$/);
+  await expect(page.getByText("Yeni iştirakçılar qəbul olunur")).toBeVisible();
+  expect(publishRequests).toBe(1);
 });
 
 test("management navigation and actions survive doubled text", async ({ page }, testInfo) => {

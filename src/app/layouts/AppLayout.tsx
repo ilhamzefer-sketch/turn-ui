@@ -5,9 +5,12 @@ import { Button } from "../../shared/ui/Button";
 import { useAuth } from "../../shared/auth/useAuth";
 import { AppNavigation } from "../../features/workspaces/AppNavigation";
 import { WorkspaceSwitcher } from "../../features/workspaces/WorkspaceSwitcher";
+import { useWorkspace } from "../../shared/workspace/useWorkspace";
 
 export function AppLayout() {
   const { logout } = useAuth();
+  const { status: workspaceStatus } = useWorkspace();
+  const workspaceReady = workspaceStatus === "ready";
 
   return (
     <div className="app-frame">
@@ -26,11 +29,13 @@ export function AppLayout() {
         </div>
       </header>
       <div className="app-shell shell">
-        <aside className="app-sidebar">
-          <AppNavigation />
-        </aside>
+        {workspaceReady ? <aside className="app-sidebar"><AppNavigation /></aside> : null}
         <main className="app-content" id="app-content">
-          <Outlet />
+          {workspaceReady ? <Outlet /> : workspaceStatus === "error" ? (
+            <div className="management-state" role="alert">İş sahələri açıla bilmədi. Səhifəni yeniləyib bir daha yoxlayın.</div>
+          ) : (
+            <div className="management-state" role="status" aria-live="polite">İş sahəniz hazırlanır…</div>
+          )}
         </main>
       </div>
     </div>

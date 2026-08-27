@@ -371,8 +371,8 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
 
 function liveQueueValues(room: ManagedRoom): LiveQueueConfigurationFormValues {
   return {
-    liveQueueResetPolicy: room.liveQueueResetPolicy ?? "",
-    liveQueueResetLocalTime: room.liveQueueResetLocalTime?.slice(0, 5) ?? "",
+    liveQueueResetPolicy: room.liveQueueResetPolicy ?? "DAILY_AT_TIME",
+    liveQueueResetLocalTime: room.liveQueueResetLocalTime?.slice(0, 5) ?? "00:00",
     liveQueueResetIntervalMinutes: room.liveQueueResetIntervalMinutes ? String(room.liveQueueResetIntervalMinutes) : "",
     liveQueueMaxParticipants: room.liveQueueMaxParticipants ? String(room.liveQueueMaxParticipants) : "",
     liveQueueAcceptingNewEntries: room.liveQueueAcceptingNewEntries,

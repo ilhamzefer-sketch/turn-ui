@@ -129,7 +129,7 @@ export function RoomManagementPage() {
     setupMode,
   }) : null;
   const errorTitle = publishMutation.error
-    ? setupMode ? "Otaq yaradıla bilmədi" : "Otaq yayımlanmadı"
+    ? "Otaq yayımlanmadı"
     : deactivateMutation.error
       ? "Qəbul dayandırılmadı"
       : "Otaq arxivləşdirilmədi";

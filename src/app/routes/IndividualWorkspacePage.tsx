@@ -40,7 +40,7 @@ export function IndividualWorkspacePage() {
       roomNumberOrCode: "",
       description: "",
       notes: "",
-      reservationMode: "PLANNED_BOOKING",
+      reservationMode: "LIVE_QUEUE",
       defaultSlotDurationMinutes: "30",
       visibility: "UNLISTED",
       personalPublicAddress: "",
@@ -135,8 +135,8 @@ export function IndividualWorkspacePage() {
               <TextField label="Otaq və ya mütəxəssis adı" error={form.formState.errors.name?.message} {...form.register("name")} />
               <TextField label="Qeyd/kod (istəyə bağlı)" error={form.formState.errors.roomNumberOrCode?.message} {...form.register("roomNumberOrCode")} />
               <SelectField label="İş rejimi" error={form.formState.errors.reservationMode?.message} {...form.register("reservationMode")}>
-                <option value="PLANNED_BOOKING">Planlı rezervasiya</option>
                 <option value="LIVE_QUEUE">Canlı növbə</option>
+                <option value="PLANNED_BOOKING">Planlı rezervasiya</option>
               </SelectField>
               <TextField label="Standart müddət (dəqiqə)" type="number" min="1" max="1440" inputMode="numeric" error={form.formState.errors.defaultSlotDurationMinutes?.message} {...form.register("defaultSlotDurationMinutes")} />
               <SelectField label="Görünürlük" error={form.formState.errors.visibility?.message} {...form.register("visibility")}>
