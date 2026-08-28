@@ -88,7 +88,7 @@ export function LiveQueueOperator({
       individualWorkspaceId,
       setupMode: false,
     });
-    return <><NotificationEvent tone="error" message={message} action={recoveryAction} /><section className="management-state operation-recovery" role="alert"><strong>Otağın qurulmasını tamamlayın</strong><p>{message}</p><div className="operation-recovery__actions">{recoveryAction ? <ButtonLink to={recoveryAction.to}>{recoveryAction.label}</ButtonLink> : null}<Button variant="secondary" onClick={() => query.refetch()}>Yenidən yoxla</Button></div></section></>;
+    return <><NotificationEvent tone="error" message={message} action={recoveryAction} /><section className="management-state operation-recovery" role="alert"><strong>{recoveryAction ? "Otağın qurulmasını tamamlayın" : "Canlı növbə açıla bilmədi"}</strong><p>{message}</p><div className="operation-recovery__actions">{recoveryAction ? <ButtonLink to={recoveryAction.to}>{recoveryAction.label}</ButtonLink> : null}<Button variant="secondary" onClick={() => query.refetch()}>Yenidən yoxla</Button></div></section></>;
   }
 
   const session = query.data;
@@ -112,7 +112,7 @@ export function LiveQueueOperator({
 function liveQueueOperatorError(error: Error | null): Error {
   if (!error) return new Error("Canlı növbənin vəziyyəti müəyyən edilə bilmədi.");
   if (error.message.includes("Açıq canlı növbə sessiyası yoxdur")) {
-    return new Error("Canlı növbənin sıfırlama qaydası tamamlanmadığı üçün sessiya yaradılmayıb.");
+    return new Error("Canlı növbə sessiyası tapılmadı. Sistem onu avtomatik bərpa edə bilmədi. Yenidən yoxlayın.");
   }
   return error;
 }

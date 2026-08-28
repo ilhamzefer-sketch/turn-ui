@@ -202,6 +202,8 @@ test("business workspace presents the setup sequence and management navigation",
   await expect(page.getByRole("navigation", { name: "İş sahəsinin bölmələri" })).toContainText("Filiallar");
   await expect(page.getByText("Biznesi işə hazırlayın")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("business-overview.png"), fullPage: true });
+  await page.getByRole("link", { name: "Otaqlar", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Yeni otaq" })).toBeVisible();
 });
 
 test("active workspace remains selected after a full page refresh", async ({ page }) => {
@@ -335,7 +337,7 @@ test("reset policy error links to and focuses the exact room setting", async ({ 
   await expect(page.getByLabel("Növbənin sıfırlanma qaydası")).toBeFocused();
 });
 
-test("individual workspace shows its room and returns to creation after deletion", async ({ page }) => {
+test("individual workspace opens its only room and returns to its details form after deletion", async ({ page }) => {
   await page.goto("/app");
   await page.getByLabel("Aktiv sahə").selectOption("INDIVIDUAL:11");
 
@@ -346,7 +348,9 @@ test("individual workspace shows its room and returns to creation after deletion
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Otağı sil" }).click();
 
-  await expect(page.getByRole("heading", { name: "Otağınızı yaradın" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Qəbul məlumatlarınızı tamamlayın" })).toBeVisible();
+  await expect(page.getByText("Fərdi mütəxəssis üçün ayrıca otaq yaratmağa ehtiyac yoxdur.")).toBeVisible();
+  await expect(page.getByText("Otağınızı yaradın")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Otağı sil" })).toHaveCount(0);
 });
 

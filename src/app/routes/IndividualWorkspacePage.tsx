@@ -97,7 +97,7 @@ export function IndividualWorkspacePage() {
               variant="danger"
               loading={archiveMutation.isPending}
               onClick={() => {
-                if (window.confirm(`${existingRoom.name} otağını silmək istəyirsiniz? Otaq arxivə göndəriləcək, tarixçə saxlanılacaq və sonra yeni otaq yarada biləcəksiniz.`)) {
+                if (window.confirm(`${existingRoom.name} qəbul sahəsini silmək istəyirsiniz? Məlumatlar arxivə göndəriləcək, tarixçə saxlanılacaq və qəbul sahənizi yenidən qura biləcəksiniz.`)) {
                   archiveMutation.mutate(existingRoom.id);
                 }
               }}
@@ -120,16 +120,16 @@ export function IndividualWorkspacePage() {
               <div><dt>Görünürlük</dt><dd>{visibilityLabel(existingRoom.visibility)}</dd></div>
             </dl>
           </div>
-          <ButtonLink to={`/app/rooms/${existingRoom.id}`}>{existingRoom.status === "DRAFT" ? "Quruluma davam et" : "Otağın idarəetməsini aç"}</ButtonLink>
+          <ButtonLink to={`/app/rooms/${existingRoom.id}`}>{existingRoom.status === "DRAFT" ? "Quruluma davam et" : "İdarəetməni aç"}</ButtonLink>
         </section>
       ) : (
-        <section className="management-panel management-panel--editor" aria-labelledby="individual-room-create-title">
+        <section className="management-panel management-panel--editor" aria-labelledby="individual-room-details-title">
           <div className="section-heading">
-            <div><p className="eyebrow">İlk və yeganə otaq</p><h2 id="individual-room-create-title">Otağınızı yaradın</h2></div>
-            <p>Sonradan rejim və açıq saatları otaq idarəetməsindən dəyişə bilərsiniz.</p>
+            <div><p className="eyebrow">Yeganə qəbul sahəniz</p><h2 id="individual-room-details-title">Qəbul məlumatlarınızı tamamlayın</h2></div>
+            <p>Fərdi mütəxəssis üçün ayrıca otaq yaratmağa ehtiyac yoxdur. Bu məlumatlar sizin yeganə qəbul sahənizə aid olacaq.</p>
           </div>
           <RoomSetupProgress currentStep="basics" />
-          <NotificationEvent tone="error" message={createMutation.isError ? apiMessage(createMutation.error, "Otaq yaradıla bilmədi.") : null} />
+          <NotificationEvent tone="error" message={createMutation.isError ? apiMessage(createMutation.error, "Qəbul məlumatları saxlanılmadı.") : null} />
           <form className="management-form" onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} noValidate>
             <div className="management-form__grid">
               <TextField label="Otaq və ya mütəxəssis adı" error={form.formState.errors.name?.message} {...form.register("name")} />

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/auth/useAuth";
-import { managementApi } from "../../shared/api/managementApi";
 import { workspaceTypeLabel } from "../../features/workspaces/workspaceLabels";
 import { workspaceHomePath } from "../../features/workspaces/workspaceLabels";
 import { ButtonLink } from "../../shared/ui/Button";
@@ -20,17 +19,9 @@ export function AppHomePage() {
     queryFn: workspaceApi.invitations,
     enabled: Boolean(user),
   });
-  const individualRoomsQuery = useQuery({
-    queryKey: ["individual-workspace-rooms", activeWorkspace?.contextId],
-    queryFn: () => managementApi.individualRooms(activeWorkspace?.contextId as number),
-    enabled: activeWorkspace?.type === "INDIVIDUAL",
-  });
   const managedWorkspaceCount = workspaces.filter((workspace) => workspace.type !== "CUSTOMER").length;
   const pendingInvitationCount = (invitationsQuery.data?.businessInvitations.length ?? 0)
     + (invitationsQuery.data?.roomInvitations.length ?? 0);
-  const individualNeedsRoom = activeWorkspace?.type === "INDIVIDUAL"
-    && individualRoomsQuery.isSuccess
-    && individualRoomsQuery.data.every((room) => room.status === "ARCHIVED");
 
   return (
     <div className="app-home-grid">
@@ -53,7 +44,7 @@ export function AppHomePage() {
         <div className="welcome-panel__actions">
           {activeWorkspace?.type === "CUSTOMER" ? <ButtonLink to="/rooms">Otaq tap</ButtonLink> : null}
           {activeWorkspace && activeWorkspace.type !== "CUSTOMER" ? (
-            <ButtonLink to={workspaceHomePath(activeWorkspace)}>{individualNeedsRoom ? "Otaq yarat" : "İdarəetməni aç"}</ButtonLink>
+            <ButtonLink to={workspaceHomePath(activeWorkspace)}>İdarəetməni aç</ButtonLink>
           ) : null}
           <ButtonLink to="/onboarding" variant="secondary">Yeni iş sahəsi əlavə et</ButtonLink>
         </div>

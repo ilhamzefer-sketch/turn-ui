@@ -123,15 +123,13 @@ describe("LiveQueueOperator", () => {
     expect(vi.mocked(queueApi.current)).toHaveBeenCalledTimes(1);
   });
 
-  it("explains the legacy missing-session error and links to its real setting", async () => {
+  it("does not invent a reset problem for a legacy missing-session error", async () => {
     vi.mocked(queueApi.current).mockRejectedValue(new Error("Açıq canlı növbə sessiyası yoxdur."));
 
     renderOperator(20);
 
-    expect(await screen.findByRole("alert", { name: "" })).toHaveTextContent("sıfırlama qaydası tamamlanmadığı üçün");
-    expect(screen.getByRole("link", { name: "Sıfırlama ayarına keç" })).toHaveAttribute(
-      "href",
-      "/app/rooms/30/settings?section=schedule#live-queue-reset-policy",
-    );
+    expect(await screen.findByRole("alert", { name: "" })).toHaveTextContent("sessiyası tapılmadı");
+    expect(screen.getByText("Canlı növbə açıla bilmədi")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Sıfırlama ayarına keç" })).not.toBeInTheDocument();
   });
 });
