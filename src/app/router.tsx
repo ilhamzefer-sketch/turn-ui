@@ -20,6 +20,11 @@ export const router = createBrowserRouter([
     lazy: () => import("./routes/AdminPlatformPage").then((module) => ({ Component: module.AdminPlatformPage })),
   },
   {
+    path: "/platform/ilk-giris",
+    HydrateFallback: () => <PageLoader label="Təhlükəsiz admin hesabı hazırlanır..." />,
+    lazy: () => import("./routes/AdminCredentialSetupPage").then((module) => ({ Component: module.AdminCredentialSetupPage })),
+  },
+  {
     element: <PublicLayout />,
     HydrateFallback: () => <PageLoader label="Səhifə açılır..." />,
     children: [

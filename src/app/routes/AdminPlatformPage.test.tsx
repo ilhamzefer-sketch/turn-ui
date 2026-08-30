@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -12,7 +12,7 @@ vi.mock("../../shared/meta/usePageMeta", () => ({ usePageMeta: vi.fn() }));
 vi.mock("../../shared/api/authApi", () => ({ authApi: { logout: vi.fn() } }));
 vi.mock("../../shared/api/stepSixApi", () => ({
   stepSixApi: {
-    adminOverview: vi.fn(), adminUsers: vi.fn(), adminCreditCoins: vi.fn(),
+    adminOverview: vi.fn(), adminUsers: vi.fn(), adminCreditCoins: vi.fn(), adminChangeUserPassword: vi.fn(),
     adminBusinesses: vi.fn(), adminIncreaseRoomLimit: vi.fn(), adminAccounts: vi.fn(), adminCreateAccount: vi.fn(),
     adminDisputes: vi.fn(), adminPhoneChanges: vi.fn(), adminDeletions: vi.fn(),
     resolveDispute: vi.fn(), resolvePhoneChange: vi.fn(), resolveDeletion: vi.fn(),
@@ -36,6 +36,7 @@ describe("AdminPlatformPage", () => {
     vi.mocked(stepSixApi.adminPhoneChanges).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminDeletions).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminCreditCoins).mockResolvedValue({ id: 12, type: "ADMIN_CREDIT", direction: "CREDIT", amount: 60, balanceBefore: 40, balanceAfter: 100, actorType: "ADMIN", referenceKey: "admin-credit", description: "Manual əlavə", createdAt: "2026-08-30T12:00:00" });
+    vi.mocked(stepSixApi.adminChangeUserPassword).mockResolvedValue(undefined);
     vi.mocked(stepSixApi.adminIncreaseRoomLimit).mockResolvedValue({ id: 9, name: "NövbəTime Studio", status: "ACTIVE", ownerUserId: 7, ownerName: "Aysel Məmmədova", ownerPhone: "+994501112233", roomCount: 3, roomLimit: 8, subscriptionStatus: "ACTIVE" });
     vi.mocked(stepSixApi.adminCreateAccount).mockResolvedValue({ id: 2, username: "operations", displayName: "Əməliyyat admini", active: true, createdByUsername: "admin", createdAt: "2026-08-30T12:00:00" });
   });
@@ -75,5 +76,26 @@ describe("AdminPlatformPage", () => {
     await user.click(screen.getByRole("button", { name: "Admin hesabı yarat" }));
     expect(await screen.findByText("Yeni admin hesabı yaradıldı.")).toBeInTheDocument();
     expect(stepSixApi.adminCreateAccount).toHaveBeenCalledWith("operations", "Əməliyyat admini", "Operations-safe-2026");
+  });
+
+  it("changes a user password only after explicit confirmation", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const userName = await screen.findByText("Aysel Məmmədova");
+    const userCard = userName.closest("article");
+    expect(userCard).not.toBeNull();
+    const card = within(userCard as HTMLElement);
+
+    await user.click(card.getByText("İstifadəçi şifrəsini dəyiş"));
+    expect(card.getByText(/Köhnə şifrə göstərilmir/)).toBeInTheDocument();
+    await user.type(card.getByLabelText("Yeni istifadəçi şifrəsi"), "Changed-safe-2026");
+    await user.type(card.getByLabelText("Yeni şifrəni təkrarla"), "Changed-safe-2026");
+    await user.type(card.getByLabelText("Şifrə dəyişikliyinin səbəbi"), "Təsdiqlənmiş müraciət");
+    await user.click(card.getByRole("button", { name: "Şifrəni dəyiş" }));
+
+    expect(card.getByRole("alert")).toHaveTextContent("bütün açıq sessiyalar bağlanacaq");
+    await user.click(card.getByRole("button", { name: "Şifrə dəyişikliyini təsdiqlə" }));
+    expect(await card.findByText("Şifrə dəyişdirildi və köhnə sessiyalar bağlandı.")).toBeInTheDocument();
+    expect(stepSixApi.adminChangeUserPassword).toHaveBeenCalledWith(7, "Changed-safe-2026", "Təsdiqlənmiş müraciət");
   });
 });

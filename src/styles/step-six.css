@@ -92,6 +92,8 @@
 .rating-form { display: grid; max-width: 28rem; gap: var(--space-3); margin-top: var(--space-3); }
 .admin-login { max-width: 34rem; padding-block: clamp(4rem, 10vw, 8rem); }
 .admin-login h1 { margin: var(--space-3) 0; font-size: var(--text-title); }
+.admin-credential-setup__notice { display: grid; gap: var(--space-1); margin-block: var(--space-5); padding: var(--space-4); border: 1px solid color-mix(in srgb, var(--color-warm), white 45%); border-radius: var(--radius-medium); background: color-mix(in srgb, var(--color-warm), white 88%); }
+.admin-credential-setup__notice span { color: var(--color-muted); }
 .admin-case-list > article { display: grid; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--color-line); border-radius: var(--radius-medium); }
 .admin-case-list h3,
 .admin-case-list p { margin: 0; }
@@ -129,6 +131,16 @@
 .admin-confirm { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4); border: 1px solid color-mix(in srgb, var(--color-warm), white 45%); border-radius: var(--radius-medium); background: color-mix(in srgb, var(--color-warm), white 88%); }
 .admin-confirm p { margin: 0; }
 .admin-confirm > div { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.admin-password-reset { border-top: 1px solid var(--color-line); }
+.admin-password-reset summary { width: fit-content; min-height: 2.75rem; padding-top: var(--space-4); color: var(--color-brand-800); font-weight: 750; cursor: pointer; }
+.admin-password-reset summary:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.admin-password-reset__body { display: grid; gap: var(--space-4); padding-top: var(--space-3); }
+.admin-password-reset__notice { max-width: 52rem; margin: 0; color: var(--color-muted); }
+.admin-password-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: var(--space-4); }
+.admin-password-form > .field:nth-of-type(3),
+.admin-password-form > .admin-form-message,
+.admin-password-form > .admin-confirm { grid-column: 1 / -1; }
+.admin-password-form > .button { width: fit-content; }
 .admin-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-4); }
 .admin-pagination span { min-width: 4rem; text-align: center; }
 .admin-account-list { display: grid; gap: var(--space-2); }
@@ -174,7 +186,11 @@
   .admin-balance { justify-items: start; }
   .admin-search,
   .admin-action-form,
+  .admin-password-form,
   .admin-create-form { grid-template-columns: 1fr; }
+  .admin-password-form > .field:nth-of-type(3),
+  .admin-password-form > .admin-form-message,
+  .admin-password-form > .admin-confirm { grid-column: auto; }
   .admin-record__meta { grid-template-columns: 1fr; }
   .admin-record__meta div + div { padding-left: 0; border-top: 1px solid var(--color-line); border-left: 0; }
   .admin-create-form h3,

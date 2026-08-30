@@ -1,12 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { AdminAccountManagement } from "../../features/admin/AdminAccountManagement";
 import { AdminBusinessManagement } from "../../features/admin/AdminBusinessManagement";
 import { AdminUserManagement } from "../../features/admin/AdminUserManagement";
 import { authApi } from "../../shared/api/authApi";
 import { stepSixApi } from "../../shared/api/stepSixApi";
+import { ApiError } from "../../shared/api/httpClient";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button } from "../../shared/ui/Button";
 import { SelectField } from "../../shared/ui/SelectField";
@@ -18,6 +19,7 @@ export function AdminPlatformPage() {
   const overview = useQuery({ queryKey: ["admin-overview"], queryFn: stepSixApi.adminOverview, retry: false });
   const logout = useMutation({ mutationFn: authApi.logout, onSettled: () => navigate("/platform/login", { replace: true }) });
   if (overview.isPending) return <main className="admin-platform shell" role="status">Platform məlumatları açılır…</main>;
+  if (overview.error instanceof ApiError && overview.error.status === 428) return <Navigate to="/platform/ilk-giris" replace />;
   if (overview.isError) return <main className="admin-platform shell"><h1>Admin sessiyası tələb olunur</h1><p>{overview.error.message}</p><Link className="button" to="/platform/login">Admin girişinə keç</Link></main>;
   const data = overview.data;
   return <main className="admin-platform shell"><header className="insight-header admin-platform__header"><div><p className="eyebrow">Platform admin</p><h1>Platforma nəzarət mərkəzi</h1><p>İstifadəçi balanslarını, biznes limitlərini, administratorları və support müraciətlərini auditli şəkildə idarə edin.</p></div><Button variant="secondary" loading={logout.isPending} onClick={() => logout.mutate()}>Admin hesabından çıx</Button></header><nav className="admin-section-nav" aria-label="Admin panel bölmələri"><a href="#admin-users">İstifadəçilər</a><a href="#admin-businesses">Bizneslər</a><a href="#admin-accounts">Adminlər</a><a href="#admin-support">Support</a></nav><section className="metric-grid" aria-label="Platforma göstəriciləri"><AdminMetric label="İstifadəçilər" value={data.users} /><AdminMetric label="Bizneslər" value={data.businesses} /><AdminMetric label="Otaqlar" value={data.rooms} /><AdminMetric label="Aktiv abunəlik" value={data.activeSubscriptions} /></section><div className="insight-grid"><section className="insight-panel"><h2>Hesab vəziyyəti</h2><dl className="detail-list"><div><dt>Aktiv istifadəçi</dt><dd>{data.activeUsers}</dd></div><div><dt>Dayandırılan</dt><dd>{data.suspendedUsers}</dd></div><div><dt>Güzəşt abunəliyi</dt><dd>{data.graceSubscriptions}</dd></div><div><dt>Dayandırılan abunəlik</dt><dd>{data.suspendedSubscriptions}</dd></div></dl></section><section className="insight-panel"><h2>Açıq müraciətlər</h2><dl className="detail-list"><div><dt>Sahiblik mübahisəsi</dt><dd>{data.openOwnershipDisputes}</dd></div><div><dt>Telefon dəyişikliyi</dt><dd>{data.openPhoneChanges}</dd></div><div><dt>Hesab silinməsi</dt><dd>{data.openDeletionRequests}</dd></div><div><dt>Tamamlanan ödəniş</dt><dd>{data.completedSubscriptionPayments}</dd></div></dl></section></div><AdminUserManagement /><AdminBusinessManagement /><AdminAccountManagement /><AdminSupportQueue /></main>;

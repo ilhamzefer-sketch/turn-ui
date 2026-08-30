@@ -10,7 +10,8 @@ const range = (from: string, to: string) => `from=${encodeURIComponent(from)}&to
 const scope = (scopeType: ProviderScopeType, scopeId: number) => `scopeType=${scopeType}&scopeId=${scopeId}`;
 
 export const stepSixApi = {
-  adminLogin: async (username: string, password: string) => { const result = await apiRequest<{ username: string; role: string; message: string; accessToken: string }>("/api/admin/login", { method: "POST", body: JSON.stringify({ username, password }), retryAuthentication: false }); setAccessToken(result.accessToken); return result; },
+  adminLogin: async (username: string, password: string) => { const result = await apiRequest<{ username: string; role: string; message: string; mustChangeCredentials: boolean; accessToken: string }>("/api/admin/login", { method: "POST", body: JSON.stringify({ username, password }), retryAuthentication: false }); setAccessToken(result.accessToken); return result; },
+  adminChangeRequiredCredentials: async (currentPassword: string, newUsername: string, newPassword: string) => { const result = await apiRequest<{ username: string; role: string; message: string; mustChangeCredentials: boolean; accessToken: string }>("/api/admin/credentials", { method: "PUT", body: JSON.stringify({ currentPassword, newUsername, newPassword }) }); setAccessToken(result.accessToken); return result; },
   businessAnalytics: (id: number, from: string, to: string) => apiRequest<OperationalAnalytics>(`/api/businesses/${id}/analytics?${range(from, to)}`),
   roomAnalytics: (id: number, from: string, to: string) => apiRequest<OperationalAnalytics>(`/api/rooms/${id}/analytics?${range(from, to)}`),
   downloadBusinessAnalytics: (id: number, from: string, to: string) => apiDownload(`/api/businesses/${id}/analytics.xlsx?${range(from, to)}`, `business-${id}-operations.xlsx`),
@@ -33,6 +34,7 @@ export const stepSixApi = {
   adminOverview: () => apiRequest<AdminPlatformOverview>("/api/admin/overview"),
   adminUsers: (search = "", page = 0) => apiRequest<AdminUserPage>(`/api/admin/users?search=${encodeURIComponent(search)}&page=${page}&size=20`),
   adminCreditCoins: (userId: number, amount: number, reason: string, idempotencyKey: string) => apiRequest<WalletTransaction>(`/api/admin/users/${userId}/coins`, { method: "POST", body: JSON.stringify({ amount, reason, idempotencyKey }) }),
+  adminChangeUserPassword: (userId: number, newPassword: string, reason: string) => apiRequest<void>(`/api/admin/users/${userId}/password`, { method: "PUT", body: JSON.stringify({ newPassword, reason }) }),
   adminBusinesses: (search = "", page = 0) => apiRequest<AdminBusinessPage>(`/api/admin/businesses?search=${encodeURIComponent(search)}&page=${page}&size=20`),
   adminIncreaseRoomLimit: (businessId: number, roomLimit: number, reason: string) => apiRequest<AdminBusiness>(`/api/admin/businesses/${businessId}/room-limit`, { method: "PUT", body: JSON.stringify({ roomLimit, reason }) }),
   adminAccounts: () => apiRequest<AdminAccount[]>("/api/admin/admins"),
