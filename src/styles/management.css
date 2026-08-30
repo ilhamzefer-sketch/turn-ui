@@ -996,16 +996,88 @@
   background: var(--color-canvas);
 }
 
-.qr-card__image {
+.qr-card__poster {
   display: grid;
-  width: 13rem;
-  max-width: 100%;
+  gap: var(--space-3);
+  width: min(100%, 22rem);
+  padding: var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-small);
+  background: #fff;
+  color: var(--color-brand-900);
+}
+
+.qr-card__poster-brand,
+.qr-card__poster-heading,
+.qr-card__poster-details,
+.qr-card__poster-footer {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.qr-card__poster-brand strong {
+  font-size: 1.25rem;
+  letter-spacing: -0.04em;
+}
+
+.qr-card__poster-brand span,
+.qr-card__poster-heading span,
+.qr-card__poster-details span,
+.qr-card__poster-footer span {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.qr-card__poster-heading {
+  margin-top: var(--space-2);
+}
+
+.qr-card__poster-heading h3 {
+  margin: 0.15rem 0 0;
+  font-size: clamp(1.2rem, 4vw, 1.55rem);
+  line-height: 1.12;
+}
+
+.qr-card__poster .qr-card__image {
+  display: grid;
+  width: 100%;
   aspect-ratio: 1;
   place-items: center;
-  padding: var(--space-3);
+  margin: var(--space-2) 0;
+  padding: var(--space-2);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-small);
   background: white;
+}
+
+.qr-card__poster .qr-card__image svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.qr-card__poster-details {
+  padding: var(--space-3);
+  border-radius: var(--radius-small);
+  background: var(--color-surface-soft);
+}
+
+.qr-card__poster-details strong {
+  font-size: 0.95rem;
+}
+
+.qr-card__poster-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-line);
+}
+
+.qr-card__poster-footer strong {
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .qr-card__unavailable {
@@ -1034,6 +1106,11 @@
 .qr-card__content p {
   margin-top: var(--space-2);
   color: var(--color-muted);
+}
+
+.qr-card__content-note {
+  max-width: 34rem;
+  font-size: var(--text-small);
 }
 
 .qr-card__actions {
@@ -1120,6 +1197,10 @@
 
   .qr-card {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .qr-card__poster {
+    width: 22rem;
   }
 
   .qr-card__actions {

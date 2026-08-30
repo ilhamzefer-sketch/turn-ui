@@ -266,6 +266,9 @@ test("room management remains usable on a compact viewport and exposes permanent
   await expect(page.getByRole("heading", { name: room.name })).toBeVisible();
   await expect(page.getByRole("heading", { name: "QR kodlar" })).toBeVisible();
   await expect(page.getByRole("img", { name: `${room.name} üçün QR kod 1` })).toBeVisible();
+  await expect(page.getByText("Onlayn növbə və qəbul sistemi")).toBeVisible();
+  await expect(page.getByText("Kameranızla skan edin")).toBeVisible();
+  await expect(page.getByText("novbetime.az")).toBeVisible();
   await expect(page.getByRole("button", { name: "Arxivləşdir" })).toHaveCount(0);
   const widthState = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
   expect(widthState.scrollWidth).toBeLessThanOrEqual(widthState.clientWidth);
