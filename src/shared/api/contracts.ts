@@ -6,6 +6,7 @@ export type UserStatus =
   | "ANONYMIZED";
 
 export type ReservationMode = "LIVE_QUEUE" | "PLANNED_BOOKING";
+export type ProviderStatus = "ACTIVE" | "ARCHIVED";
 
 export type CurrentUser = {
   id: number;
@@ -550,7 +551,7 @@ export type SubscriptionStatus = "PENDING_PAYMENT" | "ACTIVE" | "GRACE_PERIOD" |
 
 export type SubscriptionPlan = {
   id: number; code: string; name: string; billingPeriod: BillingPeriod; amount: number; currency: string;
-  roomLimit: number; employeeLimit: number;
+  scopeType: ProviderScopeType; coinPrice: number; roomLimit: number; employeeLimit: number;
 };
 export type ProviderSubscription = {
   id: number; scopeType: ProviderScopeType; scopeId: number; plan: SubscriptionPlan; billingPeriod: BillingPeriod;
@@ -561,10 +562,52 @@ export type SubscriptionReceipt = {
   paymentId: number; planCode: string; billingPeriod: BillingPeriod; status: PaymentStatus; amount: number;
   currency: string; provider: string; paymentReference: string; createdAt: string; completedAt: string | null;
 };
-export type SubscriptionPaymentSession = {
-  id: number; sessionToken: string | null; status: PaymentStatus; provider: string; paymentMode: string; amount: number; currency: string;
-  paymentReference: string; checkoutUrl: string | null; subscription: ProviderSubscription | null;
-  createdAt: string; completedAt: string | null;
+export type SubscriptionCoinPurchase = {
+  paymentId: number;
+  walletTransactionId: number;
+  coinsSpent: number;
+  balanceAfter: number;
+  paymentReference: string;
+  subscription: ProviderSubscription;
+  completedAt: string;
+};
+
+export type WalletBalance = {
+  userId: number;
+  balance: number;
+  updatedAt: string;
+};
+
+export type WalletTopUpOptions = {
+  coinsPerAzn: number;
+  minimumCoins: number;
+  maximumCoins: number;
+  currency: "AZN";
+  whatsappUrl: string;
+  bankCardEnabled: boolean;
+};
+
+export type WalletTransactionType = "ADMIN_CREDIT" | "TOP_UP" | "SUBSCRIPTION_PAYMENT" | "REFUND";
+export type WalletTransactionDirection = "CREDIT" | "DEBIT";
+
+export type WalletTransaction = {
+  id: number;
+  type: WalletTransactionType;
+  direction: WalletTransactionDirection;
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  actorType: "USER" | "ADMIN" | "SYSTEM";
+  referenceKey: string;
+  description: string | null;
+  createdAt: string;
+};
+
+export type WalletTransactionPage = {
+  items: WalletTransaction[];
+  page: number;
+  size: number;
+  hasNext: boolean;
 };
 
 export type RoomOperationalMetric = {
@@ -604,4 +647,27 @@ export type AdminPlatformOverview = {
   users: number; activeUsers: number; suspendedUsers: number; businesses: number; rooms: number;
   activeSubscriptions: number; graceSubscriptions: number; suspendedSubscriptions: number;
   completedSubscriptionPayments: number; openOwnershipDisputes: number; openPhoneChanges: number; openDeletionRequests: number;
+};
+
+export type AdminUser = {
+  id: number; firstName: string; lastName: string; phone: string; status: UserStatus;
+  coinBalance: number; createdAt: string;
+};
+
+export type AdminUserPage = {
+  items: AdminUser[]; page: number; size: number; totalElements: number; totalPages: number;
+};
+
+export type AdminBusiness = {
+  id: number; name: string; status: ProviderStatus; ownerUserId: number; ownerName: string; ownerPhone: string;
+  roomCount: number; roomLimit: number | null; subscriptionStatus: SubscriptionStatus | null;
+};
+
+export type AdminBusinessPage = {
+  items: AdminBusiness[]; page: number; size: number; totalElements: number; totalPages: number;
+};
+
+export type AdminAccount = {
+  id: number; username: string; displayName: string; active: boolean;
+  createdByUsername: string | null; createdAt: string;
 };

@@ -11,6 +11,7 @@ import { reservationModeLabel, roomStatusLabel, visibilityLabel, nullableText } 
 import { roomSchema, type RoomFormValues } from "../../features/management/schemas";
 import { RoomSetupProgress } from "../../features/management/room/RoomSetupProgress";
 import { managementApi } from "../../shared/api/managementApi";
+import { ApiError } from "../../shared/api/httpClient";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 import { Button, ButtonLink } from "../../shared/ui/Button";
@@ -85,6 +86,12 @@ export function BusinessRoomsPage() {
   const branches = branchesQuery.data.filter((branch) => branch.status === "ACTIVE");
   const rooms = roomsQuery.data.filter((room) => room.status !== "ARCHIVED");
   const branchName = new Map(branches.map((branch) => [branch.id, branch.name]));
+  const creationErrorAction = createMutation.error instanceof ApiError && createMutation.error.status === 402
+    ? { label: "Abunəliyə keç", to: `/app/businesses/${businessId}/subscription` }
+    : createMutation.error instanceof ApiError && createMutation.error.status === 409
+      && createMutation.error.message.toLocaleLowerCase("az-AZ").includes("otaq limit")
+      ? { label: "WhatsApp-da müraciət et", to: "https://wa.me/message/P63GI5XJ3PQLC1" }
+      : null;
 
   return (
     <div className="management-page">
@@ -102,7 +109,7 @@ export function BusinessRoomsPage() {
             <Button variant="quiet" onClick={() => setCreatorOpen(false)}>Bağla</Button>
           </div>
           <RoomSetupProgress currentStep="basics" />
-          <NotificationEvent tone="error" message={createMutation.isError ? apiMessage(createMutation.error, "Otaq yaradıla bilmədi.") : null} />
+          <NotificationEvent tone="error" message={createMutation.isError ? apiMessage(createMutation.error, "Otaq yaradıla bilmədi.") : null} action={creationErrorAction} />
           <form className="management-form" onSubmit={form.handleSubmit((values) => createMutation.mutate(values))} noValidate>
             <div className="management-form__grid">
               <SelectField label="Filial" error={form.formState.errors.branchId?.message} {...form.register("branchId")}>

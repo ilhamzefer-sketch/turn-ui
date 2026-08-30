@@ -1,7 +1,8 @@
 import type {
-  AccountDeletionRequest, AdminPlatformOverview, OperationalAnalytics, OwnershipDispute, OwnershipTransfer,
+  AccountDeletionRequest, AdminAccount, AdminBusiness, AdminBusinessPage, AdminPlatformOverview, AdminUserPage,
+  OperationalAnalytics, OwnershipDispute, OwnershipTransfer,
   PhoneChangeRequest, ProviderScopeType, ProviderSubscription, RoomCustomerBlock, ServiceRating,
-  SubscriptionPaymentSession, SubscriptionPlan, SubscriptionReceipt,
+  SubscriptionCoinPurchase, SubscriptionPlan, SubscriptionReceipt, WalletTransaction,
 } from "./contracts";
 import { apiDownload, apiRequest, setAccessToken } from "./httpClient";
 
@@ -14,11 +15,10 @@ export const stepSixApi = {
   roomAnalytics: (id: number, from: string, to: string) => apiRequest<OperationalAnalytics>(`/api/rooms/${id}/analytics?${range(from, to)}`),
   downloadBusinessAnalytics: (id: number, from: string, to: string) => apiDownload(`/api/businesses/${id}/analytics.xlsx?${range(from, to)}`, `business-${id}-operations.xlsx`),
   downloadRoomAnalytics: (id: number, from: string, to: string) => apiDownload(`/api/rooms/${id}/analytics.xlsx?${range(from, to)}`, `room-${id}-operations.xlsx`),
-  plans: () => apiRequest<SubscriptionPlan[]>("/api/subscriptions/plans"),
+  plans: (type: ProviderScopeType) => apiRequest<SubscriptionPlan[]>(`/api/subscriptions/plans?scopeType=${type}`),
   subscription: (type: ProviderScopeType, id: number) => apiRequest<ProviderSubscription>(`/api/subscriptions/current?${scope(type, id)}`),
   receipts: (type: ProviderScopeType, id: number) => apiRequest<SubscriptionReceipt[]>(`/api/subscriptions/receipts?${scope(type, id)}`),
-  checkout: (scopeType: ProviderScopeType, scopeId: number, planCode: string) => apiRequest<SubscriptionPaymentSession>("/api/subscriptions/checkout", { method: "POST", body: JSON.stringify({ scopeType, scopeId, planCode, cardHolder: null, cardNumber: null }) }),
-  confirmPayment: (id: number, token: string | null) => apiRequest<SubscriptionPaymentSession>(`/api/subscriptions/payments/${id}/confirm`, { method: "POST", headers: token ? { "X-Payment-Session-Token": token } : undefined }),
+  purchase: (scopeType: ProviderScopeType, scopeId: number, planCode: string, idempotencyKey: string) => apiRequest<SubscriptionCoinPurchase>("/api/subscriptions/purchase", { method: "POST", body: JSON.stringify({ scopeType, scopeId, planCode, idempotencyKey }) }),
   phoneChange: (requestedPhone: string, reason: string) => apiRequest<PhoneChangeRequest>("/api/support/phone-change-requests", { method: "POST", body: JSON.stringify({ requestedPhone, reason }) }),
   deleteAccount: () => apiRequest<AccountDeletionRequest>("/api/support/account-deletion-requests", { method: "POST" }),
   transferInvitations: () => apiRequest<OwnershipTransfer[]>("/api/users/me/ownership-transfer-invitations"),
@@ -31,6 +31,12 @@ export const stepSixApi = {
   rateLive: (id: number, score: number, comment: string | null) => apiRequest<ServiceRating>(`/api/users/me/ratings/live-queue/${id}`, { method: "PUT", body: JSON.stringify({ score, comment }) }),
   roomRatings: (roomId: number) => apiRequest<ServiceRating[]>(`/api/rooms/${roomId}/ratings`),
   adminOverview: () => apiRequest<AdminPlatformOverview>("/api/admin/overview"),
+  adminUsers: (search = "", page = 0) => apiRequest<AdminUserPage>(`/api/admin/users?search=${encodeURIComponent(search)}&page=${page}&size=20`),
+  adminCreditCoins: (userId: number, amount: number, reason: string, idempotencyKey: string) => apiRequest<WalletTransaction>(`/api/admin/users/${userId}/coins`, { method: "POST", body: JSON.stringify({ amount, reason, idempotencyKey }) }),
+  adminBusinesses: (search = "", page = 0) => apiRequest<AdminBusinessPage>(`/api/admin/businesses?search=${encodeURIComponent(search)}&page=${page}&size=20`),
+  adminIncreaseRoomLimit: (businessId: number, roomLimit: number, reason: string) => apiRequest<AdminBusiness>(`/api/admin/businesses/${businessId}/room-limit`, { method: "PUT", body: JSON.stringify({ roomLimit, reason }) }),
+  adminAccounts: () => apiRequest<AdminAccount[]>("/api/admin/admins"),
+  adminCreateAccount: (username: string, displayName: string, password: string) => apiRequest<AdminAccount>("/api/admin/admins", { method: "POST", body: JSON.stringify({ username, displayName, password }) }),
   adminDisputes: () => apiRequest<OwnershipDispute[]>("/api/admin/support/ownership-disputes"),
   adminPhoneChanges: () => apiRequest<PhoneChangeRequest[]>("/api/admin/support/phone-change-requests"),
   adminDeletions: () => apiRequest<AccountDeletionRequest[]>("/api/admin/support/account-deletion-requests"),

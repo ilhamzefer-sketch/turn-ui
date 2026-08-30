@@ -14,6 +14,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
     const base = `/app/businesses/${contextId}`;
     return [
       { to: base, label: "Ümumi baxış", end: true },
+      { to: "/app/wallet", label: "Balans" },
       { to: `${base}/branches`, label: "Filiallar" },
       { to: `${base}/rooms`, label: "Otaqlar" },
       { to: `${base}/team`, label: "Komanda" },
@@ -26,6 +27,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
   if (type === "INDIVIDUAL") {
     return [
       { to: `/app/individual/${contextId}`, label: "Fərdi sahə", end: true },
+      { to: "/app/wallet", label: "Balans" },
       { to: `/app/individual/${contextId}/subscription`, label: "Abunəlik" },
     ];
   }
@@ -33,6 +35,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
   if (type === "ROOM") {
     return [
       { to: `/app/rooms/${contextId}/today`, label: "Bu gün", end: true },
+      { to: "/app/wallet", label: "Balans" },
       { to: `/app/rooms/${contextId}/settings`, label: "Otaq ayarları", end: true },
       { to: `/app/rooms/${contextId}/analytics`, label: "Analitika" },
       { to: `/app/rooms/${contextId}/trust`, label: "Etibar" },
@@ -41,6 +44,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
 
   return [
     { to: "/app", label: "Hesabım", end: true },
+    { to: "/app/wallet", label: "Balans" },
     { to: "/app/bookings", label: "Növbələrim" },
     { to: "/rooms", label: "Otaq tap" },
     { to: "/app/support", label: "Dəstək" },

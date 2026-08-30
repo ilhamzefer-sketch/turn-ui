@@ -101,6 +101,10 @@ export const router = createBrowserRouter([
             lazy: () => import("./routes/AccountSecurityPage").then((module) => ({ Component: module.AccountSecurityPage })),
           },
           {
+            path: "wallet",
+            lazy: () => import("./routes/WalletPage").then((module) => ({ Component: module.WalletPage })),
+          },
+          {
             path: "businesses/:businessId",
             lazy: () => import("./routes/BusinessOverviewPage").then((module) => ({ Component: module.BusinessOverviewPage })),
           },

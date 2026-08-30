@@ -69,7 +69,8 @@ Step 6 includes:
 - anonymous guest versus registered-participant, wait-time and room-comparison metrics;
 - backend-generated Excel report downloads without reconstructing report data in the browser;
 - business and individual-workspace subscription plans, current status and receipt history;
-- bank-hosted checkout handoff without collecting or storing card details in this frontend;
+- coin-wallet subscription activation with 30-coin individual and 100-coin business monthly plans;
+- balance top-up guidance through WhatsApp while the bank-card option remains visibly disabled;
 - audited phone-change and account-deletion support requests;
 - accepted-admin business ownership transfer invitations;
 - room-specific customer blocks and authorized written-rating review;

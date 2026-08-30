@@ -82,7 +82,8 @@ All visual values are centralized in `src/styles/tokens.css`. The implementation
 
 - Business and room analytics use their own authorized backend scopes. Date ranges remain in page state and are validated by the backend's 366-day ceiling.
 - Excel is downloaded directly from the authenticated backend endpoint. The browser does not recreate or reinterpret the workbook.
-- Business and individual subscriptions share one plan component but preserve the backend `ProviderScopeType`. Checkout redirects only to the backend-supplied bank URL; card details are not requested by E-Növbə Web.
+- Business and individual subscriptions share one monthly plan component but preserve the backend `ProviderScopeType`. Activation debits the authenticated user's coin wallet; subscription routes never collect card details or redirect to a bank.
+- `/app/wallet` is the only payment-method surface. It shows the backend-owned coin/AZN rate, opens a prefilled WhatsApp request and keeps bank-card payment disabled until a separate top-up integration is released.
 - `/app/support` creates audited phone-change and account-deletion requests. It does not imply automatic verification or a guaranteed review time.
 - Business ownership transfers require an active administrator and are completed only after the invited administrator accepts.
 - Room customer blocks apply only to that room. Written rating comments are visible only in authorized room management; public pages keep the aggregate score and count.
