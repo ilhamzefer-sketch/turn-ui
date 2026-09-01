@@ -1,82 +1,49 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useOutletContext } from "react-router-dom";
 
-import { AdminAccountManagement } from "../../features/admin/AdminAccountManagement";
-import { AdminBusinessManagement } from "../../features/admin/AdminBusinessManagement";
-import { AdminUserManagement } from "../../features/admin/AdminUserManagement";
-import { AdminPaymentQueue } from "../../features/admin/AdminPaymentQueue";
-import { AdminUserSupportQueue } from "../../features/admin/AdminUserSupportQueue";
-import { authApi } from "../../shared/api/authApi";
 import { stepSixApi } from "../../shared/api/stepSixApi";
 import { ApiError } from "../../shared/api/httpClient";
-import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button } from "../../shared/ui/Button";
 import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
+import type { AdminPlatformOverview } from "../../shared/api/contracts";
 
 export function AdminPlatformPage() {
-  usePageMeta(
-    "Platform idarəetməsi — NövbəTime",
-    "NövbəTime platforma əməliyyatları.",
-    { index: false },
-  );
-  const navigate = useNavigate();
+  const context = useOutletContext<AdminPlatformOverview | null>();
   const overview = useQuery({
     queryKey: ["admin-overview"],
     queryFn: stepSixApi.adminOverview,
     retry: false,
+    enabled: !context,
   });
-  const logout = useMutation({
-    mutationFn: authApi.logout,
-    onSettled: () => navigate("/platform/login", { replace: true }),
-  });
-  if (overview.isPending)
+  const data = context ?? overview.data;
+  if (!data && overview.isPending)
     return (
-      <main className="admin-platform shell" role="status">
-        Platform məlumatları açılır…
-      </main>
+      <div className="admin-module-page" role="status">Platform məlumatları açılır…</div>
     );
-  if (overview.error instanceof ApiError && overview.error.status === 428)
+  if (!data && overview.error instanceof ApiError && overview.error.status === 428)
     return <Navigate to="/platform/ilk-giris" replace />;
-  if (overview.isError)
+  if (!data && overview.isError)
     return (
-      <main className="admin-platform shell">
+      <div className="admin-module-page">
         <h1>Admin sessiyası tələb olunur</h1>
         <p>{overview.error.message}</p>
         <Link className="button" to="/platform/login">
           Admin girişinə keç
         </Link>
-      </main>
+      </div>
     );
-  const data = overview.data;
+  if (!data) return null;
   return (
-    <main className="admin-platform shell">
-      <header className="insight-header admin-platform__header">
+    <div className="admin-module-page admin-overview-page">
+      <header className="admin-module-heading">
         <div>
-          <p className="eyebrow">Platform admin</p>
-          <h1>Platforma nəzarət mərkəzi</h1>
-          <p>
-            İstifadəçi balanslarını, biznes limitlərini, administratorları və
-            support müraciətlərini auditli şəkildə idarə edin.
-          </p>
+          <p className="eyebrow">İdarəetmə icmalı</p>
+          <h2>Ümumi vəziyyət</h2>
+          <p>Platformanın əsas göstəricilərinə baxın və uyğun modula keçin.</p>
         </div>
-        <Button
-          variant="secondary"
-          loading={logout.isPending}
-          onClick={() => logout.mutate()}
-        >
-          Admin hesabından çıx
-        </Button>
       </header>
-      <nav className="admin-section-nav" aria-label="Admin panel bölmələri">
-        <a href="#admin-users">İstifadəçilər</a>
-        <a href="#admin-businesses">Bizneslər</a>
-        <a href="#admin-accounts">Adminlər</a>
-        <a href="#admin-payments">Ödənişlər</a>
-        <a href="#admin-user-support">Müraciətlər</a>
-        <a href="#admin-support">Support</a>
-      </nav>
       <section className="metric-grid" aria-label="Platforma göstəriciləri">
         <AdminMetric label="İstifadəçilər" value={data.users} />
         <AdminMetric label="Bizneslər" value={data.businesses} />
@@ -127,18 +94,21 @@ export function AdminPlatformPage() {
           </dl>
         </section>
       </div>
-      <AdminUserManagement />
-      <AdminBusinessManagement />
-      <AdminAccountManagement />
-      {typeof stepSixApi.adminTopUps === "function" ? (
-        <AdminPaymentQueue />
-      ) : null}
-      {typeof stepSixApi.adminSupportRequests === "function" ? (
-        <AdminUserSupportQueue />
-      ) : null}
-      <AdminSupportQueue />
-    </main>
+      <AdminModuleOverviewLinks data={data} />
+    </div>
   );
+}
+
+function AdminModuleOverviewLinks({ data }: { data: AdminPlatformOverview }) {
+  const links = [
+    ["/platform/users", "İstifadəçilər", `${data.users} istifadəçi · balans və parol`],
+    ["/platform/businesses", "Bizneslər", `${data.businesses} biznes · otaq limitləri`],
+    ["/platform/admins", "Admin hesabları", "Giriş icazələrini idarə edin"],
+    ["/platform/payments", "Ödənişlər", "Çekləri yoxlayın və coin əlavə edin"],
+    ["/platform/requests", "Müraciətlər", "Problem və tövsiyələr"],
+    ["/platform/support", "Yoxlama növbəsi", "Dəstək qərarları"],
+  ] as const;
+  return <section className="admin-module-links" aria-label="Admin modulları">{links.map(([to, title, text]) => <Link key={to} to={to}><strong>{title}</strong><span>{text}</span><b aria-hidden="true">→</b></Link>)}</section>;
 }
 
 function AdminMetric({ label, value }: { label: string; value: number }) {
@@ -150,7 +120,7 @@ function AdminMetric({ label, value }: { label: string; value: number }) {
   );
 }
 
-function AdminSupportQueue() {
+export function AdminSupportQueue() {
   const disputes = useQuery({
     queryKey: ["admin-disputes"],
     queryFn: stepSixApi.adminDisputes,
@@ -182,7 +152,7 @@ function AdminSupportQueue() {
       <div className="admin-section__heading">
         <div>
           <p className="eyebrow">Manual yoxlama</p>
-          <h2>Support növbəsi</h2>
+          <h2>Dəstək növbəsi</h2>
           <p>
             Sahiblik, telefon dəyişikliyi və hesab silinməsi qərarlarını səbəbi
             ilə birlikdə tamamlayın.
@@ -190,7 +160,7 @@ function AdminSupportQueue() {
         </div>
       </div>
       {loading ? (
-        <p role="status">Support müraciətləri açılır…</p>
+        <p role="status">Dəstək müraciətləri açılır…</p>
       ) : error ? (
         <p role="alert">{error.message}</p>
       ) : (
@@ -227,7 +197,7 @@ function AdminSupportQueue() {
           {!openDisputes.length &&
           !openPhone.length &&
           !openDeletions.length ? (
-            <p>Açıq support müraciəti yoxdur.</p>
+            <p>Açıq dəstək müraciəti yoxdur.</p>
           ) : null}
         </div>
       )}

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { AppLayout } from "./layouts/AppLayout";
+import { AdminPlatformLayout } from "./layouts/AdminPlatformLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { LandingPage } from "./routes/LandingPage";
 import { NotFoundPage } from "./routes/NotFoundPage";
@@ -16,8 +17,17 @@ export const router = createBrowserRouter([
   },
   {
     path: "/platform",
+    element: <AdminPlatformLayout />,
     HydrateFallback: () => <PageLoader label="Platform açılır..." />,
-    lazy: () => import("./routes/AdminPlatformPage").then((module) => ({ Component: module.AdminPlatformPage })),
+    children: [
+      { index: true, lazy: () => import("./routes/AdminPlatformPage").then((module) => ({ Component: module.AdminPlatformPage })) },
+      { path: "users", lazy: () => import("./routes/AdminPlatformModules").then((module) => ({ Component: module.AdminUsersPage })) },
+      { path: "businesses", lazy: () => import("./routes/AdminPlatformModules").then((module) => ({ Component: module.AdminBusinessesPage })) },
+      { path: "admins", lazy: () => import("./routes/AdminPlatformModules").then((module) => ({ Component: module.AdminAccountsPage })) },
+      { path: "payments", lazy: () => import("./routes/AdminPlatformModules").then((module) => ({ Component: module.AdminPaymentsPage })) },
+      { path: "requests", lazy: () => import("./routes/AdminPlatformModules").then((module) => ({ Component: module.AdminRequestsPage })) },
+      { path: "support", lazy: () => import("./routes/AdminPlatformModules").then((module) => ({ Component: module.AdminSupportPage })) },
+    ],
   },
   {
     path: "/platform/ilk-giris",

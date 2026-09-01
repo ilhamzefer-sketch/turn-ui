@@ -2,11 +2,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { authApi } from "../../shared/api/authApi";
 import { stepSixApi } from "../../shared/api/stepSixApi";
 import { AdminPlatformPage } from "./AdminPlatformPage";
+import { AdminAccountsPage, AdminBusinessesPage, AdminUsersPage } from "./AdminPlatformModules";
 
 vi.mock("../../shared/meta/usePageMeta", () => ({ usePageMeta: vi.fn() }));
 vi.mock("../../shared/api/authApi", () => ({ authApi: { logout: vi.fn() } }));
@@ -21,9 +23,9 @@ vi.mock("../../shared/api/stepSixApi", () => ({
   },
 }));
 
-function renderPage() {
+function renderPage(page: ReactNode = <AdminPlatformPage />) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return render(<QueryClientProvider client={client}><MemoryRouter><AdminPlatformPage /></MemoryRouter></QueryClientProvider>);
+  return render(<QueryClientProvider client={client}><MemoryRouter><>{page}</></MemoryRouter></QueryClientProvider>);
 }
 
 describe("AdminPlatformPage", () => {
@@ -45,10 +47,18 @@ describe("AdminPlatformPage", () => {
     vi.mocked(stepSixApi.adminCreateAccount).mockResolvedValue({ id: 2, username: "operations", displayName: "Əməliyyat admini", active: true, createdByUsername: "admin", createdAt: "2026-08-30T12:00:00" });
   });
 
+  it("shows a compact overview with links to each admin module", async () => {
+    renderPage();
+    expect(await screen.findByRole("heading", { name: "Ümumi vəziyyət" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /İstifadəçilər/ })).toHaveAttribute("href", "/platform/users");
+    expect(screen.getByRole("link", { name: /Bizneslər/ })).toHaveAttribute("href", "/platform/businesses");
+    expect(screen.getByRole("link", { name: /Ödənişlər/ })).toHaveAttribute("href", "/platform/payments");
+  });
+
   it("requires confirmation and credits the selected user", async () => {
     const user = userEvent.setup();
-    renderPage();
-    expect(await screen.findByRole("heading", { name: "Platforma nəzarət mərkəzi" })).toBeInTheDocument();
+    renderPage(<AdminUsersPage />);
+    expect((await screen.findAllByRole("heading", { name: "İstifadəçilər" })).length).toBeGreaterThanOrEqual(1);
     await screen.findByText("Aysel Məmmədova");
     expect(screen.getByText("40")).toBeInTheDocument();
 
@@ -64,7 +74,7 @@ describe("AdminPlatformPage", () => {
 
   it("increases a business limit and creates another admin", async () => {
     const user = userEvent.setup();
-    renderPage();
+    const view = renderPage(<AdminBusinessesPage />);
     await screen.findByText("NövbəTime Studio");
 
     const limit = screen.getByRole("spinbutton", { name: "Yeni otaq limiti" });
@@ -73,6 +83,8 @@ describe("AdminPlatformPage", () => {
     await user.click(screen.getByRole("button", { name: "Otaq limitini artır" }));
     expect(await screen.findByText("Otaq limiti 8-ə qaldırıldı.")).toBeInTheDocument();
 
+    view.unmount();
+    renderPage(<AdminAccountsPage />);
     await user.type(screen.getByRole("textbox", { name: "Adminin adı" }), "Əməliyyat admini");
     await user.type(screen.getByRole("textbox", { name: "İstifadəçi adı" }), "operations");
     await user.type(screen.getByLabelText("Müvəqqəti şifrə"), "Operations-safe-2026");
@@ -84,7 +96,7 @@ describe("AdminPlatformPage", () => {
 
   it("changes a user password only after explicit confirmation", async () => {
     const user = userEvent.setup();
-    renderPage();
+    renderPage(<AdminUsersPage />);
     const userName = await screen.findByText("Aysel Məmmədova");
     const userCard = userName.closest("article");
     expect(userCard).not.toBeNull();
