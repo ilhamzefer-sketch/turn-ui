@@ -68,10 +68,6 @@ export function WorkspaceSwitcher() {
 
   return (
     <div className={`workspace-switcher${isOpen ? " is-open" : ""}`} ref={switcherRef}>
-      <div className="workspace-switcher__label" aria-hidden="true">
-        <span className="workspace-switcher__label-kicker">Keçid</span>
-        <span className="workspace-switcher__label-title">Aktiv iş sahəsi</span>
-      </div>
       <div className="workspace-switcher__select-wrap">
         <button
           type="button"
