@@ -59,7 +59,8 @@ describe("AdminPlatformPage", () => {
     const user = userEvent.setup();
     renderPage(<AdminUsersPage />);
     expect((await screen.findAllByRole("heading", { name: "İstifadəçilər" })).length).toBeGreaterThanOrEqual(1);
-    await screen.findByText("Aysel Məmmədova");
+    await user.click(await screen.findByRole("button", { name: /Aysel Məmmədova/ }));
+    expect(await screen.findByRole("heading", { name: "İstifadəçi məlumatları" })).toBeInTheDocument();
     expect(screen.getByText("40")).toBeInTheDocument();
 
     await user.type(screen.getByRole("spinbutton", { name: "Əlavə ediləcək coin" }), "60");
@@ -97,6 +98,7 @@ describe("AdminPlatformPage", () => {
   it("changes a user password only after explicit confirmation", async () => {
     const user = userEvent.setup();
     renderPage(<AdminUsersPage />);
+    await user.click(await screen.findByRole("button", { name: /Aysel Məmmədova/ }));
     const userName = await screen.findByText("Aysel Məmmədova");
     const userCard = userName.closest("article");
     expect(userCard).not.toBeNull();

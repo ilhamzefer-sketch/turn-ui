@@ -32,7 +32,12 @@ export const stepSixApi = {
   rateLive: (id: number, score: number, comment: string | null) => apiRequest<ServiceRating>(`/api/users/me/ratings/live-queue/${id}`, { method: "PUT", body: JSON.stringify({ score, comment }) }),
   roomRatings: (roomId: number) => apiRequest<ServiceRating[]>(`/api/rooms/${roomId}/ratings`),
   adminOverview: () => apiRequest<AdminPlatformOverview>("/api/admin/overview"),
-  adminUsers: (search = "", page = 0) => apiRequest<AdminUserPage>(`/api/admin/users?search=${encodeURIComponent(search)}&page=${page}&size=20`),
+  adminUsers: (name = "", phone = "", page = 0) => {
+    const params = new URLSearchParams({ page: String(page), size: "20" });
+    if (name.trim()) params.set("name", name.trim());
+    if (phone.trim()) params.set("phone", phone.trim());
+    return apiRequest<AdminUserPage>(`/api/admin/users?${params}`);
+  },
   adminCreditCoins: (userId: number, amount: number, reason: string, idempotencyKey: string) => apiRequest<WalletTransaction>(`/api/admin/users/${userId}/coins`, { method: "POST", body: JSON.stringify({ amount, reason, idempotencyKey }) }),
   adminChangeUserPassword: (userId: number, newPassword: string, reason: string) => apiRequest<void>(`/api/admin/users/${userId}/password`, { method: "PUT", body: JSON.stringify({ newPassword, reason }) }),
   adminBusinesses: (search = "", page = 0) => apiRequest<AdminBusinessPage>(`/api/admin/businesses?search=${encodeURIComponent(search)}&page=${page}&size=20`),
