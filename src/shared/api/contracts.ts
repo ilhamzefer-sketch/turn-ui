@@ -587,6 +587,14 @@ export type WalletTopUpOptions = {
   bankCardEnabled: boolean;
 };
 
+export type WalletTopUpRequestStatus = "AWAITING_RECEIPT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "EXPIRED";
+export type WalletTopUpPackageCode = "AZN_3" | "AZN_5" | "AZN_10" | "AZN_15" | "AZN_20";
+export type WalletTopUpRequest = {
+  id: number; packageCode: WalletTopUpPackageCode; amountAzn: number; coinAmount: number; currency: "AZN";
+  paymentUrl: string; status: WalletTopUpRequestStatus; clickedAt: string; receiptDeadlineAt: string;
+  receiptUploadedAt: string | null; receiptUploadOpen: boolean;
+};
+
 export type WalletTransactionType = "ADMIN_CREDIT" | "TOP_UP" | "SUBSCRIPTION_PAYMENT" | "REFUND";
 export type WalletTransactionDirection = "CREDIT" | "DEBIT";
 
@@ -609,6 +617,29 @@ export type WalletTransactionPage = {
   size: number;
   hasNext: boolean;
 };
+
+export type UserSupportRequestType = "PROBLEM" | "SUGGESTION";
+export type UserSupportStatus = "OPEN" | "IN_REVIEW" | "RESOLVED" | "REJECTED";
+export type UserSupportRequest = {
+  id: number; requestType: UserSupportRequestType; message: string; status: UserSupportStatus;
+  hasAttachment: boolean; attachmentMediaType: string | null; attachmentSizeBytes: number | null;
+  adminResponse: string | null; reviewedByAdmin: string | null; createdAt: string; updatedAt: string; reviewedAt: string | null;
+};
+export type UserSupportRequestPage = { items: UserSupportRequest[]; page: number; size: number; hasNext: boolean };
+export type AdminTopUpRequest = {
+  id: number; userId: number; firstName: string; lastName: string; phone: string; packageCode: WalletTopUpPackageCode;
+  amountAzn: number; coinAmount: number; currency: "AZN"; status: WalletTopUpRequestStatus; clickedAt: string;
+  receiptDeadlineAt: string; receiptUploadedAt: string | null; receiptAttachmentId: number | null; receiptMediaType: string | null;
+  receiptSizeBytes: number | null; reviewedAt: string | null; resolutionNote: string | null;
+};
+export type AdminTopUpRequestPage = { items: AdminTopUpRequest[]; page: number; size: number; hasNext: boolean };
+export type AdminSupportRequest = {
+  id: number; userId: number; firstName: string; lastName: string; phone: string; requestType: UserSupportRequestType;
+  message: string; status: UserSupportStatus; attachmentId: number | null; attachmentMediaType: string | null;
+  attachmentSizeBytes: number | null; attachmentFilename: string | null; adminResponse: string | null;
+  reviewedByAdmin: string | null; createdAt: string; updatedAt: string; reviewedAt: string | null;
+};
+export type AdminSupportRequestPage = { items: AdminSupportRequest[]; page: number; size: number; hasNext: boolean };
 
 export type RoomOperationalMetric = {
   roomId: number; roomName: string; branchId: number | null; branchName: string | null; liveEntries: number;

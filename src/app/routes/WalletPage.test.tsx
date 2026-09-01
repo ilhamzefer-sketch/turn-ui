@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { walletApi } from "../../shared/api/walletApi";
+import { ApiError } from "../../shared/api/httpClient";
 import { WalletPage } from "./WalletPage";
 
 vi.mock("../../shared/meta/usePageMeta", () => ({ usePageMeta: vi.fn() }));
@@ -12,6 +13,9 @@ vi.mock("../../shared/api/walletApi", () => ({
   walletApi: {
     balance: vi.fn(),
     topUpOptions: vi.fn(),
+    activeTopUpRequest: vi.fn(),
+    createTopUpRequest: vi.fn(),
+    uploadReceipt: vi.fn(),
     transactions: vi.fn(),
   },
 }));
@@ -37,36 +41,40 @@ describe("WalletPage", () => {
       bankCardEnabled: false,
     });
     vi.mocked(walletApi.transactions).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
+    vi.mocked(walletApi.activeTopUpRequest).mockRejectedValue(new ApiError(404, "Aktiv sorğu yoxdur.", null));
+    vi.mocked(walletApi.createTopUpRequest).mockResolvedValue({
+      id: 9, packageCode: "AZN_10", amountAzn: 10, coinAmount: 100, currency: "AZN",
+      paymentUrl: "https://cb.birbank.business/pay/example", status: "AWAITING_RECEIPT",
+      clickedAt: "2026-08-30T12:00:00", receiptDeadlineAt: "2026-08-30T12:30:00",
+      receiptUploadedAt: null, receiptUploadOpen: true,
+    });
   });
 
-  it("shows balance, live conversion, disabled card payment, and a detailed WhatsApp request", async () => {
+  it("shows only the five fixed packages and creates the selected request", async () => {
     const user = userEvent.setup();
     renderPage();
 
     expect(await screen.findByText("125 coin")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Bank kartı ilə ödəniş et" })).toBeDisabled();
     expect(screen.getByText("Yaxın zamanda aktiv olacaq")).toBeInTheDocument();
-
-    const amount = screen.getByRole("spinbutton", { name: "Coin miqdarı" });
-    await user.clear(amount);
-    await user.type(amount, "250");
-
-    expect(screen.getByText(/^25[,.]00 ₼$/)).toBeInTheDocument();
-    const whatsapp = screen.getByRole("link", { name: "WhatsApp-da müraciət et" });
-    expect(whatsapp).toHaveAttribute("href", expect.stringContaining("https://wa.me/message/P63GI5XJ3PQLC1?text="));
-    expect(decodeURIComponent(whatsapp.getAttribute("href") ?? "")).toContain("250 coin");
+    expect(screen.getAllByRole("button", { name: "Ödə" })).toHaveLength(5);
+    expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
+    await user.click(screen.getAllByRole("button", { name: "Ödə" })[2]);
+    expect(walletApi.createTopUpRequest).toHaveBeenCalledWith("AZN_10", expect.anything());
+    expect(await screen.findByRole("link", { name: "Kapital ödəniş səhifəsini aç" })).toHaveAttribute("href", "https://cb.birbank.business/pay/example");
   });
 
-  it("prevents a WhatsApp request when the amount exceeds the configured boundary", async () => {
-    const user = userEvent.setup();
+  it("locks package buttons while an active receipt request exists", async () => {
+    vi.mocked(walletApi.activeTopUpRequest).mockResolvedValueOnce({
+      id: 11, packageCode: "AZN_5", amountAzn: 5, coinAmount: 50, currency: "AZN",
+      paymentUrl: "https://cb.birbank.business/pay/active", status: "PENDING_REVIEW",
+      clickedAt: "2026-08-30T12:00:00", receiptDeadlineAt: "2026-08-30T12:30:00",
+      receiptUploadedAt: "2026-08-30T12:10:00", receiptUploadOpen: false,
+    });
     renderPage();
-    const amount = await screen.findByRole("spinbutton", { name: "Coin miqdarı" });
-
-    await user.clear(amount);
-    await user.type(amount, "1000001");
-
-    expect(screen.getByRole("alert")).toHaveTextContent("Ən çox 1.000.000 coin seçə bilərsiniz.");
-    expect(screen.getByText("WhatsApp-da müraciət et")).not.toHaveAttribute("href");
+    expect(await screen.findByText("Status: Yoxlanılır")).toBeInTheDocument();
+    screen.getAllByRole("button", { name: "Ödə" }).forEach((button) => expect(button).toBeDisabled());
+    expect(screen.queryByText("Çeki göndər")).not.toBeInTheDocument();
   });
 
   it("renders an explicit empty transaction state", async () => {

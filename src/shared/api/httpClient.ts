@@ -117,7 +117,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   const headers = new Headers(requestOptions.headers);
   headers.set("Accept", "application/json");
 
-  if (requestOptions.body && !headers.has("Content-Type")) {
+  if (requestOptions.body && !(requestOptions.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -153,6 +153,22 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 
   return (await response.json()) as T;
+}
+
+export async function apiBlob(path: string, retryAuthentication = true) {
+  const headers = new Headers({ Accept: "*/*" });
+  if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
+  const response = await fetchWithTimeout(endpoint(path), { headers, credentials: "include" }, DOWNLOAD_REQUEST_TIMEOUT_MS);
+  captureCsrfToken(response);
+  if (response.status === 401 && retryAuthentication) {
+    await refreshAccessToken();
+    return apiBlob(path, false);
+  }
+  if (!response.ok) {
+    const payload = await readError(response);
+    throw new ApiError(response.status, payload?.message ?? "Fayl açıla bilmədi.", payload);
+  }
+  return response.blob();
 }
 
 export async function apiDownload(path: string, filename: string, retryAuthentication = true) {

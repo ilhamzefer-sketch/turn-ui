@@ -32,7 +32,7 @@ export function walletTransactionDate(value: string) {
   return dateFormatter.format(new Date(value));
 }
 
-export function whatsappTopUpUrl(baseUrl: string, coins: number, valueInAzn: string) {
+export function whatsappTopUpUrl(baseUrl: string, coins: number, valueInAzn: string | number) {
   const separator = baseUrl.includes("?") ? "&" : "?";
   const message = `Salam. NövbəTime balansıma ${coinAmount(coins)} (${valueInAzn}) əlavə etmək istəyirəm.`;
   return `${baseUrl}${separator}text=${encodeURIComponent(message)}`;

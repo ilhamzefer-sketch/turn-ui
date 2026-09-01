@@ -21,6 +21,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
       { to: `${base}/analytics`, label: "Analitika" },
       { to: `${base}/subscription`, label: "Abunəlik" },
       { to: `${base}/governance`, label: "Sahiblik" },
+      { to: "/app/support", label: "Dəstək" },
     ];
   }
 
@@ -29,6 +30,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
       { to: `/app/individual/${contextId}`, label: "Fərdi sahə", end: true },
       { to: "/app/wallet", label: "Balans" },
       { to: `/app/individual/${contextId}/subscription`, label: "Abunəlik" },
+      { to: "/app/support", label: "Dəstək" },
     ];
   }
 
@@ -39,6 +41,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
       { to: `/app/rooms/${contextId}/settings`, label: "Otaq ayarları", end: true },
       { to: `/app/rooms/${contextId}/analytics`, label: "Analitika" },
       { to: `/app/rooms/${contextId}/trust`, label: "Etibar" },
+      { to: "/app/support", label: "Dəstək" },
     ];
   }
 

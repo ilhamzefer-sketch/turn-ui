@@ -15,6 +15,8 @@ vi.mock("../../shared/api/stepSixApi", () => ({
     adminOverview: vi.fn(), adminUsers: vi.fn(), adminCreditCoins: vi.fn(), adminChangeUserPassword: vi.fn(),
     adminBusinesses: vi.fn(), adminIncreaseRoomLimit: vi.fn(), adminAccounts: vi.fn(), adminCreateAccount: vi.fn(),
     adminDisputes: vi.fn(), adminPhoneChanges: vi.fn(), adminDeletions: vi.fn(),
+    adminTopUps: vi.fn(), adminTopUpReceipt: vi.fn(), approveTopUp: vi.fn(), rejectTopUp: vi.fn(),
+    adminSupportRequests: vi.fn(), adminSupportAttachment: vi.fn(), reviewSupportRequest: vi.fn(),
     resolveDispute: vi.fn(), resolvePhoneChange: vi.fn(), resolveDeletion: vi.fn(),
   },
 }));
@@ -35,6 +37,8 @@ describe("AdminPlatformPage", () => {
     vi.mocked(stepSixApi.adminDisputes).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminPhoneChanges).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminDeletions).mockResolvedValue([]);
+    vi.mocked(stepSixApi.adminTopUps).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
+    vi.mocked(stepSixApi.adminSupportRequests).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
     vi.mocked(stepSixApi.adminCreditCoins).mockResolvedValue({ id: 12, type: "ADMIN_CREDIT", direction: "CREDIT", amount: 60, balanceBefore: 40, balanceAfter: 100, actorType: "ADMIN", referenceKey: "admin-credit", description: "Manual əlavə", createdAt: "2026-08-30T12:00:00" });
     vi.mocked(stepSixApi.adminChangeUserPassword).mockResolvedValue(undefined);
     vi.mocked(stepSixApi.adminIncreaseRoomLimit).mockResolvedValue({ id: 9, name: "NövbəTime Studio", status: "ACTIVE", ownerUserId: 7, ownerName: "Aysel Məmmədova", ownerPhone: "+994501112233", roomCount: 3, roomLimit: 8, subscriptionStatus: "ACTIVE" });

@@ -49,6 +49,20 @@ describe("http client", () => {
     expect(headers.get("Authorization")).toBe("Bearer access-123");
   });
 
+  it("lets the browser set the multipart boundary for file uploads", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify({ csrfToken: "csrf-upload" }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 9 }), { status: 200 }));
+    const body = new FormData();
+    body.append("file", new Blob(["receipt"], { type: "image/png" }), "receipt.png");
+
+    await apiRequest<{ id: number }>("/api/upload", { method: "POST", body, retryAuthentication: false });
+
+    const headers = fetchMock.mock.calls[1]?.[1]?.headers as Headers;
+    expect(headers.has("Content-Type")).toBe(false);
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(body);
+  });
+
   it("notifies the app when refresh authentication has expired", async () => {
     setAccessToken("expired-access");
     const listener = vi.fn();

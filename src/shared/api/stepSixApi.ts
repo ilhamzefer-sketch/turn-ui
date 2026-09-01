@@ -2,9 +2,9 @@ import type {
   AccountDeletionRequest, AdminAccount, AdminBusiness, AdminBusinessPage, AdminPlatformOverview, AdminUserPage,
   OperationalAnalytics, OwnershipDispute, OwnershipTransfer,
   PhoneChangeRequest, ProviderScopeType, ProviderSubscription, RoomCustomerBlock, ServiceRating,
-  SubscriptionCoinPurchase, SubscriptionPlan, SubscriptionReceipt, WalletTransaction,
+  SubscriptionCoinPurchase, SubscriptionPlan, SubscriptionReceipt, WalletTransaction, AdminTopUpRequestPage, AdminSupportRequestPage, AdminSupportRequest, AdminTopUpRequest,
 } from "./contracts";
-import { apiDownload, apiRequest, setAccessToken } from "./httpClient";
+import { apiBlob, apiDownload, apiRequest, setAccessToken } from "./httpClient";
 
 const range = (from: string, to: string) => `from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
 const scope = (scopeType: ProviderScopeType, scopeId: number) => `scopeType=${scopeType}&scopeId=${scopeId}`;
@@ -42,6 +42,18 @@ export const stepSixApi = {
   adminDisputes: () => apiRequest<OwnershipDispute[]>("/api/admin/support/ownership-disputes"),
   adminPhoneChanges: () => apiRequest<PhoneChangeRequest[]>("/api/admin/support/phone-change-requests"),
   adminDeletions: () => apiRequest<AccountDeletionRequest[]>("/api/admin/support/account-deletion-requests"),
+  adminTopUps: (status = "PENDING_REVIEW", page = 0) => apiRequest<AdminTopUpRequestPage>(`/api/admin/payments/top-ups?status=${status}&page=${page}&size=20`),
+  adminTopUpReceipt: (id: number) => apiBlob(`/api/admin/payments/top-ups/${id}/receipt`),
+  approveTopUp: (id: number, note = "") => apiRequest<AdminTopUpRequest>(`/api/admin/payments/top-ups/${id}/approve`, { method: "POST", body: JSON.stringify({ note }) }),
+  rejectTopUp: (id: number, reason: string) => apiRequest<AdminTopUpRequest>(`/api/admin/payments/top-ups/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) }),
+  adminSupportRequests: (requestType = "", status = "", page = 0) => {
+    const params = new URLSearchParams({ page: String(page), size: "20" });
+    if (requestType) params.set("requestType", requestType);
+    if (status) params.set("status", status);
+    return apiRequest<AdminSupportRequestPage>(`/api/admin/support-requests?${params}`);
+  },
+  adminSupportAttachment: (id: number) => apiBlob(`/api/admin/support-requests/${id}/attachment`),
+  reviewSupportRequest: (id: number, status: "IN_REVIEW" | "RESOLVED" | "REJECTED", response: string) => apiRequest<AdminSupportRequest>(`/api/admin/support-requests/${id}/review`, { method: "POST", body: JSON.stringify({ status, response }) }),
   resolveDispute: (id: number, action: "NO_ACTION" | "SUSPEND" | "RESET_PASSWORD" | "RESTORE_ACCESS", resolutionNote: string, reject = false) => apiRequest<OwnershipDispute>(`/api/admin/support/ownership-disputes/${id}/resolve`, { method: "POST", body: JSON.stringify({ action, resolutionNote, reject }) }),
   resolvePhoneChange: (id: number, approve: boolean, resolutionNote: string) => apiRequest<PhoneChangeRequest>(`/api/admin/support/phone-change-requests/${id}/resolve`, { method: "POST", body: JSON.stringify({ approve, resolutionNote }) }),
   resolveDeletion: (id: number, approve: boolean, resolutionNote: string) => apiRequest<AccountDeletionRequest>(`/api/admin/support/account-deletion-requests/${id}/resolve`, { method: "POST", body: JSON.stringify({ approve, resolutionNote }) }),
