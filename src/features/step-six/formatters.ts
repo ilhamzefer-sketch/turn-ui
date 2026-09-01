@@ -6,4 +6,11 @@ export function money(amount: number, currency: string) { return new Intl.Number
 export function billingLabel(value: BillingPeriod) { return value === "MONTHLY" ? "Aylıq" : "İllik"; }
 export function subscriptionLabel(value: SubscriptionStatus) { return ({ PENDING_PAYMENT: "Ödəniş gözləyir", ACTIVE: "Aktiv", GRACE_PERIOD: "Güzəşt müddəti", SUSPENDED: "Dayandırılıb", CANCELLED: "Ləğv edilib" } as const)[value]; }
 export function paymentLabel(value: PaymentStatus) { return ({ PENDING: "Gözləyir", COMPLETED: "Tamamlanıb", FAILED: "Uğursuz", CANCELLED: "Ləğv edilib" } as const)[value]; }
+export function planCodeLabel(value: string) {
+  return ({
+    STANDARD_MONTHLY: "Standart aylıq plan",
+    BUSINESS_MONTHLY: "Biznes aylıq plan",
+    INDIVIDUAL_MONTHLY: "Fərdi aylıq plan",
+  } as Record<string, string>)[value] ?? value.replaceAll("_", " ");
+}
 export function shortDate(value: string | null) { return value ? new Intl.DateTimeFormat("az-AZ", { dateStyle: "medium" }).format(new Date(value)) : "—"; }

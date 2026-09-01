@@ -6,7 +6,7 @@ import { ApiError } from "../../shared/api/httpClient";
 import { stepSixApi } from "../../shared/api/stepSixApi";
 import { walletApi } from "../../shared/api/walletApi";
 import { Button, ButtonLink } from "../../shared/ui/Button";
-import { billingLabel, money, paymentLabel, shortDate, subscriptionLabel } from "../../features/step-six/formatters";
+import { billingLabel, money, paymentLabel, planCodeLabel, shortDate, subscriptionLabel } from "../../features/step-six/formatters";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
 
@@ -61,7 +61,7 @@ function PurchaseSuccess({ coinsSpent, balanceAfter, reference }: { coinsSpent: 
 }
 
 function ReceiptHistory({ receipts, loading }: { receipts: SubscriptionReceipt[]; loading: boolean }) {
-  return <section className="insight-panel"><p className="eyebrow">Ödəniş tarixçəsi</p><h2>Qəbzlər</h2>{loading ? <div role="status">Qəbzlər açılır…</div> : receipts.length ? <div className="receipt-list">{receipts.map((receipt) => <article key={receipt.paymentReference}><div><strong>{receipt.planCode}</strong><span>{shortDate(receipt.createdAt)} · {receipt.paymentReference}</span></div><div><b>{receipt.currency === "COIN" ? `${receipt.amount} coin` : money(receipt.amount, receipt.currency)}</b><span>{paymentLabel(receipt.status)}</span></div></article>)}</div> : <p>Hələ tamamlanmış ödəniş yoxdur.</p>}</section>;
+  return <section className="insight-panel"><p className="eyebrow">Ödəniş tarixçəsi</p><h2>Qəbzlər</h2>{loading ? <div role="status">Qəbzlər açılır…</div> : receipts.length ? <div className="receipt-list">{receipts.map((receipt) => <article key={receipt.paymentReference}><div><strong>{planCodeLabel(receipt.planCode)}</strong><span>{shortDate(receipt.createdAt)} · {receipt.paymentReference}</span></div><div><b>{receipt.currency === "COIN" ? `${receipt.amount} coin` : money(receipt.amount, receipt.currency)}</b><span>{paymentLabel(receipt.status)}</span></div></article>)}</div> : <p>Hələ tamamlanmış ödəniş yoxdur.</p>}</section>;
 }
 
 function createIdempotencyKey() {

@@ -27,12 +27,16 @@
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preload" as="image" href="/landing/hero-queue-studio.jpg" fetchpriority="high" />
     <title>Onlayn növbə və rezervasiya sistemi | NövbəTime</title>
+    <style>
+      #root[data-legacy-shell] { display: none; }
+      html[data-app-ready] #root[data-legacy-shell] { display: block; }
+    </style>
     <script type="application/ld+json" data-page-json-ld="true">
       {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://novbetime.az/#organization","name":"NövbəTime","url":"https://novbetime.az/","logo":{"@type":"ImageObject","url":"https://novbetime.az/web-app-manifest-512x512.png","width":512,"height":512}},{"@type":"WebSite","@id":"https://novbetime.az/#website","url":"https://novbetime.az/","name":"NövbəTime","inLanguage":"az","publisher":{"@id":"https://novbetime.az/#organization"}},{"@type":"WebApplication","@id":"https://novbetime.az/#application","name":"NövbəTime","url":"https://novbetime.az/","applicationCategory":"BusinessApplication","operatingSystem":"Web","inLanguage":"az","description":"Azərbaycanda bizneslər və müştərilər üçün canlı növbə və onlayn rezervasiya platforması.","publisher":{"@id":"https://novbetime.az/#organization"},"featureList":["Canlı növbəyə uzaqdan qoşulma","Onlayn qəbul və rezervasiya","QR kodla növbəyə qoşulma","Filial, otaq və iş qrafiki idarəetməsi"]}]}
     </script>
   </head>
   <body>
-    <div id="root">
+    <div id="root" data-legacy-shell>
       <div class="site-frame">
         <a class="skip-link" href="#main-content">Əsas məzmuna keç</a>
         <header class="site-header">

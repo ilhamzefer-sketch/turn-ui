@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { billingLabel, money, paymentLabel, subscriptionLabel } from "./formatters";
+import { billingLabel, money, paymentLabel, planCodeLabel, subscriptionLabel } from "./formatters";
 
 describe("step six formatters", () => {
   it("uses clear Azerbaijani operational labels", () => {
@@ -9,5 +9,9 @@ describe("step six formatters", () => {
   });
   it("formats plan money without inventing decimals", () => {
     expect(money(20, "AZN")).toContain("20");
+  });
+  it("translates plan codes before showing receipt history", () => {
+    expect(planCodeLabel("STANDARD_MONTHLY")).toBe("Standart aylıq plan");
+    expect(planCodeLabel("BUSINESS_MONTHLY")).toBe("Biznes aylıq plan");
   });
 });

@@ -4,6 +4,7 @@ import { ApiError } from "../../shared/api/httpClient";
 import { walletApi } from "../../shared/api/walletApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button } from "../../shared/ui/Button";
+import { FilePicker } from "../../shared/ui/FilePicker";
 import {
   aznAmount,
   coinAmount,
@@ -188,14 +189,12 @@ export function WalletPage() {
                 </a>
               ) : null}
               {active.receiptUploadOpen ? (
-                <label className="wallet-receipt-field">
+                <div className="wallet-receipt-field">
                   <span>Ödəniş çekini yükləyin</span>
-                  <input
-                    type="file"
+                  <FilePicker
                     accept="image/jpeg,image/png"
-                    onChange={(event) =>
-                      setReceipt(event.target.files?.[0] ?? null)
-                    }
+                    file={receipt}
+                    onChange={setReceipt}
                   />
                   {receipt ? (
                     <Button
@@ -212,7 +211,7 @@ export function WalletPage() {
                     <small>JPG və ya PNG · 30 dəqiqə ərzində</small>
                   )}
                   {upload.error ? <small role="alert">{upload.error.message}</small> : null}
-                </label>
+                </div>
               ) : (
                 <p className="wallet-payment__note">
                   Yeni paket seçmək üçün bu sorğunun təsdiqlənməsini və ya rədd

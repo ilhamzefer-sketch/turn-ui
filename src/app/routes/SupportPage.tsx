@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { stepSixApi } from "../../shared/api/stepSixApi";
 import { Button } from "../../shared/ui/Button";
+import { FilePicker } from "../../shared/ui/FilePicker";
 import { PhoneField } from "../../shared/ui/PhoneField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
@@ -107,14 +108,14 @@ export function SupportPage() {
             onChange={(e) => setMessage(e.target.value)}
             required
           />
-          <label className="field">
+          <div className="field">
             <span>Şəkil və ya sənəd (istəyə bağlı)</span>
-            <input
-              type="file"
+            <FilePicker
               accept="image/jpeg,image/png"
-              onChange={(e) => setAttachment(e.target.files?.[0] ?? null)}
+              file={attachment}
+              onChange={setAttachment}
             />
-          </label>
+          </div>
           {request.error ? (
             <p className="form-note form-note--error" role="alert">
               {request.error.message}
