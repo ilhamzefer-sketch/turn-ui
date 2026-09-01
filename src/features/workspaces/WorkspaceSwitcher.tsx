@@ -28,24 +28,32 @@ export function WorkspaceSwitcher() {
 
   return (
     <div className="workspace-switcher">
-      <label htmlFor="active-workspace">Aktiv sahə</label>
-      <select
-        id="active-workspace"
-        value={workspaceKey(displayedWorkspace)}
-        onChange={(event) => {
-          const next = workspaces.find((workspace) => workspaceKey(workspace) === event.target.value);
-          if (next) {
-            selectWorkspace(next);
-            void navigate(workspaceHomePath(next));
-          }
-        }}
-      >
-        {workspaces.map((workspace) => (
-          <option key={workspaceKey(workspace)} value={workspaceKey(workspace)}>
-            {workspaceTypeLabel(workspace.type)} · {workspace.name}
-          </option>
-        ))}
-      </select>
+      <label htmlFor="active-workspace">
+        <span className="workspace-switcher__label-kicker">Keçid</span>
+        <span className="workspace-switcher__label-title">Aktiv iş sahəsi</span>
+      </label>
+      <div className="workspace-switcher__select-wrap">
+        <span className="workspace-switcher__type" aria-hidden="true">{workspaceTypeLabel(displayedWorkspace.type)}</span>
+        <select
+          id="active-workspace"
+          aria-label="Aktiv iş sahəsi"
+          value={workspaceKey(displayedWorkspace)}
+          onChange={(event) => {
+            const next = workspaces.find((workspace) => workspaceKey(workspace) === event.target.value);
+            if (next) {
+              selectWorkspace(next);
+              void navigate(workspaceHomePath(next));
+            }
+          }}
+        >
+          {workspaces.map((workspace) => (
+            <option key={workspaceKey(workspace)} value={workspaceKey(workspace)}>
+              {workspace.name}
+            </option>
+          ))}
+        </select>
+        <span className="workspace-switcher__chevron" aria-hidden="true">⌄</span>
+      </div>
     </div>
   );
 }
