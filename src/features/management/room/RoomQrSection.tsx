@@ -56,7 +56,7 @@ export function RoomQrSection({ room, setupNavigation }: { room: ManagedRoom; se
           <div><p className="eyebrow">Daimi giriş nöqtələri</p><h2 id="qr-title">QR kodlar</h2></div>
           <Button loading={createMutation.isPending} onClick={() => createMutation.mutate()}>Yeni QR yarat</Button>
         </div>
-        <p className="section-intro">Eyni otaq üçün istədiyiniz qədər daimi kod yarada bilərsiniz. Kod rejim dəyişsə də həmin otağı açır; ayrıca ləğv edilənədək aktiv qalır.</p>
+        <p className="section-intro">Hər giriş nöqtəsi üçün ayrıca daimi QR yaradın. Kod siz ləğv edənədək işləyir.</p>
         {room.status !== "PUBLISHED" ? <div className="warning-note">QR kodu indi hazırlaya bilərsiniz, lakin otaq yayımlanana qədər ictimai link açılmayacaq.</div> : null}
         {qrQuery.isPending ? <p role="status">QR kodlar açılır…</p> : activeCodes.length === 0 ? (
           <div className="empty-state empty-state--compact"><span className="empty-state__mark" aria-hidden="true">QR</span><h3>Aktiv QR kod yoxdur</h3><p>Qapı, resepsiya və ya fərqli giriş nöqtələri üçün daimi kod yaradın.</p></div>
@@ -136,7 +136,14 @@ function QrCard({ credential, room, index, busy, onRegenerate, onRevoke }: QrCar
   };
 
   return (
-    <article className="qr-card">
+    <article className="qr-card" aria-labelledby={`qr-card-title-${credential.id}`}>
+      <header className="qr-card__header">
+        <div>
+          <h3 id={`qr-card-title-${credential.id}`}>QR kod {index}</h3>
+          <p>{formatManagementDate(credential.createdAt)} tarixində yaradılıb</p>
+        </div>
+        <StatusBadge tone="success">Aktiv</StatusBadge>
+      </header>
       <div className="qr-card__poster" ref={wrapperRef}>
         <div className="qr-card__poster-brand">
           <strong>NövbəTime</strong>
@@ -165,9 +172,7 @@ function QrCard({ credential, room, index, busy, onRegenerate, onRevoke }: QrCar
         </div>
       </div>
       <div className="qr-card__content">
-        <div className="management-list__title"><h3>QR kod {index}</h3><StatusBadge tone="success">Aktiv</StatusBadge></div>
-        <p>{formatManagementDate(credential.createdAt)} tarixində yaradılıb</p>
-        <p className="qr-card__content-note">Çap üçün SVG faylında NövbəTime, otaq adı, rejim, qəbul müddəti və sayt ünvanı da göstərilir.</p>
+        <p className="qr-card__content-note">Çapa hazır SVG faylına otağın əsas məlumatları daxildir.</p>
         {!publicUrl ? <p className="qr-card__repair-note">Bu köhnə QR kodu işlək vəziyyətə gətirmək üçün yeniləyin.</p> : null}
       </div>
       <div className="qr-card__actions">
