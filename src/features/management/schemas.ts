@@ -53,6 +53,8 @@ export const roomSchema = z.object({
 
 export type RoomFormValues = z.infer<typeof roomSchema>;
 
+export const DEFAULT_ROOM_VISIBILITY = "PUBLIC" as const;
+
 export const configurationSchema = z.object({
   defaultSlotDurationMinutes: z.string().refine(isIntegerBetween(1, 1440), "1–1440 dəqiqə yazın."),
   appointmentBufferMinutes: z.string().refine(isIntegerBetween(0, 1440), "0–1440 dəqiqə yazın."),

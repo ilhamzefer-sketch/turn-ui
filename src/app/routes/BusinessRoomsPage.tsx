@@ -8,7 +8,7 @@ import { z } from "zod";
 import { EmptyState, ManagementError, ManagementLoading, ManagementPageHeader, StatusBadge } from "../../features/management/ManagementUi";
 import { apiMessage } from "../../features/management/managementUtils";
 import { reservationModeLabel, roomStatusLabel, visibilityLabel, nullableText } from "../../features/management/managementLabels";
-import { roomSchema, type RoomFormValues } from "../../features/management/schemas";
+import { DEFAULT_ROOM_VISIBILITY, roomSchema, type RoomFormValues } from "../../features/management/schemas";
 import { RoomSetupProgress } from "../../features/management/room/RoomSetupProgress";
 import { managementApi } from "../../shared/api/managementApi";
 import { ApiError } from "../../shared/api/httpClient";
@@ -26,7 +26,7 @@ const emptyRoom: RoomFormValues = {
   notes: "",
   reservationMode: "LIVE_QUEUE",
   defaultSlotDurationMinutes: "30",
-  visibility: "UNLISTED",
+  visibility: DEFAULT_ROOM_VISIBILITY,
   personalPublicAddress: "",
 };
 
@@ -124,8 +124,8 @@ export function BusinessRoomsPage() {
                 <option value="PLANNED_BOOKING">Planlı rezervasiya</option>
               </SelectField>
               <SelectField label="Görünürlük" hint="Otaq yayımlanana qədər hər halda qaralama qalır." error={form.formState.errors.visibility?.message} {...form.register("visibility")}>
+                <option value="PUBLIC">İctimai — axtarışda görünür</option>
                 <option value="UNLISTED">Yalnız link və QR ilə</option>
-                <option value="PUBLIC">Açıq axtarışda</option>
                 <option value="PRIVATE">Məxfi</option>
               </SelectField>
             </div>

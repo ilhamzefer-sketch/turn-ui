@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ManagementError, ManagementLoading, ManagementPageHeader, StatusBadge } from "../../features/management/ManagementUi";
 import { apiMessage } from "../../features/management/managementUtils";
 import { nullableText, reservationModeLabel, roomStatusLabel, visibilityLabel } from "../../features/management/managementLabels";
-import { roomSchema, type RoomFormValues } from "../../features/management/schemas";
+import { DEFAULT_ROOM_VISIBILITY, roomSchema, type RoomFormValues } from "../../features/management/schemas";
 import { RoomSetupProgress } from "../../features/management/room/RoomSetupProgress";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
@@ -42,7 +42,7 @@ export function IndividualWorkspacePage() {
       notes: "",
       reservationMode: "LIVE_QUEUE",
       defaultSlotDurationMinutes: "30",
-      visibility: "UNLISTED",
+      visibility: DEFAULT_ROOM_VISIBILITY,
       personalPublicAddress: "",
     },
   });
@@ -140,8 +140,8 @@ export function IndividualWorkspacePage() {
               </SelectField>
               <TextField label="Standart müddət (dəqiqə)" type="number" min="1" max="1440" inputMode="numeric" error={form.formState.errors.defaultSlotDurationMinutes?.message} {...form.register("defaultSlotDurationMinutes")} />
               <SelectField label="Görünürlük" error={form.formState.errors.visibility?.message} {...form.register("visibility")}>
+                <option value="PUBLIC">İctimai — axtarışda görünür</option>
                 <option value="UNLISTED">Yalnız link və QR ilə</option>
-                <option value="PUBLIC">Açıq axtarışda</option>
                 <option value="PRIVATE">Məxfi</option>
               </SelectField>
               <TextField label="İctimai ünvan (istəyə bağlı)" autoComplete="street-address" error={form.formState.errors.personalPublicAddress?.message} {...form.register("personalPublicAddress")} />

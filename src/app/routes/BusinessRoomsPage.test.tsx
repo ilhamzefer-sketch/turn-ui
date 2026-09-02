@@ -97,6 +97,17 @@ describe("BusinessRoomsPage", () => {
     );
   });
 
+  it("selects public visibility for a new room by default", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText("Otaq 5");
+    await user.click(screen.getByRole("button", { name: "Yeni otaq" }));
+
+    expect(screen.getByRole("combobox", { name: "Görünürlük" })).toHaveValue("PUBLIC");
+    expect(screen.getByRole("option", { name: "İctimai — axtarışda görünür" })).toBeInTheDocument();
+  });
+
   it("keeps the sixth-room form and offers WhatsApp when the server enforces the limit", async () => {
     const user = userEvent.setup();
     renderPage();
