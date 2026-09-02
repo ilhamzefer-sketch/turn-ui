@@ -1,4 +1,4 @@
-export const phoneFormatMessage = "Telefon nömrəsini 0504059961 formatında yazın.";
+export const phoneFormatMessage = "Telefon nömrəsini 0500000000 formatında yazın.";
 
 export const localPhonePattern = /^0[1-9]\d{8}$/;
 

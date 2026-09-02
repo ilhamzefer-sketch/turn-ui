@@ -84,7 +84,7 @@ describe("LiveQueueOperator", () => {
           status: "WAITING",
           source: "WEB",
           displayName: "Yeni iştirakçı",
-          phone: "+994504059961",
+          phone: "+994500000000",
           linkedUserId: null,
           internalNote: null,
           createdByUserId: null,

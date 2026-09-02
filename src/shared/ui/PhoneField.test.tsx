@@ -10,21 +10,23 @@ describe("PhoneField", () => {
     render(<PhoneField label="Telefon nömrəsi" />);
     const input = screen.getByLabelText("Telefon nömrəsi");
 
-    await user.type(input, "05040599619");
+    await user.type(input, "05000000009");
 
-    expect(input).toHaveValue("0504059961");
+    expect(input).toHaveValue("0500000000");
     expect(input).toHaveAttribute("inputmode", "numeric");
     expect(input).toHaveAttribute("pattern", "0[1-9][0-9]{8}");
+    expect(input).toHaveAttribute("placeholder", "0500000000");
+    expect(screen.getByText("Format: 0500000000")).toBeInTheDocument();
   });
 
   it("does not retain international prefixes or formatting characters", () => {
     render(<PhoneField label="Telefon nömrəsi" />);
     const input = screen.getByLabelText("Telefon nömrəsi");
 
-    fireEvent.input(input, { target: { value: "+994504059961" } });
+    fireEvent.input(input, { target: { value: "+994500000000" } });
     expect(input).toHaveValue("");
 
-    fireEvent.input(input, { target: { value: "050 405 99 61" } });
+    fireEvent.input(input, { target: { value: "050 000 00 00" } });
     expect(input).toHaveValue("");
   });
 });

@@ -5,7 +5,7 @@ import { TextField } from "./TextField";
 type PhoneFieldProps = Omit<ComponentProps<typeof TextField>, "type" | "inputMode" | "maxLength" | "pattern">;
 
 export const PhoneField = forwardRef<HTMLInputElement, PhoneFieldProps>(function PhoneField(
-  { autoComplete = "tel-national", hint = "Format: 0504059961", onInput, placeholder = "0504059961", ...props },
+  { autoComplete = "tel-national", hint = "Format: 0500000000", onInput, placeholder = "0500000000", ...props },
   ref,
 ) {
   const handleInput = (event: InputEvent<HTMLInputElement>) => {
