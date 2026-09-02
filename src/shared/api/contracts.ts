@@ -262,6 +262,7 @@ export type QrCredential = {
   type: "PERMANENT_ROOM";
   active: boolean;
   token: string | null;
+  posterTitle: string | null;
   createdAt: string;
   revokedAt: string | null;
 };

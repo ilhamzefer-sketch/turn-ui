@@ -17,7 +17,7 @@ import type {
   WeeklyAvailabilityRule,
   WeeklyAvailabilityRuleInput,
 } from "./contracts";
-import { apiRequest } from "./httpClient";
+import { apiDownload, apiRequest } from "./httpClient";
 
 export const managementApi = {
   business: (businessId: number) => apiRequest<Business>(`/api/businesses/${businessId}`),
@@ -111,6 +111,13 @@ export const managementApi = {
     apiRequest<void>(`/api/rooms/${roomId}/availability-exceptions/${exceptionId}`, { method: "DELETE" }),
   qrCodes: (roomId: number) => apiRequest<QrCredential[]>(`/api/rooms/${roomId}/qr-codes`),
   createQrCode: (roomId: number) => apiRequest<QrCredential>(`/api/rooms/${roomId}/qr-codes`, { method: "POST" }),
+  updateQrPosterTitle: (roomId: number, credentialId: number, posterTitle: string | null) =>
+    apiRequest<QrCredential>(`/api/rooms/${roomId}/qr-codes/${credentialId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ posterTitle }),
+    }),
+  downloadQrPoster: (roomId: number, credentialId: number, filename: string) =>
+    apiDownload(`/api/rooms/${roomId}/qr-codes/${credentialId}/poster.pdf`, filename, "application/pdf"),
   regenerateQrCode: (roomId: number, credentialId: number) =>
     apiRequest<QrCredential>(`/api/rooms/${roomId}/qr-codes/${credentialId}/regenerate`, { method: "POST" }),
   revokeQrCode: (roomId: number, credentialId: number) =>

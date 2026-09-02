@@ -171,8 +171,13 @@ export async function apiBlob(path: string, retryAuthentication = true) {
   return response.blob();
 }
 
-export async function apiDownload(path: string, filename: string, retryAuthentication = true) {
-  const headers = new Headers({ Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+export async function apiDownload(
+  path: string,
+  filename: string,
+  accept = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  retryAuthentication = true,
+) {
+  const headers = new Headers({ Accept: accept });
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
   const response = await fetchWithTimeout(
     endpoint(path),
@@ -182,7 +187,7 @@ export async function apiDownload(path: string, filename: string, retryAuthentic
   captureCsrfToken(response);
   if (response.status === 401 && retryAuthentication) {
     await refreshAccessToken();
-    return apiDownload(path, filename, false);
+    return apiDownload(path, filename, accept, false);
   }
   if (!response.ok) {
     const payload = await readError(response);

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 import type { ManagedRoom, QrCredential } from "../../../shared/api/contracts";
@@ -44,7 +44,25 @@ export function RoomQrSection({ room, setupNavigation }: { room: ManagedRoom; se
       await queryClient.invalidateQueries({ queryKey: ["management-room-qr", room.id] });
     },
   });
-  const error = qrQuery.error ?? createMutation.error ?? regenerateMutation.error ?? revokeMutation.error;
+  const titleMutation = useMutation({
+    mutationFn: ({ credentialId, posterTitle }: { credentialId: number; posterTitle: string | null }) =>
+      managementApi.updateQrPosterTitle(room.id, credentialId, posterTitle),
+    onSuccess: async () => {
+      setSuccessMessage("QR afişasının başlığı yadda saxlanıldı.");
+      await queryClient.invalidateQueries({ queryKey: ["management-room-qr", room.id] });
+    },
+  });
+  const downloadMutation = useMutation({
+    mutationFn: ({ credentialId, filename }: { credentialId: number; filename: string }) =>
+      managementApi.downloadQrPoster(room.id, credentialId, filename),
+    onSuccess: () => setSuccessMessage("QR afişası PDF kimi yükləndi."),
+  });
+  const error = qrQuery.error
+    ?? createMutation.error
+    ?? regenerateMutation.error
+    ?? revokeMutation.error
+    ?? titleMutation.error
+    ?? downloadMutation.error;
   const activeCodes = (qrQuery.data ?? []).filter((code) => code.active);
 
   return (
@@ -64,11 +82,14 @@ export function RoomQrSection({ room, setupNavigation }: { room: ManagedRoom; se
           <div className="qr-grid">
             {activeCodes.map((credential, index) => (
               <QrCard
-                key={credential.id}
+                key={`${credential.id}:${credential.posterTitle ?? ""}:${room.name}`}
                 credential={credential}
                 room={room}
                 index={index + 1}
-                busy={regenerateMutation.isPending || revokeMutation.isPending}
+                busy={regenerateMutation.isPending || revokeMutation.isPending || titleMutation.isPending}
+                downloading={downloadMutation.isPending && downloadMutation.variables?.credentialId === credential.id}
+                onSaveTitle={(posterTitle) => titleMutation.mutate({ credentialId: credential.id, posterTitle })}
+                onDownload={(filename) => downloadMutation.mutate({ credentialId: credential.id, filename })}
                 onRegenerate={() => regenerateMutation.mutate(credential.id)}
                 onRevoke={() => {
                   if (window.confirm("Bu QR kod ləğv edilsin? Çap edilmiş köhnə nüsxələr dərhal işləməyəcək.")) revokeMutation.mutate(credential.id);
@@ -96,16 +117,23 @@ type QrCardProps = {
   room: ManagedRoom;
   index: number;
   busy: boolean;
+  downloading: boolean;
+  onSaveTitle: (posterTitle: string | null) => void;
+  onDownload: (filename: string) => void;
   onRegenerate: () => void;
   onRevoke: () => void;
 };
 
-function QrCard({ credential, room, index, busy, onRegenerate, onRevoke }: QrCardProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
+function QrCard({ credential, room, index, busy, downloading, onSaveTitle, onDownload, onRegenerate, onRevoke }: QrCardProps) {
   const [copyLabel, setCopyLabel] = useState("Linki kopyala");
+  const savedTitle = credential.posterTitle?.trim() || room.name;
+  const [posterTitle, setPosterTitle] = useState(savedTitle);
   const token = credential.token?.trim() ?? "";
   const publicUrl = token ? `${window.location.origin}/q/${encodeURIComponent(token)}` : null;
   const modeLabel = room.reservationMode === "LIVE_QUEUE" ? "Canlı növbə" : "Planlı qəbul";
+  const normalizedTitle = posterTitle.trim().replace(/\s+/g, " ");
+  const previewTitle = normalizedTitle || room.name;
+  const titleChanged = previewTitle !== savedTitle;
 
   const copy = async () => {
     if (!publicUrl) return;
@@ -114,25 +142,9 @@ function QrCard({ credential, room, index, busy, onRegenerate, onRevoke }: QrCar
     window.setTimeout(() => setCopyLabel("Linki kopyala"), 1800);
   };
 
-  const download = () => {
-    if (!publicUrl) return;
-    const svg = wrapperRef.current?.querySelector("svg");
-    if (!svg) return;
-    const source = printableQrSvg(svg, {
-      roomName: room.name,
-      roomCode: room.roomNumberOrCode,
-      modeLabel,
-      duration: room.defaultSlotDurationMinutes,
-      publicUrl,
-      description: room.description,
-    });
-    const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${safeFilename(room.name)}-qr-${index}.svg`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+  const saveTitle = () => {
+    const roomTitle = room.name.trim().replace(/\s+/g, " ");
+    onSaveTitle(normalizedTitle && normalizedTitle !== roomTitle ? normalizedTitle : null);
   };
 
   return (
@@ -144,18 +156,40 @@ function QrCard({ credential, room, index, busy, onRegenerate, onRevoke }: QrCar
         </div>
         <StatusBadge tone="success">Aktiv</StatusBadge>
       </header>
-      <div className="qr-card__poster" ref={wrapperRef}>
+      <div className="qr-card__title-editor">
+        <label htmlFor={`qr-poster-title-${credential.id}`}>Afişa başlığı</label>
+        <div>
+          <input
+            id={`qr-poster-title-${credential.id}`}
+            className="field__control"
+            maxLength={80}
+            value={posterTitle}
+            onChange={(event) => setPosterTitle(event.target.value)}
+          />
+          <Button variant="secondary" disabled={!titleChanged || busy} onClick={saveTitle}>Başlığı yadda saxla</Button>
+        </div>
+        <p>Bu başlıq yalnız həmin QR afişasında görünür. Boş saxlanarsa otağın adı istifadə olunur.</p>
+      </div>
+      <div className="qr-card__poster">
         <div className="qr-card__poster-brand">
-          <strong>NövbəTime</strong>
-          <span>Onlayn növbə və qəbul sistemi</span>
+          <div><strong>NövbəTime</strong><span>Onlayn növbə və qəbul sistemi</span></div>
+          <span className="qr-card__poster-logo" aria-hidden="true"><img src="/novbetime-logo.png" alt="" /></span>
         </div>
         <div className="qr-card__poster-heading">
           <span>QR ilə qoşulun</span>
-          <h3>{room.name}</h3>
+          <h3>{previewTitle}</h3>
         </div>
         <div className="qr-card__image">
         {publicUrl ? (
-          <QRCodeSVG value={publicUrl} size={236} level="H" marginSize={4} title={`${room.name} üçün QR kod ${index}`} />
+          <QRCodeSVG
+            value={publicUrl}
+            size={236}
+            level="H"
+            marginSize={4}
+            fgColor="#004f45"
+            title={`${previewTitle} üçün QR kod ${index}`}
+            imageSettings={{ src: "/novbetime-logo.png", height: 62, width: 62, excavate: true }}
+          />
         ) : (
           <div className="qr-card__unavailable" role="status"><strong>QR</strong><span>Kodu yeniləyin</span></div>
         )}
@@ -172,12 +206,25 @@ function QrCard({ credential, room, index, busy, onRegenerate, onRevoke }: QrCar
         </div>
       </div>
       <div className="qr-card__content">
-        <p className="qr-card__content-note">Çapa hazır SVG faylına otağın əsas məlumatları daxildir.</p>
+        <p className="qr-card__content-note">
+          {titleChanged
+            ? "PDF yükləmək üçün əvvəlcə yeni başlığı yadda saxlayın."
+            : "A4 ölçülü PDF afişada loqo, QR kod və qəbul məlumatları yerləşir."}
+        </p>
         {!publicUrl ? <p className="qr-card__repair-note">Bu köhnə QR kodu işlək vəziyyətə gətirmək üçün yeniləyin.</p> : null}
       </div>
       <div className="qr-card__actions">
         {publicUrl ? <Button variant="secondary" onClick={() => void copy()}>{copyLabel}</Button> : null}
-        {publicUrl ? <Button variant="secondary" onClick={download}>SVG yüklə</Button> : null}
+        {publicUrl ? (
+          <Button
+            variant="secondary"
+            loading={downloading}
+            disabled={titleChanged || busy}
+            onClick={() => onDownload(`${safeFilename(previewTitle)}-qr-${index}.pdf`)}
+          >
+            PDF yüklə
+          </Button>
+        ) : null}
         <Button variant={publicUrl ? "quiet" : "primary"} disabled={busy} onClick={onRegenerate}>
           {publicUrl ? "Yenilə" : "QR kodu bərpa et"}
         </Button>
@@ -187,53 +234,10 @@ function QrCard({ credential, room, index, busy, onRegenerate, onRevoke }: QrCar
   );
 }
 
-type PrintableQrMetadata = {
-  roomName: string;
-  roomCode: string | null;
-  modeLabel: string;
-  duration: number;
-  publicUrl: string;
-  description: string | null;
-};
-
-function printableQrSvg(qrSvg: SVGSVGElement, metadata: PrintableQrMetadata) {
-  const qrMarkup = qrSvg.innerHTML;
-  const viewBox = qrSvg.getAttribute("viewBox") ?? "0 0 236 236";
-  const description = metadata.description?.trim();
-  const detailLine = metadata.roomCode
-    ? `Otaq kodu: ${metadata.roomCode} · ${metadata.duration} dəqiqəlik qəbul`
-    : `${metadata.duration} dəqiqəlik qəbul`;
-  const descriptionLine = description ? `<text x="400" y="795" class="muted" text-anchor="middle">${escapeXml(shortText(description, 68))}</text>` : "";
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1040" viewBox="0 0 800 1040" role="img" aria-labelledby="title description">
-  <title id="title">${escapeXml(metadata.roomName)} üçün NövbəTime QR kodu</title>
-  <desc id="description">${escapeXml(metadata.modeLabel)}. ${escapeXml(metadata.publicUrl)}</desc>
-  <rect width="800" height="1040" rx="36" fill="#f7f8f5"/>
-  <rect x="32" y="32" width="736" height="976" rx="28" fill="#ffffff" stroke="#dce2dc" stroke-width="2"/>
-  <text x="72" y="105" fill="#173c31" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">NövbəTime</text>
-  <text x="72" y="137" fill="#597067" font-family="Arial, Helvetica, sans-serif" font-size="16">Onlayn növbə və qəbul sistemi</text>
-  <text x="400" y="205" fill="#597067" font-family="Arial, Helvetica, sans-serif" font-size="18" text-anchor="middle">QR ilə qoşulun</text>
-  <text x="400" y="246" fill="#173c31" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" text-anchor="middle">${escapeXml(shortText(metadata.roomName, 34))}</text>
-  <svg x="180" y="280" width="440" height="440" viewBox="${escapeXml(viewBox)}" shape-rendering="crispEdges">${qrMarkup}</svg>
-  <text x="400" y="770" fill="#173c31" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="middle">${escapeXml(metadata.modeLabel)}</text>
-  <text x="400" y="805" fill="#597067" font-family="Arial, Helvetica, sans-serif" font-size="17" text-anchor="middle">${escapeXml(detailLine)}</text>
-  ${descriptionLine}
-  <line x1="72" y1="850" x2="728" y2="850" stroke="#dce2dc"/>
-  <text x="72" y="900" fill="#597067" font-family="Arial, Helvetica, sans-serif" font-size="17">Kameranızla skan edin</text>
-  <text x="728" y="900" fill="#173c31" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="end">novbetime.az</text>
-  <text x="400" y="954" fill="#8a9991" font-family="Arial, Helvetica, sans-serif" font-size="14" text-anchor="middle">${escapeXml(metadata.publicUrl)}</text>
-</svg>`;
+function safeFilename(value: string) {
+  return value.toLocaleLowerCase("az-AZ").replace(/[^a-z0-9əöüğışç]+/gi, "-").replace(/^-|-$/g, "") || "novbetime";
 }
 
 function shortText(value: string, maxLength: number) {
   return value.length > maxLength ? `${value.slice(0, maxLength - 1).trimEnd()}…` : value;
-}
-
-function escapeXml(value: string) {
-  return value.replace(/[<>&'"]/g, (character) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", "\"": "&quot;" })[character] ?? character);
-}
-
-function safeFilename(value: string) {
-  return value.toLocaleLowerCase("az-AZ").replace(/[^a-z0-9əöüğışç]+/gi, "-").replace(/^-|-$/g, "");
 }
