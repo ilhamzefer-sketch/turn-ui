@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authApi } from "../../shared/api/authApi";
 import { stepSixApi } from "../../shared/api/stepSixApi";
 import { AdminPlatformPage } from "./AdminPlatformPage";
-import { AdminAccountsPage, AdminBusinessesPage, AdminUsersPage } from "./AdminPlatformModules";
+import { AdminAccountsPage, AdminBusinessesPage, AdminPaymentsPage, AdminUsersPage } from "./AdminPlatformModules";
 
 vi.mock("../../shared/meta/usePageMeta", () => ({ usePageMeta: vi.fn() }));
 vi.mock("../../shared/api/authApi", () => ({ authApi: { logout: vi.fn() } }));
@@ -17,7 +17,7 @@ vi.mock("../../shared/api/stepSixApi", () => ({
     adminOverview: vi.fn(), adminUsers: vi.fn(), adminCreditCoins: vi.fn(), adminChangeUserPassword: vi.fn(),
     adminBusinesses: vi.fn(), adminIncreaseRoomLimit: vi.fn(), adminAccounts: vi.fn(), adminCreateAccount: vi.fn(),
     adminDisputes: vi.fn(), adminPhoneChanges: vi.fn(), adminDeletions: vi.fn(),
-    adminTopUps: vi.fn(), adminTopUpReceipt: vi.fn(), approveTopUp: vi.fn(), rejectTopUp: vi.fn(),
+    adminTopUps: vi.fn(), adminTopUpReceipt: vi.fn(), approveTopUp: vi.fn(), rejectTopUp: vi.fn(), confirmTopUpFraud: vi.fn(),
     adminSupportRequests: vi.fn(), adminSupportAttachment: vi.fn(), reviewSupportRequest: vi.fn(),
     resolveDispute: vi.fn(), resolvePhoneChange: vi.fn(), resolveDeletion: vi.fn(),
   },
@@ -33,13 +33,14 @@ describe("AdminPlatformPage", () => {
     vi.clearAllMocks();
     vi.mocked(authApi.logout).mockResolvedValue(undefined);
     vi.mocked(stepSixApi.adminOverview).mockResolvedValue({ users: 1, activeUsers: 1, suspendedUsers: 0, businesses: 1, rooms: 3, activeSubscriptions: 1, graceSubscriptions: 0, suspendedSubscriptions: 0, completedSubscriptionPayments: 1, openOwnershipDisputes: 0, openPhoneChanges: 0, openDeletionRequests: 0 });
-    vi.mocked(stepSixApi.adminUsers).mockResolvedValue({ items: [{ id: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233", status: "ACTIVE", coinBalance: 40, createdAt: "2026-08-30T10:00:00" }], page: 0, size: 20, totalElements: 1, totalPages: 1 });
+    vi.mocked(stepSixApi.adminUsers).mockResolvedValue({ items: [{ id: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233", status: "ACTIVE", coinBalance: 40, confirmedWalletFraudCount: 0, createdAt: "2026-08-30T10:00:00" }], page: 0, size: 20, totalElements: 1, totalPages: 1 });
     vi.mocked(stepSixApi.adminBusinesses).mockResolvedValue({ items: [{ id: 9, name: "NövbəTime Studio", status: "ACTIVE", ownerUserId: 7, ownerName: "Aysel Məmmədova", ownerPhone: "+994501112233", roomCount: 3, roomLimit: 5, subscriptionStatus: "ACTIVE" }], page: 0, size: 20, totalElements: 1, totalPages: 1 });
     vi.mocked(stepSixApi.adminAccounts).mockResolvedValue([{ id: 1, username: "admin", displayName: "Baş administrator", active: true, createdByUsername: null, createdAt: "2026-08-30T10:00:00" }]);
     vi.mocked(stepSixApi.adminDisputes).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminPhoneChanges).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminDeletions).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminTopUps).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
+    vi.mocked(stepSixApi.confirmTopUpFraud).mockResolvedValue({ id: 15, userId: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233", packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN", status: "FRAUD_CONFIRMED", clickedAt: "2026-08-30T10:00:00", receiptDeadlineAt: "2026-08-30T10:30:00", receiptUploadedAt: "2026-08-30T10:05:00", receiptAttachmentId: 4, receiptMediaType: "image/png", receiptSizeBytes: 1200, confirmedFraudCount: 1, fraudCountAfter: 1, reviewedAt: "2026-08-30T10:10:00", resolutionNote: "Ödəniş daxil olmayıb" });
     vi.mocked(stepSixApi.adminSupportRequests).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
     vi.mocked(stepSixApi.adminCreditCoins).mockResolvedValue({ id: 12, type: "ADMIN_CREDIT", direction: "CREDIT", amount: 60, balanceBefore: 40, balanceAfter: 100, actorType: "ADMIN", referenceKey: "admin-credit", description: "Manual əlavə", createdAt: "2026-08-30T12:00:00" });
     vi.mocked(stepSixApi.adminChangeUserPassword).mockResolvedValue(undefined);
@@ -115,5 +116,30 @@ describe("AdminPlatformPage", () => {
     await user.click(card.getByRole("button", { name: "Şifrə dəyişikliyini təsdiqlə" }));
     expect(await card.findByText("Şifrə dəyişdirildi və köhnə sessiyalar bağlandı.")).toBeInTheDocument();
     expect(stepSixApi.adminChangeUserPassword).toHaveBeenCalledWith(7, "Changed-safe-2026", "Təsdiqlənmiş müraciət");
+  });
+
+  it("requires explicit confirmation before marking a top-up as fraud", async () => {
+    vi.mocked(stepSixApi.adminTopUps).mockResolvedValueOnce({
+      items: [{
+        id: 15, userId: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233",
+        packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN",
+        status: "AUTO_CREDITED_PENDING_REVIEW", clickedAt: "2026-08-30T10:00:00",
+        receiptDeadlineAt: "2026-08-30T10:30:00", receiptUploadedAt: "2026-08-30T10:05:00",
+        receiptAttachmentId: 4, receiptMediaType: "image/png", receiptSizeBytes: 1200,
+        confirmedFraudCount: 0, fraudCountAfter: null, reviewedAt: null, resolutionNote: null,
+      }],
+      page: 0, size: 20, hasNext: false,
+    });
+    const user = userEvent.setup();
+    renderPage(<AdminPaymentsPage />);
+
+    await screen.findByText("Coin avtomatik əlavə edilib, ödənişi yoxlayın.");
+    await user.type(screen.getByRole("textbox", { name: "Yoxlama qeydi" }), "Ödəniş daxil olmayıb");
+    await user.click(screen.getByRole("button", { name: "Fırıldaq kimi qeyd et" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Coin geri çəkiləcək");
+    expect(stepSixApi.confirmTopUpFraud).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Fırıldaq təsdiqini tamamla" }));
+    expect(stepSixApi.confirmTopUpFraud).toHaveBeenCalledWith(15, "Ödəniş daxil olmayıb");
   });
 });

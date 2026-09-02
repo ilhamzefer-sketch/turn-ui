@@ -47,10 +47,11 @@ export const stepSixApi = {
   adminDisputes: () => apiRequest<OwnershipDispute[]>("/api/admin/support/ownership-disputes"),
   adminPhoneChanges: () => apiRequest<PhoneChangeRequest[]>("/api/admin/support/phone-change-requests"),
   adminDeletions: () => apiRequest<AccountDeletionRequest[]>("/api/admin/support/account-deletion-requests"),
-  adminTopUps: (status = "PENDING_REVIEW", page = 0) => apiRequest<AdminTopUpRequestPage>(`/api/admin/payments/top-ups?status=${status}&page=${page}&size=20`),
+  adminTopUps: (status = "REVIEW_REQUIRED", page = 0) => apiRequest<AdminTopUpRequestPage>(`/api/admin/payments/top-ups?status=${status}&page=${page}&size=20`),
   adminTopUpReceipt: (id: number) => apiBlob(`/api/admin/payments/top-ups/${id}/receipt`),
   approveTopUp: (id: number, note = "") => apiRequest<AdminTopUpRequest>(`/api/admin/payments/top-ups/${id}/approve`, { method: "POST", body: JSON.stringify({ note }) }),
   rejectTopUp: (id: number, reason: string) => apiRequest<AdminTopUpRequest>(`/api/admin/payments/top-ups/${id}/reject`, { method: "POST", body: JSON.stringify({ reason }) }),
+  confirmTopUpFraud: (id: number, reason: string) => apiRequest<AdminTopUpRequest>(`/api/admin/payments/top-ups/${id}/confirm-fraud`, { method: "POST", body: JSON.stringify({ reason }) }),
   adminSupportRequests: (requestType = "", status = "", page = 0) => {
     const params = new URLSearchParams({ page: String(page), size: "20" });
     if (requestType) params.set("requestType", requestType);

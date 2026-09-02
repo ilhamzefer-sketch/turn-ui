@@ -587,7 +587,16 @@ export type WalletTopUpOptions = {
   bankCardEnabled: boolean;
 };
 
-export type WalletTopUpRequestStatus = "AWAITING_RECEIPT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "EXPIRED";
+export type WalletTopUpRequestStatus =
+  | "AWAITING_RECEIPT"
+  | "PENDING_REVIEW"
+  | "MANUAL_REVIEW"
+  | "AUTO_CREDITED_PENDING_REVIEW"
+  | "APPROVED"
+  | "VERIFIED"
+  | "REJECTED"
+  | "FRAUD_CONFIRMED"
+  | "EXPIRED";
 export type WalletTopUpPackageCode = "AZN_3" | "AZN_5" | "AZN_10" | "AZN_15" | "AZN_20";
 export type WalletTopUpRequest = {
   id: number; packageCode: WalletTopUpPackageCode; amountAzn: number; coinAmount: number; currency: "AZN";
@@ -595,7 +604,7 @@ export type WalletTopUpRequest = {
   receiptUploadedAt: string | null; receiptUploadOpen: boolean;
 };
 
-export type WalletTransactionType = "ADMIN_CREDIT" | "TOP_UP" | "SUBSCRIPTION_PAYMENT" | "REFUND";
+export type WalletTransactionType = "ADMIN_CREDIT" | "TOP_UP" | "TOP_UP_REVERSAL" | "SUBSCRIPTION_PAYMENT" | "REFUND";
 export type WalletTransactionDirection = "CREDIT" | "DEBIT";
 
 export type WalletTransaction = {
@@ -630,7 +639,8 @@ export type AdminTopUpRequest = {
   id: number; userId: number; firstName: string; lastName: string; phone: string; packageCode: WalletTopUpPackageCode;
   amountAzn: number; coinAmount: number; currency: "AZN"; status: WalletTopUpRequestStatus; clickedAt: string;
   receiptDeadlineAt: string; receiptUploadedAt: string | null; receiptAttachmentId: number | null; receiptMediaType: string | null;
-  receiptSizeBytes: number | null; reviewedAt: string | null; resolutionNote: string | null;
+  receiptSizeBytes: number | null; confirmedFraudCount: number; fraudCountAfter: number | null;
+  reviewedAt: string | null; resolutionNote: string | null;
 };
 export type AdminTopUpRequestPage = { items: AdminTopUpRequest[]; page: number; size: number; hasNext: boolean };
 export type AdminSupportRequest = {
@@ -682,7 +692,7 @@ export type AdminPlatformOverview = {
 
 export type AdminUser = {
   id: number; firstName: string; lastName: string; phone: string; status: UserStatus;
-  coinBalance: number; createdAt: string;
+  coinBalance: number; confirmedWalletFraudCount: number; createdAt: string;
 };
 
 export type AdminUserPage = {

@@ -22,6 +22,7 @@ export function walletTransactionLabel(type: WalletTransactionType) {
   const labels: Record<WalletTransactionType, string> = {
     ADMIN_CREDIT: "Admin tərəfindən əlavə edildi",
     TOP_UP: "Balans artırıldı",
+    TOP_UP_REVERSAL: "Balans artırılması geri çəkildi",
     SUBSCRIPTION_PAYMENT: "Abunəlik ödənişi",
     REFUND: "Geri qaytarıldı",
   };

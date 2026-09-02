@@ -12,7 +12,7 @@ import {
   walletTransactionLabel,
   whatsappTopUpUrl,
 } from "../../features/wallet/walletFormatters";
-import type { WalletTopUpPackageCode } from "../../shared/api/contracts";
+import type { WalletTopUpPackageCode, WalletTopUpRequestStatus } from "../../shared/api/contracts";
 
 const PACKAGES: Array<{
   code: WalletTopUpPackageCode;
@@ -57,6 +57,10 @@ export function WalletPage() {
       walletApi.uploadReceipt(id, file),
     onSuccess: (data) => {
       queryClient.setQueryData(["wallet-active-top-up"], data);
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["wallet-balance"] }),
+        queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] }),
+      ]);
       setReceipt(null);
     },
   });
@@ -192,7 +196,7 @@ export function WalletPage() {
                 <div className="wallet-receipt-field">
                   <span>Ödəniş çekini yükləyin</span>
                   <FilePicker
-                    accept="image/jpeg,image/png"
+                    accept="image/jpeg,image/png,application/pdf"
                     file={receipt}
                     onChange={setReceipt}
                   />
@@ -208,14 +212,15 @@ export function WalletPage() {
                       Çeki göndər
                     </Button>
                   ) : (
-                    <small>JPG və ya PNG · 30 dəqiqə ərzində</small>
+                    <small>JPG, PNG və ya PDF · maksimum 5 MB · 30 dəqiqə ərzində</small>
                   )}
                   {upload.error ? <small role="alert">{upload.error.message}</small> : null}
                 </div>
               ) : (
                 <p className="wallet-payment__note">
-                  Yeni paket seçmək üçün bu sorğunun təsdiqlənməsini və ya rədd
-                  edilməsini gözləyin.
+                  {active.status === "AUTO_CREDITED_PENDING_REVIEW"
+                    ? "Coin balansınıza əlavə edildi. Çek admin tərəfindən yoxlanılır."
+                    : "Yeni paket seçmək üçün bu sorğunun təsdiqlənməsini və ya rədd edilməsini gözləyin."}
                 </p>
               )}
             </div>
@@ -313,16 +318,20 @@ export function WalletPage() {
     </div>
   );
 }
-function statusLabel(status: string) {
+function statusLabel(status: WalletTopUpRequestStatus) {
   return (
     (
       {
         AWAITING_RECEIPT: "Çek gözlənilir",
         PENDING_REVIEW: "Yoxlanılır",
+        MANUAL_REVIEW: "Admin təsdiqi gözlənilir",
+        AUTO_CREDITED_PENDING_REVIEW: "Coin əlavə edildi, çek yoxlanılır",
         APPROVED: "Təsdiqləndi",
+        VERIFIED: "Ödəniş yoxlanıldı",
         REJECTED: "Rədd edildi",
+        FRAUD_CONFIRMED: "Fırıldaq təsdiqləndi",
         EXPIRED: "Vaxtı bitdi",
-      } as Record<string, string>
+      } satisfies Record<WalletTopUpRequestStatus, string>
     )[status] ?? status
   );
 }

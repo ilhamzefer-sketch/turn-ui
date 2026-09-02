@@ -67,14 +67,29 @@ describe("WalletPage", () => {
   it("locks package buttons while an active receipt request exists", async () => {
     vi.mocked(walletApi.activeTopUpRequest).mockResolvedValueOnce({
       id: 11, packageCode: "AZN_5", amountAzn: 5, coinAmount: 50, currency: "AZN",
-      paymentUrl: "https://cb.birbank.business/pay/active", status: "PENDING_REVIEW",
+      paymentUrl: "https://cb.birbank.business/pay/active", status: "AUTO_CREDITED_PENDING_REVIEW",
       clickedAt: "2026-08-30T12:00:00", receiptDeadlineAt: "2026-08-30T12:30:00",
       receiptUploadedAt: "2026-08-30T12:10:00", receiptUploadOpen: false,
     });
     renderPage();
-    expect(await screen.findByText("Status: Yoxlanılır")).toBeInTheDocument();
+    expect(await screen.findByText("Status: Coin əlavə edildi, çek yoxlanılır")).toBeInTheDocument();
+    expect(screen.getByText("Coin balansınıza əlavə edildi. Çek admin tərəfindən yoxlanılır.")).toBeInTheDocument();
     screen.getAllByRole("button", { name: "Ödə" }).forEach((button) => expect(button).toBeDisabled());
     expect(screen.queryByText("Çeki göndər")).not.toBeInTheDocument();
+  });
+
+  it("allows image and PDF receipt selection", async () => {
+    vi.mocked(walletApi.activeTopUpRequest).mockResolvedValueOnce({
+      id: 12, packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN",
+      paymentUrl: "https://cb.birbank.business/pay/active", status: "AWAITING_RECEIPT",
+      clickedAt: "2026-08-30T12:00:00", receiptDeadlineAt: "2026-08-30T12:30:00",
+      receiptUploadedAt: null, receiptUploadOpen: true,
+    });
+    renderPage();
+
+    const fileInput = await screen.findByLabelText("Fayl seçin");
+    expect(fileInput).toHaveAttribute("accept", "image/jpeg,image/png,application/pdf");
+    expect(screen.getByText("JPG, PNG və ya PDF · maksimum 5 MB · 30 dəqiqə ərzində")).toBeInTheDocument();
   });
 
   it("renders an explicit empty transaction state", async () => {
