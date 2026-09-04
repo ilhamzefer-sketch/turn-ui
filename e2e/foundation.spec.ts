@@ -126,9 +126,7 @@ test("landing detail cards share a restrained desktop hover treatment", async ({
   await businessMedia.hover();
   await expect.poll(() => businessImage.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a)).toBeGreaterThan(1.005);
 
-  const sectorCard = page.getByRole("heading", { name: "Klinika və tibbi qəbul" }).locator("xpath=ancestor::article");
-  await sectorCard.hover();
-  await expect.poll(() => sectorCard.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m42)).toBeLessThan(-1);
+  await expect(page.getByRole("region", { name: "Xidmət sahələri qalereyası" })).toBeAttached();
 });
 
 test("content survives 200 percent text sizing", async ({ page }, testInfo) => {

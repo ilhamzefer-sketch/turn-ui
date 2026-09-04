@@ -6,6 +6,7 @@ import { homeStructuredData } from "../../shared/meta/siteMetadata";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { ArrowIcon } from "../../shared/ui/ArrowIcon";
 import { ButtonLink } from "../../shared/ui/Button";
+import { LandingGallery } from "./LandingGallery";
 
 const customerSteps = [
   { number: "01", title: "Otağı tapın", text: "Biznesi, filialı və ya mütəxəssisi axtarın." },
@@ -17,13 +18,6 @@ const businessCapabilities = [
   "Filial və otaqları bir strukturda qurun",
   "Otaq sahiblərini və iş qrafikini idarə edin",
   "Canlı əməliyyatları və nəticələri izləyin",
-] as const;
-
-const suitableBusinesses = [
-  { title: "Klinika və tibbi qəbul", text: "Pasiyent axınını canlı növbə və əvvəlcədən təyin olunan qəbul saatları ilə idarə edin." },
-  { title: "Gözəllik və şəxsi qulluq", text: "Salon, bərbər və ustalar üçün boş saatları göstərib onlayn rezervasiya qəbul edin." },
-  { title: "Xidmət və qəbul mərkəzləri", text: "Müştərilərin qapıda gözləməsini azaldın, növbənin gedişini real vaxtda göstərin." },
-  { title: "Fərdi mütəxəssislər", text: "Bir otaqdan başlayın, iş qrafikinizi və müştəri qəbulunuzu vahid səhifədə paylaşın." },
 ] as const;
 
 const frequentlyAskedQuestions = [
@@ -168,12 +162,14 @@ export function LandingPage() {
         <div className="landing-journey__layout">
           <figure className="landing-image-card landing-image-card--qr" data-reveal>
             <img
-              src="/landing/qr-live-queue.jpg"
+              src="/landing/qr-live-queue.webp"
+              srcSet="/landing/qr-live-queue-768.webp 768w, /landing/qr-live-queue.webp 1536w"
+              sizes="(min-width: 64rem) 50vw, 100vw"
               width="1536"
               height="1024"
               loading="lazy"
               decoding="async"
-              alt="Telefonla girişdəki QR işarəsinə yaxınlaşaraq canlı növbəyə qoşulma"
+              alt="QR stendi və telefonda növbəyə qoşulma təsdiqinin illüstrativ görünüşü"
             />
             <figcaption>QR kodu oxudun. Ad və nömrənizi yazın. Növbənizi izləyin.</figcaption>
           </figure>
@@ -237,12 +233,14 @@ export function LandingPage() {
 
           <div className="landing-business__media" data-reveal>
             <img
-              src="/landing/multi-room-operations.jpg"
+              src="/landing/multi-room-operations.webp"
+              srcSet="/landing/multi-room-operations-768.webp 768w, /landing/multi-room-operations.webp 1536w"
+              sizes="(min-width: 64rem) 50vw, 100vw"
               width="1536"
               height="1024"
               loading="lazy"
               decoding="async"
-              alt="Bir neçə növbə otağı olan məkanda gündəlik iş axınının idarə edilməsi"
+              alt="Kompüterdə üç otağın növbələrini bir yerdə göstərən illüstrativ idarəetmə paneli"
             />
             <div className="business-insight-card">
               <span>Bugünkü əməliyyat</span>
@@ -254,27 +252,9 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-sectors shell" id="suitable-businesses" aria-labelledby="sectors-title">
-        <div className="landing-section-heading" data-reveal>
-          <p className="eyebrow">Kimlər üçün</p>
-          <h2 id="sectors-title">Onlayn növbə və rezervasiya sistemi kimlər üçün uyğundur?</h2>
-          <p>
-            NövbəTime Azərbaycanda müştəri qəbulu aparan bizneslərə növbəni, boş saatları və
-            gündəlik iş axınını bir platformada idarə etməyə kömək edir.
-          </p>
-        </div>
-        <div className="landing-sectors__grid">
-          {suitableBusinesses.map((business, index) => (
-            <article key={business.title} data-reveal>
-              <span aria-hidden="true">0{index + 1}</span>
-              <h3>{business.title}</h3>
-              <p>{business.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      <LandingGallery />
 
-      <section className="landing-faq" aria-labelledby="faq-title">
+      <section className="landing-faq" id="landing-faq" aria-labelledby="faq-title" tabIndex={-1}>
         <div className="shell landing-faq__grid">
           <div className="landing-section-heading" data-reveal>
             <p className="eyebrow">Aydın cavablar</p>
