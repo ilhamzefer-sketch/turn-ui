@@ -5,11 +5,16 @@ import { AdminPlatformLayout } from "./layouts/AdminPlatformLayout";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { LandingPage } from "./routes/LandingPage";
 import { NotFoundPage } from "./routes/NotFoundPage";
+import { LegacyWalletRedirect } from "./routes/LegacyWalletRedirect";
 import { ProtectedRoute } from "../shared/auth/ProtectedRoute";
 import { PageLoader } from "../shared/ui/PageLoader";
 import { AnonymousRoute } from "../shared/auth/AnonymousRoute";
 
 export const router = createBrowserRouter([
+  {
+    path: "/wallet",
+    element: <LegacyWalletRedirect />,
+  },
   {
     path: "/platform/login",
     HydrateFallback: () => <PageLoader label="Admin girişi açılır..." />,

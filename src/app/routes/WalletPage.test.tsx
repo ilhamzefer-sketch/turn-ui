@@ -4,8 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { walletApi } from "../../shared/api/walletApi";
 import { ApiError } from "../../shared/api/httpClient";
+import { walletApi } from "../../shared/api/walletApi";
 import { WalletPage } from "./WalletPage";
 
 vi.mock("../../shared/meta/usePageMeta", () => ({ usePageMeta: vi.fn() }));
@@ -20,11 +20,11 @@ vi.mock("../../shared/api/walletApi", () => ({
   },
 }));
 
-function renderPage() {
+function renderPage(initialEntry = "/app/wallet") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter><WalletPage /></MemoryRouter>
+      <MemoryRouter initialEntries={[initialEntry]}><WalletPage /></MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -38,58 +38,57 @@ describe("WalletPage", () => {
       maximumCoins: 1_000_000,
       currency: "AZN",
       whatsappUrl: "https://wa.me/message/P63GI5XJ3PQLC1",
-      bankCardEnabled: false,
+      bankCardEnabled: true,
     });
     vi.mocked(walletApi.transactions).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
     vi.mocked(walletApi.activeTopUpRequest).mockRejectedValue(new ApiError(404, "Aktiv sorğu yoxdur.", null));
     vi.mocked(walletApi.createTopUpRequest).mockResolvedValue({
       id: 9, packageCode: "AZN_10", amountAzn: 10, coinAmount: 100, currency: "AZN",
-      paymentUrl: "https://cb.birbank.business/pay/example", status: "AWAITING_RECEIPT",
+      paymentUrl: "https://epoint.az/pay/example", status: "AWAITING_RECEIPT",
       clickedAt: "2026-08-30T12:00:00", receiptDeadlineAt: "2026-08-30T12:30:00",
       receiptUploadedAt: null, receiptUploadOpen: true,
     });
   });
 
-  it("shows only the five fixed packages and creates the selected request", async () => {
+  it("shows package selection without the old payment contact panel", async () => {
     const user = userEvent.setup();
     renderPage();
 
     expect(await screen.findByText("125 coin")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Bank kartı ilə ödəniş et" })).toBeDisabled();
-    expect(screen.getByText("Yaxın zamanda aktiv olacaq")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Ödə" })).toHaveLength(5);
-    expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
-    await user.click(screen.getAllByRole("button", { name: "Ödə" })[2]);
-    expect(walletApi.createTopUpRequest).toHaveBeenCalledWith("AZN_10", expect.anything());
-    expect(await screen.findByRole("link", { name: "Kapital ödəniş səhifəsini aç" })).toHaveAttribute("href", "https://cb.birbank.business/pay/example");
+    expect(screen.getAllByRole("button")).toHaveLength(6);
+    expect(screen.queryByText("Cari sorğu")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bank kartı")).not.toBeInTheDocument();
+    expect(screen.queryByText("WhatsApp ilə müraciət et")).not.toBeInTheDocument();
+
+    await user.click(screen.getByText("50 coin").closest("button")!);
+    expect(screen.getByText("Seçilən paket: 50 coin · 5 ₼")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Epoint ilə ödəniş et 5 ₼" }));
+    expect(walletApi.createTopUpRequest).toHaveBeenCalledWith("AZN_5", expect.anything());
   });
 
-  it("locks package buttons while an active receipt request exists", async () => {
+  it("shows the active payment continuation state without receipt upload", async () => {
     vi.mocked(walletApi.activeTopUpRequest).mockResolvedValueOnce({
       id: 11, packageCode: "AZN_5", amountAzn: 5, coinAmount: 50, currency: "AZN",
-      paymentUrl: "https://cb.birbank.business/pay/active", status: "AUTO_CREDITED_PENDING_REVIEW",
-      clickedAt: "2026-08-30T12:00:00", receiptDeadlineAt: "2026-08-30T12:30:00",
-      receiptUploadedAt: "2026-08-30T12:10:00", receiptUploadOpen: false,
-    });
-    renderPage();
-    expect(await screen.findByText("Status: Coin əlavə edildi, çek yoxlanılır")).toBeInTheDocument();
-    expect(screen.getByText("Coin balansınıza əlavə edildi. Çek admin tərəfindən yoxlanılır.")).toBeInTheDocument();
-    screen.getAllByRole("button", { name: "Ödə" }).forEach((button) => expect(button).toBeDisabled());
-    expect(screen.queryByText("Çeki göndər")).not.toBeInTheDocument();
-  });
-
-  it("allows image and PDF receipt selection", async () => {
-    vi.mocked(walletApi.activeTopUpRequest).mockResolvedValueOnce({
-      id: 12, packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN",
-      paymentUrl: "https://cb.birbank.business/pay/active", status: "AWAITING_RECEIPT",
+      paymentUrl: "https://epoint.az/pay/active", status: "AWAITING_RECEIPT",
       clickedAt: "2026-08-30T12:00:00", receiptDeadlineAt: "2026-08-30T12:30:00",
       receiptUploadedAt: null, receiptUploadOpen: true,
     });
     renderPage();
 
-    const fileInput = await screen.findByLabelText("Fayl seçin");
-    expect(fileInput).toHaveAttribute("accept", "image/jpeg,image/png,application/pdf");
-    expect(screen.getByText("JPG, PNG və ya PDF · maksimum 5 MB · 30 dəqiqə ərzində")).toBeInTheDocument();
+    expect(await screen.findByText("Status: Ödəniş gözlənilir")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ödənişə davam et" })).toHaveAttribute("href", "https://epoint.az/pay/active");
+    expect(screen.queryByText("Çeki göndər")).not.toBeInTheDocument();
+    screen.getAllByRole("button").forEach((button) => expect(button).toBeDisabled());
+  });
+
+  it("renders payment return messages", async () => {
+    const { unmount } = renderPage("/app/wallet?payment=success");
+    expect(await screen.findByText("Ödənişiniz uğurludur. Coin balansınız yeniləndi.")).toBeInTheDocument();
+    unmount();
+
+    renderPage("/app/wallet?payment=failed");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Ödənişiniz uğursuzdur.");
   });
 
   it("renders an explicit empty transaction state", async () => {

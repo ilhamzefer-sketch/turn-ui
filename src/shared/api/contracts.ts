@@ -595,6 +595,8 @@ export type WalletTopUpRequestStatus =
   | "AUTO_CREDITED_PENDING_REVIEW"
   | "APPROVED"
   | "VERIFIED"
+  | "PAID"
+  | "PAYMENT_FAILED"
   | "REJECTED"
   | "FRAUD_CONFIRMED"
   | "EXPIRED";

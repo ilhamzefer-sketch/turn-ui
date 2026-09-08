@@ -1,16 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ApiError } from "../../shared/api/httpClient";
 import { walletApi } from "../../shared/api/walletApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button } from "../../shared/ui/Button";
-import { FilePicker } from "../../shared/ui/FilePicker";
 import {
   aznAmount,
   coinAmount,
   walletTransactionDate,
   walletTransactionLabel,
-  whatsappTopUpUrl,
 } from "../../features/wallet/walletFormatters";
 import type { WalletTopUpPackageCode, WalletTopUpRequestStatus } from "../../shared/api/contracts";
 
@@ -28,7 +27,9 @@ const PACKAGES: Array<{
 
 export function WalletPage() {
   const queryClient = useQueryClient();
-  const [receipt, setReceipt] = useState<File | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedPackage, setSelectedPackage] = useState<WalletTopUpPackageCode>("AZN_10");
+  const paymentResult = searchParams.get("payment");
   const balanceQuery = useQuery({
     queryKey: ["wallet-balance"],
     queryFn: walletApi.balance,
@@ -50,25 +51,36 @@ export function WalletPage() {
     mutationFn: walletApi.createTopUpRequest,
     onSuccess: (data) => {
       queryClient.setQueryData(["wallet-active-top-up"], data);
+      if (data.paymentUrl) {
+        window.location.assign(data.paymentUrl);
+      }
     },
   });
-  const upload = useMutation({
-    mutationFn: ({ id, file }: { id: number; file: File }) =>
-      walletApi.uploadReceipt(id, file),
-    onSuccess: (data) => {
-      queryClient.setQueryData(["wallet-active-top-up"], data);
-      void Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["wallet-balance"] }),
-        queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] }),
-      ]);
-      setReceipt(null);
-    },
-  });
+
   usePageMeta(
-    "Balans — NövbəTime",
-    "Coin balansınızı sabit paketlərlə artırın.",
+    "Balans - NovbeTime",
+    "Coin balansinizi sabit paketlerle artirin.",
     { index: false },
   );
+
+  useEffect(() => {
+    if (paymentResult !== "success" && paymentResult !== "failed") {
+      return;
+    }
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["wallet-balance"] }),
+      queryClient.invalidateQueries({ queryKey: ["wallet-active-top-up"] }),
+      queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] }),
+    ]);
+    const timeout = window.setTimeout(() => {
+      setSearchParams((current) => {
+        current.delete("payment");
+        return current;
+      }, { replace: true });
+    }, 6000);
+    return () => window.clearTimeout(timeout);
+  }, [paymentResult, queryClient, setSearchParams]);
+
   if (
     balanceQuery.isPending ||
     optionsQuery.isPending ||
@@ -76,7 +88,7 @@ export function WalletPage() {
   )
     return (
       <div className="management-state" role="status">
-        Balansınız açılır…
+        Balansınız açılır...
       </div>
     );
   if (balanceQuery.isError || optionsQuery.isError)
@@ -102,8 +114,11 @@ export function WalletPage() {
         <Button onClick={() => void activeQuery.refetch()}>Yenidən yoxla</Button>
       </div>
     );
+
   const active = activeMissing ? null : activeQuery.data;
   const options = optionsQuery.data;
+  const selected = PACKAGES.find((item) => item.code === selectedPackage) ?? PACKAGES[0];
+
   return (
     <div className="wallet-page">
       <header className="wallet-heading">
@@ -123,135 +138,101 @@ export function WalletPage() {
           </small>
         </section>
       </header>
-      <div className="wallet-top-up-grid">
-        <section
-          className="wallet-top-up"
-          aria-labelledby="wallet-top-up-title"
-        >
+
+      {paymentResult === "success" ? (
+        <div className="success-alert" role="status">
+          Ödənişiniz uğurludur. Coin balansınız yeniləndi.
+        </div>
+      ) : null}
+      {paymentResult === "failed" ? (
+        <div className="wallet-field-error" role="alert">
+          Ödənişiniz uğursuzdur.
+        </div>
+      ) : null}
+
+      <div className="wallet-top-up-grid wallet-top-up-grid--single">
+        <section className="wallet-top-up" aria-labelledby="wallet-top-up-title">
           <div>
             <p className="eyebrow">Balansı artır</p>
-            <h2 id="wallet-top-up-title">Sabit paket seçin</h2>
+            <h2 id="wallet-top-up-title">Coin paketi seçin</h2>
             <p className="wallet-copy">
-              Öz məbləğinizi yazmaq mümkün deyil. Paket seçin, Kapital ödəniş
-              səhifəsinə keçin və çeki yükləyin.
+              Məbləğ paketə görə hesablanır. Paketi seçin və Epoint ödəniş
+              səhifəsində kartla tamamlayın; uğurlu ödənişdən sonra coin
+              balansınıza avtomatik əlavə olunur.
             </p>
           </div>
+
           <div className="wallet-package-grid">
-            {PACKAGES.map((item) => (
-              <article
-                className={`wallet-package ${active ? "wallet-package--locked" : ""}`}
-                key={item.code}
-              >
-                <span>{item.amount} ₼</span>
-                <strong>{coinAmount(item.coins)}</strong>
-                <small>{item.code.replace("AZN_", "")} manatlıq paket</small>
-                <Button
+            {PACKAGES.map((item) => {
+              const isSelected = item.code === selectedPackage;
+              return (
+                <button
+                  className={`wallet-package ${isSelected ? "wallet-package--selected" : ""} ${active ? "wallet-package--locked" : ""}`.trim()}
                   disabled={Boolean(active) || create.isPending}
-                  loading={create.isPending && create.variables === item.code}
-                  onClick={() => create.mutate(item.code)}
+                  key={item.code}
+                  onClick={() => setSelectedPackage(item.code)}
+                  type="button"
                 >
-                  Ödə
-                </Button>
-              </article>
-            ))}
+                  <span>{item.amount} ₼</span>
+                  <strong>{coinAmount(item.coins)}</strong>
+                  <small>{item.code.replace("AZN_", "")} manatlıq paket</small>
+                </button>
+              );
+            })}
           </div>
+
+          <div className="wallet-top-up__actions">
+            <Button
+              className="wallet-pay-button"
+              aria-label={`Epoint ilə ödəniş et ${selected.amount} ₼`}
+              disabled={Boolean(active)}
+              loading={create.isPending}
+              onClick={() => create.mutate(selectedPackage)}
+            >
+              <span className="wallet-pay-button__icon" aria-hidden="true">▣</span>
+              <span className="wallet-pay-button__label">Epoint ilə ödəniş et</span>
+              <span className="wallet-pay-button__amount">{selected.amount} ₼</span>
+            </Button>
+            <span>
+              Seçilən paket: {coinAmount(selected.coins)} · {selected.amount} ₼
+            </span>
+          </div>
+
           <p className="wallet-rate">
-            {options.coinsPerAzn} coin = 1 ₼ · Bank kartı ilə ödəniş yaxın
-            zamanda aktiv olacaq.
+            {options.coinsPerAzn} coin = 1 ₼ · Bank kartı ilə ödəniş Epoint
+            vasitəsilə tamamlanır.
           </p>
-        </section>
-        <section
-          className="wallet-payment"
-          aria-labelledby="wallet-payment-title"
-        >
-          <div>
-            <p className="eyebrow">Cari sorğu</p>
-            <h2 id="wallet-payment-title">Ödəniş və çek</h2>
-          </div>
+
           {create.error ? (
             <p className="wallet-field-error" role="alert">
               {create.error.message}
             </p>
           ) : null}
+
           {active ? (
             <div className="wallet-active-request">
               <strong>
-                {coinAmount(active.coinAmount)} üçün {active.amountAzn} ₼
-                sorğu
+                {coinAmount(active.coinAmount)} üçün {active.amountAzn} ₼ sorğu
               </strong>
               <span>Status: {statusLabel(active.status)}</span>
               <small>Ödənişə keçid vaxtı: {formatDate(active.clickedAt)}</small>
-              <small>Çek üçün son vaxt: {formatDate(active.receiptDeadlineAt)}</small>
               {active.paymentUrl ? (
-                <a
-                  className="button button--primary"
-                  href={active.paymentUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Kapital ödəniş səhifəsini aç
+                <a className="button button--primary" href={active.paymentUrl}>
+                  Ödənişə davam et
                 </a>
               ) : null}
-              {active.receiptUploadOpen ? (
-                <div className="wallet-receipt-field">
-                  <span>Ödəniş çekini yükləyin</span>
-                  <FilePicker
-                    accept="image/jpeg,image/png,application/pdf"
-                    file={receipt}
-                    onChange={setReceipt}
-                  />
-                  {receipt ? (
-                    <Button
-                      type="button"
-                      loading={upload.isPending}
-                      disabled={upload.isPending}
-                      onClick={() =>
-                        upload.mutate({ id: active.id, file: receipt })
-                      }
-                    >
-                      Çeki göndər
-                    </Button>
-                  ) : (
-                    <small>JPG, PNG və ya PDF · maksimum 5 MB · 30 dəqiqə ərzində</small>
-                  )}
-                  {upload.error ? <small role="alert">{upload.error.message}</small> : null}
-                </div>
-              ) : (
-                <p className="wallet-payment__note">
-                  {active.status === "AUTO_CREDITED_PENDING_REVIEW"
-                    ? "Coin balansınıza əlavə edildi. Çek admin tərəfindən yoxlanılır."
-                    : "Yeni paket seçmək üçün bu sorğunun təsdiqlənməsini və ya rədd edilməsini gözləyin."}
-                </p>
-              )}
+              <p className="wallet-payment__note">
+                {active.status === "AUTO_CREDITED_PENDING_REVIEW" || active.status === "PAID"
+                  ? "Coin balansınıza əlavə edildi."
+                  : active.status === "PAYMENT_FAILED"
+                    ? "Ödənişiniz uğursuzdur. Yeni paket seçib yenidən cəhd edin."
+                    : "Ödəniş tamamlandıqdan sonra coin balansınıza avtomatik əlavə olunacaq."}
+              </p>
             </div>
-          ) : (
-            <p className="wallet-payment__note">
-              Paket seçdikdən sonra ödəniş keçidi və çek yükləmə sahəsi burada
-              görünəcək.
-            </p>
-          )}
-          <article className="wallet-method wallet-method--disabled">
-            <div className="wallet-method__heading">
-              <span className="wallet-method__mark" aria-hidden="true">
-                ▭
-              </span>
-              <div>
-                <strong>Bank kartı</strong>
-                <span>Yaxın zamanda aktiv olacaq</span>
-              </div>
-            </div>
-            <Button disabled>Bank kartı ilə ödəniş et</Button>
-          </article>
-          <a
-            className="button button--secondary wallet-whatsapp-link"
-            href={whatsappTopUpUrl(options.whatsappUrl, 100, 10)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            WhatsApp ilə müraciət et
-          </a>
+          ) : null}
         </section>
       </div>
+
       <section
         className="wallet-history"
         aria-labelledby="wallet-history-title"
@@ -265,7 +246,7 @@ export function WalletPage() {
         </div>
         {historyQuery.isPending ? (
           <div className="wallet-history__state" role="status">
-            Əməliyyatlar açılır…
+            Əməliyyatlar açılır...
           </div>
         ) : null}
         {historyQuery.isError ? (
@@ -289,7 +270,7 @@ export function WalletPage() {
                   className={`wallet-transaction__mark wallet-transaction__mark--${transaction.direction.toLowerCase()}`}
                   aria-hidden="true"
                 >
-                  {transaction.direction === "CREDIT" ? "+" : "−"}
+                  {transaction.direction === "CREDIT" ? "+" : "-"}
                 </div>
                 <div className="wallet-transaction__detail">
                   <strong>{walletTransactionLabel(transaction.type)}</strong>
@@ -305,7 +286,7 @@ export function WalletPage() {
                 </div>
                 <div className="wallet-transaction__amount">
                   <strong>
-                    {transaction.direction === "CREDIT" ? "+" : "−"}
+                    {transaction.direction === "CREDIT" ? "+" : "-"}
                     {coinAmount(transaction.amount)}
                   </strong>
                   <span>Balans: {coinAmount(transaction.balanceAfter)}</span>
@@ -318,16 +299,19 @@ export function WalletPage() {
     </div>
   );
 }
+
 function statusLabel(status: WalletTopUpRequestStatus) {
   return (
     (
       {
-        AWAITING_RECEIPT: "Çek gözlənilir",
+        AWAITING_RECEIPT: "Ödəniş gözlənilir",
         PENDING_REVIEW: "Yoxlanılır",
         MANUAL_REVIEW: "Admin təsdiqi gözlənilir",
         AUTO_CREDITED_PENDING_REVIEW: "Coin əlavə edildi, çek yoxlanılır",
         APPROVED: "Təsdiqləndi",
         VERIFIED: "Ödəniş yoxlanıldı",
+        PAID: "Ödəniş tamamlandı",
+        PAYMENT_FAILED: "Ödəniş alınmadı",
         REJECTED: "Rədd edildi",
         FRAUD_CONFIRMED: "Fırıldaq təsdiqləndi",
         EXPIRED: "Vaxtı bitdi",
@@ -335,6 +319,7 @@ function statusLabel(status: WalletTopUpRequestStatus) {
     )[status] ?? status
   );
 }
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("az-AZ", {
     dateStyle: "medium",
