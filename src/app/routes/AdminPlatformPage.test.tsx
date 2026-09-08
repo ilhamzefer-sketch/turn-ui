@@ -118,12 +118,12 @@ describe("AdminPlatformPage", () => {
     expect(stepSixApi.adminChangeUserPassword).toHaveBeenCalledWith(7, "Changed-safe-2026", "Təsdiqlənmiş müraciət");
   });
 
-  it("requires explicit confirmation before marking a top-up as fraud", async () => {
+  it("shows wallet top-up history with simple payment filters", async () => {
     vi.mocked(stepSixApi.adminTopUps).mockResolvedValueOnce({
       items: [{
-        id: 15, userId: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233",
+        id: 15, userId: 7, firstName: "Aysel", lastName: "Mammadova", phone: "+994501112233",
         packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN",
-        status: "AUTO_CREDITED_PENDING_REVIEW", clickedAt: "2026-08-30T10:00:00",
+        status: "PAID", clickedAt: "2026-08-30T10:00:00",
         receiptDeadlineAt: "2026-08-30T10:30:00", receiptUploadedAt: "2026-08-30T10:05:00",
         receiptAttachmentId: 4, receiptMediaType: "image/png", receiptSizeBytes: 1200,
         confirmedFraudCount: 0, fraudCountAfter: null, reviewedAt: null, resolutionNote: null,
@@ -133,13 +133,19 @@ describe("AdminPlatformPage", () => {
     const user = userEvent.setup();
     renderPage(<AdminPaymentsPage />);
 
-    await screen.findByText("Coin avtomatik əlavə edilib, ödənişi yoxlayın.");
-    await user.type(screen.getByRole("textbox", { name: "Yoxlama qeydi" }), "Ödəniş daxil olmayıb");
-    await user.click(screen.getByRole("button", { name: "Fırıldaq kimi qeyd et" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Coin geri çəkiləcək");
+    const paymentHeading = await screen.findByText(/Aysel Mammadova/);
+    expect(paymentHeading).toBeInTheDocument();
+    const paymentCard = paymentHeading.closest("article");
+    expect(paymentCard).not.toBeNull();
+    expect(paymentCard).toHaveTextContent(/Status:\s*Odenilib/);
+    expect(screen.getByRole("button", { name: "Hamisi" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Odenilib" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ugursuz" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gozleyir" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Firildaq/ })).not.toBeInTheDocument();
     expect(stepSixApi.confirmTopUpFraud).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: "Fırıldaq təsdiqini tamamla" }));
-    expect(stepSixApi.confirmTopUpFraud).toHaveBeenCalledWith(15, "Ödəniş daxil olmayıb");
+    await user.click(screen.getByRole("button", { name: "Ugursuz" }));
+    expect(stepSixApi.adminTopUps).toHaveBeenLastCalledWith("PAYMENT_FAILED");
   });
 });
