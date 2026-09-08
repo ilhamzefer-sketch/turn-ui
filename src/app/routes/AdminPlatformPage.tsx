@@ -104,7 +104,7 @@ function AdminModuleOverviewLinks({ data }: { data: AdminPlatformOverview }) {
     ["/platform/users", "İstifadəçilər", `${data.users} istifadəçi · balans və parol`],
     ["/platform/businesses", "Bizneslər", `${data.businesses} biznes · otaq limitləri`],
     ["/platform/admins", "Admin hesabları", "Giriş icazələrini idarə edin"],
-    ["/platform/payments", "Ödənişlər", "Çekləri yoxlayın və coin əlavə edin"],
+    ["/platform/payments", "Ödənişlər", "Epoint ödəniş history və statuslar"],
     ["/platform/requests", "Müraciətlər", "Problem və tövsiyələr"],
     ["/platform/support", "Yoxlama növbəsi", "Dəstək qərarları"],
   ] as const;
