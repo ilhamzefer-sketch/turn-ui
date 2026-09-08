@@ -1,27 +1,76 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { stepSixApi } from "../../shared/api/stepSixApi";
-import { Button } from "../../shared/ui/Button";
-import { TextAreaField } from "../../shared/ui/TextAreaField";
+import type { WalletTopUpRequestStatus } from "../../shared/api/contracts";
+
+type PaymentFilter = "" | "PAID" | "PAYMENT_FAILED" | "AWAITING_RECEIPT";
+
+const FILTERS: Array<{ value: PaymentFilter; label: string }> = [
+  { value: "", label: "Hamisi" },
+  { value: "PAID", label: "Odenilib" },
+  { value: "PAYMENT_FAILED", label: "Ugursuz" },
+  { value: "AWAITING_RECEIPT", label: "Gozleyir" },
+];
+
+const SUCCESS_STATUSES: WalletTopUpRequestStatus[] = ["PAID", "APPROVED", "VERIFIED"];
+const FAILED_STATUSES: WalletTopUpRequestStatus[] = ["PAYMENT_FAILED", "REJECTED", "FRAUD_CONFIRMED", "EXPIRED"];
+
 export function AdminPaymentQueue() {
+  const [status, setStatus] = useState<PaymentFilter>("");
   const queue = useQuery({
-    queryKey: ["admin-top-ups", "REVIEW_REQUIRED"],
-    queryFn: () => stepSixApi.adminTopUps("REVIEW_REQUIRED"),
+    queryKey: ["admin-top-ups", status],
+    queryFn: () => stepSixApi.adminTopUps(status),
   });
+
+  const summary = useMemo(() => {
+    const items = queue.data?.items ?? [];
+    const today = new Date().toDateString();
+    const paidToday = items.filter((item) =>
+      isPaid(item.status) && new Date(item.clickedAt).toDateString() === today
+    );
+    return {
+      total: items.length,
+      paid: items.filter((item) => isPaid(item.status)).length,
+      failed: items.filter((item) => isFailed(item.status)).length,
+      waiting: items.filter((item) => isWaiting(item.status)).length,
+      paidTodayAmount: paidToday.reduce((sum, item) => sum + item.amountAzn, 0),
+    };
+  }, [queue.data?.items]);
+
   return (
     <section className="insight-panel admin-section" id="admin-payments">
       <div className="admin-section__heading">
         <div>
-          <p className="eyebrow">Balans ödənişləri</p>
-          <h2>Çek yoxlama növbəsi</h2>
-          <p>
-            Avtomatik yatırılmış coin-ləri yoxlayın; risk həddində olan
-            istifadəçilərin coin-lərini isə yalnız təsdiqdən sonra əlavə edin.
-          </p>
+          <p className="eyebrow">Balans odenisleri</p>
+          <h2>Kart ve top-up odenisleri</h2>
+          <p>Istifadecilerin Epoint ile yaratdigi ve tamamladigi coin odenislerini izleyin.</p>
         </div>
       </div>
+
+      <div className="admin-payment-summary" aria-label="Odenis icmali">
+        <strong>{summary.total}</strong><span>gosterilen</span>
+        <strong>{summary.paid}</strong><span>odenilib</span>
+        <strong>{summary.failed}</strong><span>ugursuz</span>
+        <strong>{summary.waiting}</strong><span>gozleyir</span>
+        <strong>{summary.paidTodayAmount} AZN</strong><span>bugun</span>
+      </div>
+
+      <div className="admin-payment-filters" aria-label="Odenis filterleri">
+        {FILTERS.map((filter) => (
+          <button
+            key={filter.value || "all"}
+            type="button"
+            className={filter.value === status ? "is-active" : ""}
+            aria-pressed={filter.value === status}
+            onClick={() => setStatus(filter.value)}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
       {queue.isPending ? (
-        <p role="status">Ödənişlər açılır…</p>
+        <p role="status">Odenisler acilir...</p>
       ) : queue.isError ? (
         <p role="alert">{queue.error.message}</p>
       ) : queue.data?.items.length ? (
@@ -30,129 +79,56 @@ export function AdminPaymentQueue() {
             <PaymentCase
               key={item.id}
               item={item}
-              onDone={() => queue.refetch()}
             />
           ))}
         </div>
       ) : (
-        <p>Gözləyən çek yoxdur.</p>
+        <p>Bu filterde odenis yoxdur.</p>
       )}
     </section>
   );
 }
+
 function PaymentCase({
   item,
-  onDone,
 }: {
   item: Awaited<ReturnType<typeof stepSixApi.adminTopUps>>["items"][number];
-  onDone: () => void;
 }) {
-  const [note, setNote] = useState("");
-  const [confirmingFraud, setConfirmingFraud] = useState(false);
-  const automaticallyCredited = item.status === "AUTO_CREDITED_PENDING_REVIEW";
-  const approve = useMutation({
-    mutationFn: () => stepSixApi.approveTopUp(item.id, note),
-    onSuccess: onDone,
-  });
-  const reject = useMutation({
-    mutationFn: () => stepSixApi.rejectTopUp(item.id, note),
-    onSuccess: onDone,
-  });
-  const fraud = useMutation({
-    mutationFn: () => stepSixApi.confirmTopUpFraud(item.id, note.trim()),
-    onSuccess: onDone,
-  });
-  const openReceipt = async () => {
-    const blob = await stepSixApi.adminTopUpReceipt(item.id);
-    const url = URL.createObjectURL(blob);
-    if (item.receiptMediaType === "application/pdf") {
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `odenis-ceki-${item.id}.pdf`;
-      document.body.append(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
-      return;
-    }
-    window.open(url, "_blank", "noopener,noreferrer");
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  };
   return (
     <article>
       <h3>
-        #{item.id} · {item.firstName} {item.lastName}
+        #{item.id} - {item.firstName} {item.lastName}
       </h3>
       <p>
-        {item.phone} · {item.amountAzn} ₼ · {item.coinAmount} coin ·{" "}
-        {item.packageCode}
+        {item.phone} - {item.amountAzn} AZN - {item.coinAmount} coin - {item.packageCode}
       </p>
       <p>
-        Ödənişə keçid: {formatDate(item.clickedAt)} · Çek:{" "}
-        {item.receiptUploadedAt ? formatDate(item.receiptUploadedAt) : "—"}
+        Status: <strong>{paymentStatusLabel(item.status)}</strong> - Tarix: {formatDate(item.clickedAt)}
       </p>
-      <p>
-        <strong>
-          {automaticallyCredited
-            ? "Coin avtomatik əlavə edilib, ödənişi yoxlayın."
-            : "Coin yalnız admin təsdiqindən sonra əlavə ediləcək."}
-        </strong>
-      </p>
-      <p>Təsdiqlənmiş fırıldaq sayı: <strong>{item.confirmedFraudCount}</strong></p>
-      {item.receiptAttachmentId ? (
-        <Button variant="secondary" onClick={() => void openReceipt()}>
-          {item.receiptMediaType === "application/pdf" ? "PDF çeki endir" : "Çeki aç"}
-        </Button>
-      ) : null}
-      <TextAreaField
-        label={automaticallyCredited ? "Yoxlama qeydi" : "Qərar qeydi / rədd səbəbi"}
-        value={note}
-        onChange={(e) => { setNote(e.target.value); setConfirmingFraud(false); }}
-        required={!automaticallyCredited}
-      />
-      {approve.error || reject.error || fraud.error ? (
-        <p role="alert">{(approve.error ?? reject.error ?? fraud.error)?.message}</p>
-      ) : null}
-      {confirmingFraud ? (
-        <div className="admin-confirm" role="alert">
-          <p>
-            {automaticallyCredited
-              ? "Coin geri çəkiləcək və həmin balansla alınmış təsirlənmiş abunəliklər ləğv ediləcək."
-              : "Bu çek fırıldaq kimi qeydə alınacaq və istifadəçinin sayğacı artırılacaq."}
-          </p>
-          <div>
-            <Button loading={fraud.isPending} onClick={() => fraud.mutate()}>
-              Fırıldaq təsdiqini tamamla
-            </Button>
-            <Button variant="quiet" onClick={() => setConfirmingFraud(false)}>Ləğv et</Button>
-          </div>
-        </div>
-      ) : null}
-      <div>
-        <Button loading={approve.isPending} onClick={() => approve.mutate()}>
-          {automaticallyCredited ? "Ödənişi təsdiqlə" : "Təsdiqlə və coin əlavə et"}
-        </Button>
-        {!automaticallyCredited ? (
-          <Button
-            variant="secondary"
-            disabled={!note.trim() || reject.isPending}
-            loading={reject.isPending}
-            onClick={() => reject.mutate()}
-          >
-            Rədd et
-          </Button>
-        ) : null}
-        <Button
-          variant="secondary"
-          disabled={!note.trim() || fraud.isPending}
-          onClick={() => setConfirmingFraud(true)}
-        >
-          Fırıldaq kimi qeyd et
-        </Button>
-      </div>
+      {item.receiptUploadedAt ? <p>Tamamlanma tarixi: {formatDate(item.receiptUploadedAt)}</p> : null}
+      {item.resolutionNote && isFailed(item.status) ? <p>Qeyd: {item.resolutionNote}</p> : null}
     </article>
   );
 }
+
+function paymentStatusLabel(status: WalletTopUpRequestStatus) {
+  if (isPaid(status)) return "Odenilib";
+  if (isFailed(status)) return "Ugursuz";
+  return "Gozleyir";
+}
+
+function isPaid(status: WalletTopUpRequestStatus) {
+  return SUCCESS_STATUSES.includes(status);
+}
+
+function isFailed(status: WalletTopUpRequestStatus) {
+  return FAILED_STATUSES.includes(status);
+}
+
+function isWaiting(status: WalletTopUpRequestStatus) {
+  return !isPaid(status) && !isFailed(status);
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("az-AZ", {
     dateStyle: "medium",

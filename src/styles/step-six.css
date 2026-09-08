@@ -119,6 +119,14 @@
 .admin-section__heading h2 { margin-bottom: var(--space-2); }
 .admin-section__heading p:not(.eyebrow) { max-width: 48rem; margin: 0; color: var(--color-muted); }
 .admin-section__heading > strong { flex: 0 0 auto; padding: .6rem .85rem; border-radius: var(--radius-pill); background: var(--color-surface-soft); }
+.admin-payment-summary { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); padding: var(--space-4); border: 1px solid var(--color-line); border-radius: var(--radius-medium); background: var(--color-surface-soft); }
+.admin-payment-summary strong { font-size: 1.35rem; }
+.admin-payment-summary span { color: var(--color-muted); font-weight: 700; }
+.admin-payment-filters { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.admin-payment-filters button { min-height: 2.75rem; padding: .7rem 1rem; border: 1px solid var(--color-line); border-radius: var(--radius-pill); color: var(--color-brand-900); background: var(--color-canvas); font: inherit; font-weight: 750; cursor: pointer; }
+.admin-payment-filters button:hover,
+.admin-payment-filters button:focus-visible { border-color: var(--color-brand-600); outline: 3px solid color-mix(in srgb, var(--color-brand-600), transparent 78%); outline-offset: 2px; }
+.admin-payment-filters button.is-active { border-color: var(--color-brand-800); color: white; background: var(--color-brand-800); }
 .admin-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--space-3); max-width: 44rem; }
 .admin-search--users { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; max-width: 62rem; }
 .admin-user-list { display: grid; gap: var(--space-2); }
