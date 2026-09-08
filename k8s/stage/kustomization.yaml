@@ -9,4 +9,4 @@ resources:
 
 images:
   - name: ghcr.io/ilhamzefer-sketch/turn-ui
-    newTag: cc9293a460c128f8e43d0e9e9229c5c0ecd0ee32
+    newTag: ee3f9bd56f4a09a68da730d11d7cdc20629e037e
