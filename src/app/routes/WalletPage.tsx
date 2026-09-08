@@ -167,8 +167,8 @@ export function WalletPage() {
               const isSelected = item.code === selectedPackage;
               return (
                 <button
-                  className={`wallet-package ${isSelected ? "wallet-package--selected" : ""} ${active ? "wallet-package--locked" : ""}`.trim()}
-                  disabled={Boolean(active) || create.isPending}
+                  className={`wallet-package ${isSelected ? "wallet-package--selected" : ""}`.trim()}
+                  disabled={create.isPending}
                   key={item.code}
                   onClick={() => setSelectedPackage(item.code)}
                   type="button"
@@ -185,7 +185,7 @@ export function WalletPage() {
             <Button
               className="wallet-pay-button"
               aria-label={`Epoint ilə ödəniş et ${selected.amount} ₼`}
-              disabled={Boolean(active)}
+              disabled={create.isPending}
               loading={create.isPending}
               onClick={() => create.mutate(selectedPackage)}
             >
@@ -226,7 +226,7 @@ export function WalletPage() {
                   ? "Coin balansınıza əlavə edildi."
                   : active.status === "PAYMENT_FAILED"
                     ? "Ödənişiniz uğursuzdur. Yeni paket seçib yenidən cəhd edin."
-                    : "Ödəniş tamamlandıqdan sonra coin balansınıza avtomatik əlavə olunacaq."}
+                    : "Ödəniş tamamlandıqdan sonra coin balansınıza avtomatik əlavə olunacaq. Link işləmirsə, yeni paket seçib yeni ödəniş yarada bilərsiniz."}
               </p>
             </div>
           ) : null}

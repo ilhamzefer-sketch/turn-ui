@@ -67,7 +67,8 @@ describe("WalletPage", () => {
     expect(walletApi.createTopUpRequest).toHaveBeenCalledWith("AZN_5", expect.anything());
   });
 
-  it("shows the active payment continuation state without receipt upload", async () => {
+  it("lets users replace an active Epoint payment request", async () => {
+    const user = userEvent.setup();
     vi.mocked(walletApi.activeTopUpRequest).mockResolvedValueOnce({
       id: 11, packageCode: "AZN_5", amountAzn: 5, coinAmount: 50, currency: "AZN",
       paymentUrl: "https://epoint.az/pay/active", status: "AWAITING_RECEIPT",
@@ -79,7 +80,9 @@ describe("WalletPage", () => {
     expect(await screen.findByText("Status: Ödəniş gözlənilir")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ödənişə davam et" })).toHaveAttribute("href", "https://epoint.az/pay/active");
     expect(screen.queryByText("Çeki göndər")).not.toBeInTheDocument();
-    screen.getAllByRole("button").forEach((button) => expect(button).toBeDisabled());
+    await user.click(screen.getByText("100 coin").closest("button")!);
+    await user.click(screen.getByRole("button", { name: "Epoint ilə ödəniş et 10 ₼" }));
+    expect(walletApi.createTopUpRequest).toHaveBeenCalledWith("AZN_10", expect.anything());
   });
 
   it("renders payment return messages", async () => {
