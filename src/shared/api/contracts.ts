@@ -586,6 +586,7 @@ export type WalletTopUpOptions = {
   currency: "AZN";
   whatsappUrl: string;
   bankCardEnabled: boolean;
+  packages: WalletTopUpPackage[];
 };
 
 export type WalletTopUpRequestStatus =
@@ -601,6 +602,11 @@ export type WalletTopUpRequestStatus =
   | "FRAUD_CONFIRMED"
   | "EXPIRED";
 export type WalletTopUpPackageCode = "AZN_3" | "AZN_5" | "AZN_10" | "AZN_15" | "AZN_20";
+export type WalletTopUpPackage = {
+  code: WalletTopUpPackageCode;
+  amountAzn: number;
+  coinAmount: number;
+};
 export type WalletTopUpRequest = {
   id: number; packageCode: WalletTopUpPackageCode; amountAzn: number; coinAmount: number; currency: "AZN";
   paymentUrl: string; status: WalletTopUpRequestStatus; clickedAt: string; receiptDeadlineAt: string;

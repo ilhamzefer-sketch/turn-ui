@@ -39,6 +39,13 @@ describe("WalletPage", () => {
       currency: "AZN",
       whatsappUrl: "https://wa.me/message/P63GI5XJ3PQLC1",
       bankCardEnabled: true,
+      packages: [
+        { code: "AZN_3", amountAzn: 0.1, coinAmount: 1 },
+        { code: "AZN_5", amountAzn: 5, coinAmount: 50 },
+        { code: "AZN_10", amountAzn: 10, coinAmount: 100 },
+        { code: "AZN_15", amountAzn: 15, coinAmount: 150 },
+        { code: "AZN_20", amountAzn: 20, coinAmount: 200 },
+      ],
     });
     vi.mocked(walletApi.transactions).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
     vi.mocked(walletApi.activeTopUpRequest).mockRejectedValue(new ApiError(404, "Aktiv sorğu yoxdur.", null));

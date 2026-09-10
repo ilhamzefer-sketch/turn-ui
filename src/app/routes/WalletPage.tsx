@@ -11,18 +11,14 @@ import {
   walletTransactionDate,
   walletTransactionLabel,
 } from "../../features/wallet/walletFormatters";
-import type { WalletTopUpPackageCode, WalletTopUpRequestStatus } from "../../shared/api/contracts";
+import type { WalletTopUpPackage, WalletTopUpPackageCode, WalletTopUpRequestStatus } from "../../shared/api/contracts";
 
-const PACKAGES: Array<{
-  code: WalletTopUpPackageCode;
-  amount: number;
-  coins: number;
-}> = [
-  { code: "AZN_3", amount: 3, coins: 30 },
-  { code: "AZN_5", amount: 5, coins: 50 },
-  { code: "AZN_10", amount: 10, coins: 100 },
-  { code: "AZN_15", amount: 15, coins: 150 },
-  { code: "AZN_20", amount: 20, coins: 200 },
+const FALLBACK_PACKAGES: WalletTopUpPackage[] = [
+  { code: "AZN_3", amountAzn: 3, coinAmount: 30 },
+  { code: "AZN_5", amountAzn: 5, coinAmount: 50 },
+  { code: "AZN_10", amountAzn: 10, coinAmount: 100 },
+  { code: "AZN_15", amountAzn: 15, coinAmount: 150 },
+  { code: "AZN_20", amountAzn: 20, coinAmount: 200 },
 ];
 
 export function WalletPage() {
@@ -62,6 +58,9 @@ export function WalletPage() {
     "Coin balansinizi sabit paketlerle artirin.",
     { index: false },
   );
+
+  const packages = optionsQuery.data?.packages?.length ? optionsQuery.data.packages : FALLBACK_PACKAGES;
+
 
   useEffect(() => {
     if (paymentResult !== "success" && paymentResult !== "failed") {
@@ -117,7 +116,7 @@ export function WalletPage() {
 
   const active = activeMissing ? null : activeQuery.data;
   const options = optionsQuery.data;
-  const selected = PACKAGES.find((item) => item.code === selectedPackage) ?? PACKAGES[0];
+  const selected = packages.find((item) => item.code === selectedPackage) ?? packages[0];
 
   return (
     <div className="wallet-page">
@@ -163,8 +162,8 @@ export function WalletPage() {
           </div>
 
           <div className="wallet-package-grid">
-            {PACKAGES.map((item) => {
-              const isSelected = item.code === selectedPackage;
+            {packages.map((item) => {
+              const isSelected = item.code === selected.code;
               return (
                 <button
                   className={`wallet-package ${isSelected ? "wallet-package--selected" : ""}`.trim()}
@@ -173,9 +172,9 @@ export function WalletPage() {
                   onClick={() => setSelectedPackage(item.code)}
                   type="button"
                 >
-                  <span>{item.amount} ₼</span>
-                  <strong>{coinAmount(item.coins)}</strong>
-                  <small>{item.code.replace("AZN_", "")} manatlıq paket</small>
+                  <span>{formatAznAmount(item.amountAzn)} ₼</span>
+                  <strong>{coinAmount(item.coinAmount)}</strong>
+                  <small>{formatAznAmount(item.amountAzn)} manatlıq paket</small>
                 </button>
               );
             })}
@@ -184,17 +183,17 @@ export function WalletPage() {
           <div className="wallet-top-up__actions">
             <Button
               className="wallet-pay-button"
-              aria-label={`Epoint ilə ödəniş et ${selected.amount} ₼`}
+              aria-label={`Epoint ilə ödəniş et ${formatAznAmount(selected.amountAzn)} ₼`}
               disabled={create.isPending}
               loading={create.isPending}
-              onClick={() => create.mutate(selectedPackage)}
+              onClick={() => create.mutate(selected.code)}
             >
               <span className="wallet-pay-button__icon" aria-hidden="true">▣</span>
               <span className="wallet-pay-button__label">Epoint ilə ödəniş et</span>
-              <span className="wallet-pay-button__amount">{selected.amount} ₼</span>
+              <span className="wallet-pay-button__amount">{formatAznAmount(selected.amountAzn)} ₼</span>
             </Button>
             <span>
-              Seçilən paket: {coinAmount(selected.coins)} · {selected.amount} ₼
+              Seçilən paket: {coinAmount(selected.coinAmount)} · {formatAznAmount(selected.amountAzn)} ₼
             </span>
           </div>
 
@@ -298,6 +297,13 @@ export function WalletPage() {
       </section>
     </div>
   );
+}
+
+function formatAznAmount(value: number) {
+  return new Intl.NumberFormat("az-AZ", {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 function statusLabel(status: WalletTopUpRequestStatus) {
