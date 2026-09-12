@@ -23,25 +23,25 @@ test("business owner reviews operational analytics and downloads Excel", async (
   await expect((await download).suggestedFilename()).toBe("business-10-operations.xlsx");
 });
 
-test("provider sees transparent subscription plans and starts checkout", async ({ page }) => {
+test("provider sees coin pricing and activates a subscription from wallet balance", async ({ page }) => {
   await session(page);
-  await page.route("**/api/subscriptions/plans", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify([{ id: 1, code: "STANDARD_MONTHLY", name: "Standard Monthly", billingPeriod: "MONTHLY", amount: 20, currency: "AZN", roomLimit: 100, employeeLimit: 500 }]) }));
+  await page.route("**/api/subscriptions/plans?**", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify([{ id: 1, code: "STANDARD_MONTHLY", name: "Standard Monthly", billingPeriod: "MONTHLY", amount: 20, currency: "AZN", scopeType: "BUSINESS", coinPrice: 100, roomLimit: 5, employeeLimit: 500 }]) }));
   await page.route("**/api/subscriptions/current?**", (route) => route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ message: "Abunəlik tapılmadı" }) }));
   await page.route("**/api/subscriptions/receipts?**", (route) => route.fulfill({ contentType: "application/json", body: "[]" }));
-  await page.route("**/api/subscriptions/checkout", (route) => route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ id: 5, status: "PENDING", provider: "MOCK", paymentMode: "TEST", amount: 20, currency: "AZN", paymentReference: "PAY-5", checkoutUrl: null, subscription: null, createdAt: "2026-08-20T08:00:00", completedAt: null }) }));
-  await page.route("**/api/subscriptions/payments/5/confirm", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ id: 5, status: "COMPLETED", provider: "MOCK", paymentMode: "TEST", amount: 20, currency: "AZN", paymentReference: "PAY-5", checkoutUrl: null, subscription: null, createdAt: "2026-08-20T08:00:00", completedAt: "2026-08-20T08:00:01" }) }));
+  await page.route("**/api/users/me/wallet", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ balance: 200 }) }));
+  await page.route("**/api/subscriptions/purchase", (route) => route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ paymentId: 5, walletTransactionId: 9, coinsSpent: 100, balanceAfter: 100, paymentReference: "PAY-5", subscription: null, completedAt: "2026-08-20T08:00:01" }) }));
   await page.goto("/app/businesses/10/subscription");
-  await expect(page.getByText("20", { exact: false })).toBeVisible();
-  await page.getByRole("button", { name: "Bu planı seç" }).click();
-  await expect(page.getByRole("heading", { name: "Ödəniş uğurla tamamlandı" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Bu planı seç" })).toBeEnabled();
+  await expect(page.getByText("100 coin", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "100 coin ilə aktiv et" }).click();
+  await expect(page.getByRole("heading", { name: "Abunəlik aktivləşdirildi" })).toBeVisible();
+  await expect(page.getByText("100 coin balansdan çıxıldı. Yeni balansınız 100 coindir.")).toBeVisible();
 });
 
 test("customer creates a manual phone-change support request", async ({ page }) => {
   await session(page);
   await page.route("**/api/support/phone-change-requests", (route) => route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ id: 88, userId: 44, currentPhone: user.phone, requestedPhone: "+994507778899", reason: "Nömrə dəyişib", status: "OPEN", resolutionNote: null, createdAt: user.createdAt, resolvedAt: null }) }));
   await page.goto("/app/support");
-  await page.getByLabel("Yeni telefon nömrəsi").fill("050 777 88 99");
+  await page.getByLabel("Yeni telefon nömrəsi").fill("0507778899");
   await page.getByLabel("Dəyişiklik səbəbi").fill("Nömrə dəyişib");
   await page.getByRole("button", { name: "Telefon dəyişikliyi göndər" }).click();
   await expect(page.getByText("Müraciət #88 qəbul edildi")).toBeVisible();
@@ -56,10 +56,10 @@ test("platform admin logs in and reviews support overview", async ({ page }) => 
   await page.route("**/api/admin/support/account-deletion-requests", (route) => route.fulfill({ contentType: "application/json", body: "[]" }));
   await page.goto("/platform/login");
   await page.getByLabel("Admin istifadəçi adı").fill("admin");
-  await page.getByLabel("Şifrə").fill("secret-password");
+  await page.getByLabel("Şifrə", { exact: true }).fill("secret-password");
   await page.getByRole("button", { name: "Platformaya daxil ol" }).click();
   await expect(page).toHaveURL(/\/platform$/);
-  await expect(page.getByRole("heading", { name: "Platformanın ümumi vəziyyəti" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ümumi vəziyyət" })).toBeVisible();
   await expect(page.getByText("120", { exact: true })).toBeVisible();
 });
 

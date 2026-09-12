@@ -6,6 +6,7 @@ export const walletApi = {
   topUpOptions: () => apiRequest<WalletTopUpOptions>("/api/users/me/wallet/top-up-options"),
   createTopUpRequest: (packageCode: WalletTopUpPackageCode) => apiRequest<WalletTopUpRequest>("/api/users/me/wallet/top-up-requests", { method: "POST", body: JSON.stringify({ packageCode }) }),
   activeTopUpRequest: () => apiRequest<WalletTopUpRequest>("/api/users/me/wallet/top-up-requests/active"),
+  topUpRequest: (requestId: number) => apiRequest<WalletTopUpRequest>(`/api/users/me/wallet/top-up-requests/${requestId}`),
   uploadReceipt: (requestId: number, file: File) => { const body = new FormData(); body.append("file", file); return apiRequest<WalletTopUpRequest>(`/api/users/me/wallet/top-up-requests/${requestId}/receipt`, { method: "POST", body }); },
   transactions: (page = 0, size = 20) => (
     apiRequest<WalletTransactionPage>(`/api/users/me/wallet/transactions?page=${page}&size=${size}`)

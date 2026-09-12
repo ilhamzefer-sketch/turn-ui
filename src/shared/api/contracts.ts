@@ -586,6 +586,7 @@ export type WalletTopUpOptions = {
   currency: "AZN";
   whatsappUrl: string;
   bankCardEnabled: boolean;
+  manualTopUpEnabled: boolean;
   packages: WalletTopUpPackage[];
 };
 
@@ -598,6 +599,7 @@ export type WalletTopUpRequestStatus =
   | "VERIFIED"
   | "PAID"
   | "PAYMENT_FAILED"
+  | "SUPERSEDED"
   | "REJECTED"
   | "FRAUD_CONFIRMED"
   | "EXPIRED";
@@ -609,8 +611,9 @@ export type WalletTopUpPackage = {
 };
 export type WalletTopUpRequest = {
   id: number; packageCode: WalletTopUpPackageCode; amountAzn: number; coinAmount: number; currency: "AZN";
-  paymentUrl: string; status: WalletTopUpRequestStatus; clickedAt: string; receiptDeadlineAt: string;
-  receiptUploadedAt: string | null; receiptUploadOpen: boolean;
+  paymentUrl: string | null; status: WalletTopUpRequestStatus; clickedAt: string; receiptDeadlineAt: string;
+  receiptUploadedAt: string | null; receiptUploadOpen: boolean; paymentProvider: "epoint" | "manual";
+  externalOrderId: string | null; checkoutState: "NOT_REQUIRED" | "PREPARING" | "READY" | "UNKNOWN";
 };
 
 export type WalletTransactionType = "ADMIN_CREDIT" | "TOP_UP" | "TOP_UP_REVERSAL" | "SUBSCRIPTION_PAYMENT" | "REFUND";
@@ -646,12 +649,19 @@ export type UserSupportRequest = {
 export type UserSupportRequestPage = { items: UserSupportRequest[]; page: number; size: number; hasNext: boolean };
 export type AdminTopUpRequest = {
   id: number; userId: number; firstName: string; lastName: string; phone: string; packageCode: WalletTopUpPackageCode;
-  amountAzn: number; coinAmount: number; currency: "AZN"; status: WalletTopUpRequestStatus; clickedAt: string;
+  amountAzn: number; coinAmount: number; currency: "AZN"; paymentProvider: "epoint" | "manual";
+  externalOrderId: string | null; status: WalletTopUpRequestStatus; clickedAt: string;
   receiptDeadlineAt: string; receiptUploadedAt: string | null; receiptAttachmentId: number | null; receiptMediaType: string | null;
   receiptSizeBytes: number | null; confirmedFraudCount: number; fraudCountAfter: number | null;
   reviewedAt: string | null; resolutionNote: string | null;
 };
-export type AdminTopUpRequestPage = { items: AdminTopUpRequest[]; page: number; size: number; hasNext: boolean };
+export type AdminTopUpSummary = {
+  total: number; paid: number; failed: number; waiting: number; paidTodayAmount: number;
+  businessDate: string; timezone: string;
+};
+export type AdminTopUpRequestPage = {
+  items: AdminTopUpRequest[]; page: number; size: number; hasNext: boolean; summary: AdminTopUpSummary;
+};
 export type AdminSupportRequest = {
   id: number; userId: number; firstName: string; lastName: string; phone: string; requestType: UserSupportRequestType;
   message: string; status: UserSupportStatus; attachmentId: number | null; attachmentMediaType: string | null;

@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { AdminTopUpRequest } from "../../shared/api/contracts";
 
 import { authApi } from "../../shared/api/authApi";
 import { stepSixApi } from "../../shared/api/stepSixApi";
@@ -28,6 +29,11 @@ function renderPage(page: ReactNode = <AdminPlatformPage />) {
   return render(<QueryClientProvider client={client}><MemoryRouter><>{page}</></MemoryRouter></QueryClientProvider>);
 }
 
+const paymentSummary = {
+  total: 24, paid: 10, failed: 4, waiting: 10, paidTodayAmount: 18,
+  businessDate: "2026-08-30", timezone: "Asia/Baku",
+};
+
 describe("AdminPlatformPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,8 +45,8 @@ describe("AdminPlatformPage", () => {
     vi.mocked(stepSixApi.adminDisputes).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminPhoneChanges).mockResolvedValue([]);
     vi.mocked(stepSixApi.adminDeletions).mockResolvedValue([]);
-    vi.mocked(stepSixApi.adminTopUps).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
-    vi.mocked(stepSixApi.confirmTopUpFraud).mockResolvedValue({ id: 15, userId: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233", packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN", status: "FRAUD_CONFIRMED", clickedAt: "2026-08-30T10:00:00", receiptDeadlineAt: "2026-08-30T10:30:00", receiptUploadedAt: "2026-08-30T10:05:00", receiptAttachmentId: 4, receiptMediaType: "image/png", receiptSizeBytes: 1200, confirmedFraudCount: 1, fraudCountAfter: 1, reviewedAt: "2026-08-30T10:10:00", resolutionNote: "Ödəniş daxil olmayıb" });
+    vi.mocked(stepSixApi.adminTopUps).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false, summary: paymentSummary });
+    vi.mocked(stepSixApi.confirmTopUpFraud).mockResolvedValue({ id: 15, userId: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233", packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN", paymentProvider: "manual", externalOrderId: null, status: "FRAUD_CONFIRMED", clickedAt: "2026-08-30T10:00:00", receiptDeadlineAt: "2026-08-30T10:30:00", receiptUploadedAt: "2026-08-30T10:05:00", receiptAttachmentId: 4, receiptMediaType: "image/png", receiptSizeBytes: 1200, confirmedFraudCount: 1, fraudCountAfter: 1, reviewedAt: "2026-08-30T10:10:00", resolutionNote: "Ödəniş daxil olmayıb" });
     vi.mocked(stepSixApi.adminSupportRequests).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
     vi.mocked(stepSixApi.adminCreditCoins).mockResolvedValue({ id: 12, type: "ADMIN_CREDIT", direction: "CREDIT", amount: 60, balanceBefore: 40, balanceAfter: 100, actorType: "ADMIN", referenceKey: "admin-credit", description: "Manual əlavə", createdAt: "2026-08-30T12:00:00" });
     vi.mocked(stepSixApi.adminChangeUserPassword).mockResolvedValue(undefined);
@@ -118,17 +124,17 @@ describe("AdminPlatformPage", () => {
     expect(stepSixApi.adminChangeUserPassword).toHaveBeenCalledWith(7, "Changed-safe-2026", "Təsdiqlənmiş müraciət");
   });
 
-  it("shows wallet top-up history with simple payment filters", async () => {
+  it("shows server summaries, grouped filters and payment pagination", async () => {
     vi.mocked(stepSixApi.adminTopUps).mockResolvedValueOnce({
       items: [{
         id: 15, userId: 7, firstName: "Aysel", lastName: "Mammadova", phone: "+994501112233",
-        packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN",
+        packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, currency: "AZN", paymentProvider: "epoint", externalOrderId: "wallet-15-1",
         status: "PAID", clickedAt: "2026-08-30T10:00:00",
         receiptDeadlineAt: "2026-08-30T10:30:00", receiptUploadedAt: "2026-08-30T10:05:00",
         receiptAttachmentId: 4, receiptMediaType: "image/png", receiptSizeBytes: 1200,
         confirmedFraudCount: 0, fraudCountAfter: null, reviewedAt: null, resolutionNote: null,
       }],
-      page: 0, size: 20, hasNext: false,
+      page: 0, size: 20, hasNext: true, summary: paymentSummary,
     });
     const user = userEvent.setup();
     renderPage(<AdminPaymentsPage />);
@@ -137,15 +143,47 @@ describe("AdminPlatformPage", () => {
     expect(paymentHeading).toBeInTheDocument();
     const paymentCard = paymentHeading.closest("article");
     expect(paymentCard).not.toBeNull();
-    expect(paymentCard).toHaveTextContent(/Status:\s*Odenilib/);
-    expect(screen.getByRole("button", { name: "Hamisi" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Odenilib" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Ugursuz" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Gozleyir" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Firildaq/ })).not.toBeInTheDocument();
+    expect(paymentCard).toHaveTextContent("Ödəniş tamamlandı");
+    expect(screen.getByRole("button", { name: "Hamısı" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Ödənilib" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Bağlanıb" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gözləyir" })).toBeInTheDocument();
+    expect(screen.getByText("18,00 ₼")).toBeInTheDocument();
+    expect(screen.getByText("24")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Növbəti səhifə" })).toBeEnabled();
     expect(stepSixApi.confirmTopUpFraud).not.toHaveBeenCalled();
 
-    await user.click(screen.getByRole("button", { name: "Ugursuz" }));
-    expect(stepSixApi.adminTopUps).toHaveBeenLastCalledWith("PAYMENT_FAILED");
+    await user.click(screen.getByRole("button", { name: "Növbəti səhifə" }));
+    expect(stepSixApi.adminTopUps).toHaveBeenLastCalledWith("", 1);
+    await user.click(screen.getByRole("button", { name: "Bağlanıb" }));
+    expect(stepSixApi.adminTopUps).toHaveBeenLastCalledWith("FAILED_GROUP", 0);
+  });
+
+  it("requires a reason and confirmation before rejecting a legacy receipt", async () => {
+    const request: AdminTopUpRequest = {
+      id: 21, userId: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233",
+      packageCode: "AZN_5", amountAzn: 5, coinAmount: 50, currency: "AZN",
+      paymentProvider: "manual", externalOrderId: null, status: "MANUAL_REVIEW",
+      clickedAt: "2026-08-30T10:00:00", receiptDeadlineAt: "2026-08-30T10:30:00",
+      receiptUploadedAt: "2026-08-30T10:05:00", receiptAttachmentId: 4,
+      receiptMediaType: "image/png", receiptSizeBytes: 1200, confirmedFraudCount: 3,
+      fraudCountAfter: null, reviewedAt: null, resolutionNote: null,
+    };
+    vi.mocked(stepSixApi.adminTopUps).mockResolvedValueOnce({
+      items: [request], page: 0, size: 20, hasNext: false, summary: paymentSummary,
+    });
+    vi.mocked(stepSixApi.rejectTopUp).mockResolvedValue({ ...request, status: "REJECTED" });
+    const user = userEvent.setup();
+    renderPage(<AdminPaymentsPage />);
+    const card = (await screen.findByText("Aysel Məmmədova")).closest("article");
+    expect(card).not.toBeNull();
+    const controls = within(card as HTMLElement);
+
+    await user.click(controls.getByRole("button", { name: "Çeki rədd et" }));
+    expect(controls.getByRole("button", { name: "Qərarı təsdiqlə" })).toBeDisabled();
+    expect(stepSixApi.rejectTopUp).not.toHaveBeenCalled();
+    await user.type(controls.getByRole("textbox", { name: "Səbəb" }), "Çekdə məbləğ görünmür");
+    await user.click(controls.getByRole("button", { name: "Qərarı təsdiqlə" }));
+    expect(stepSixApi.rejectTopUp).toHaveBeenCalledWith(21, "Çekdə məbləğ görünmür");
   });
 });

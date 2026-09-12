@@ -67,10 +67,10 @@ test("creates an individual workspace and selects it", async ({ page }) => {
 
   await page.getByRole("button", { name: /Fərdi mütəxəssis/ }).click();
   await page.getByLabel("İş sahəsinin adı").fill("Leyla Studio");
-  await page.getByRole("button", { name: "Fərdi sahə yarat" }).click();
+  await page.getByRole("button", { name: "Davam et" }).click();
 
   await expect(page).toHaveURL(/\/app$/);
-  await expect(page.getByLabel("Aktiv sahə")).toHaveValue("INDIVIDUAL:12");
+  await expect(page.getByRole("button", { name: /Aktiv iş sahəsi/ })).toContainText("Leyla Studio");
   await expect(page.getByText("Leyla Studio aktivdir.")).toBeVisible();
 });
 
@@ -126,9 +126,9 @@ test("manual account recovery explains the support flow and preserves a referenc
   }));
 
   await page.goto("/account-recovery");
-  await page.getByLabel("Hesabın telefon nömrəsi").fill("050 123 45 67");
+  await page.getByLabel("Hesabın telefon nömrəsi").fill("0501234567");
   await page.getByLabel("Ad və soyad").fill("Leyla Məmmədova");
-  await page.getByLabel("Sizinlə əlaqə üçün telefon").fill("050 123 45 67");
+  await page.getByLabel("Sizinlə əlaqə üçün telefon").fill("0501234567");
   await page.getByLabel("Müraciətin izahı").fill("Şifrəmi unutmuşam və hesabı bərpa etmək istəyirəm.");
   await page.getByRole("button", { name: "Müraciəti göndər" }).click();
 

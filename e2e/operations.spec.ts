@@ -28,7 +28,7 @@ test("guest joins a public live queue and receives a private status page", async
   await page.route("**/api/public/live-queue/entries/Q-PRIVATE123", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ publicReference: "Q-PRIVATE123", status: "WAITING", peopleAhead: 2, approximateWaitingMinutes: 60, currentPublicReference: "Q-NOW", acceptingNewEntries: true }) }));
   await page.goto("/rooms/30/live");
   await page.getByLabel("Ad və soyad").fill("Cavid Əlizadə");
-  await page.getByLabel("Telefon nömrəsi").fill("050 555 66 77");
+  await page.getByLabel("Telefon nömrəsi").fill("0505556677");
   await page.getByRole("button", { name: "Qonaq kimi növbəyə qoşul" }).click();
   await expect(page).toHaveURL(/\/queue\/Q-PRIVATE123$/);
   await expect(page.getByText("Q-PRIVATE123")).toBeVisible();

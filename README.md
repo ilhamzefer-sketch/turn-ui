@@ -70,7 +70,7 @@ Step 6 includes:
 - backend-generated Excel report downloads without reconstructing report data in the browser;
 - business and individual-workspace subscription plans, current status and receipt history;
 - coin-wallet subscription activation with 30-coin individual and 100-coin business monthly plans;
-- balance top-up guidance through WhatsApp while the bank-card option remains visibly disabled;
+- Epoint wallet top-ups when card payment is configured, with authenticated payment status and a retained manual receipt flow for legacy requests;
 - audited phone-change and account-deletion support requests;
 - accepted-admin business ownership transfer invitations;
 - room-specific customer blocks and authorized written-rating review;

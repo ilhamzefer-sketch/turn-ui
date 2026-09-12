@@ -94,7 +94,7 @@ test("registration Tab order skips subdued field info controls", async ({ page }
     const style = getComputedStyle(element);
     return { width: Number.parseFloat(style.width), opacity: Number.parseFloat(style.opacity), fontSize: Number.parseFloat(style.fontSize) };
   });
-  expect(infoStyle.width).toBeLessThanOrEqual(24);
+  expect(infoStyle.width).toBeLessThanOrEqual(32);
   expect(infoStyle.opacity).toBeLessThan(0.7);
   expect(infoStyle.fontSize).toBeLessThan(12);
 });

@@ -193,10 +193,16 @@ async function mockManagement(page: Page) {
 
 test.beforeEach(async ({ page }) => mockManagement(page));
 
+async function chooseWorkspace(page: Page, name: string) {
+  await page.getByRole("button", { name: "Aktiv iş sahəsi" }).click();
+  await page.getByRole("listbox", { name: "İş sahəsi seçimi" })
+    .getByRole("option").filter({ hasText: name }).click();
+}
+
 test("business workspace presents the setup sequence and management navigation", async ({ page }, testInfo) => {
   await page.goto("/app");
   await expect(page.locator(".account-summary div").filter({ hasText: "İdarə olunan iş sahələri" })).toContainText("3");
-  await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");
+  await chooseWorkspace(page, business.name);
   await expect(page).toHaveURL(/\/app\/businesses\/10$/);
   await expect(page.getByRole("heading", { name: "Sakit Studio" })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "İş sahəsinin bölmələri" })).toContainText("Filiallar");
@@ -208,14 +214,14 @@ test("business workspace presents the setup sequence and management navigation",
 
 test("active workspace remains selected after a full page refresh", async ({ page }) => {
   await page.goto("/app");
-  await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");
+  await chooseWorkspace(page, business.name);
   await expect(page).toHaveURL(/\/app\/businesses\/10$/);
 
   await page.goto("/app");
-  await expect(page.getByLabel("Aktiv sahə")).toHaveValue("BUSINESS:10");
+  await expect(page.getByRole("button", { name: "Aktiv iş sahəsi" })).toContainText(business.name);
   await page.reload();
 
-  await expect(page.getByLabel("Aktiv sahə")).toHaveValue("BUSINESS:10");
+  await expect(page.getByRole("button", { name: "Aktiv iş sahəsi" })).toContainText(business.name);
   await expect(page.getByText("Sakit Studio aktivdir.")).toBeVisible();
 });
 
@@ -246,7 +252,7 @@ test("workspace cards do not flash before the saved workspace is restored", asyn
 
 test("creates a branch without losing entered management context", async ({ page }) => {
   await page.goto("/app");
-  await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");
+  await chooseWorkspace(page, business.name);
   await page.getByRole("link", { name: "Filiallar", exact: true }).click();
   await page.getByRole("button", { name: "Yeni filial" }).click();
   await page.getByRole("textbox", { name: "Filial adı", exact: true }).fill("Gənclik filialı");
@@ -261,9 +267,9 @@ test("creates a branch without losing entered management context", async ({ page
 test("room management remains usable on a compact viewport and exposes permanent QR", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/app");
-  await page.getByLabel("Aktiv sahə").selectOption("ROOM:30");
+  await chooseWorkspace(page, room.name);
   await expect(page).toHaveURL(/\/app\/rooms\/30\/settings/);
-  await expect(page.getByRole("heading", { name: room.name })).toBeVisible();
+  await expect(page.getByRole("heading", { name: room.name, level: 1 })).toBeVisible();
   await expect(page.getByRole("heading", { name: "QR kodlar" })).toBeVisible();
   await expect(page.getByRole("img", { name: `${room.name} üçün QR kod 1` })).toBeVisible();
   await expect(page.getByText("Onlayn növbə və qəbul sistemi")).toBeVisible();
@@ -342,7 +348,7 @@ test("reset policy error links to and focuses the exact room setting", async ({ 
 
 test("individual workspace opens its only room and returns to its details form after deletion", async ({ page }) => {
   await page.goto("/app");
-  await page.getByLabel("Aktiv sahə").selectOption("INDIVIDUAL:11");
+  await chooseWorkspace(page, individualWorkspace.name);
 
   await expect(page).toHaveURL(/\/app\/individual\/11$/);
   await expect(page.getByRole("heading", { name: individualRoom.name })).toBeVisible();
@@ -445,7 +451,7 @@ test("management navigation and actions survive doubled text", async ({ page }, 
   test.skip(testInfo.project.name === "mobile-chromium", "The wide reflow scenario covers enlarged browser text.");
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/app");
-  await page.getByLabel("Aktiv sahə").selectOption("BUSINESS:10");
+  await chooseWorkspace(page, business.name);
   await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
   await expect(page.getByRole("heading", { name: "Sakit Studio" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Filiallar", exact: true })).toBeVisible();
