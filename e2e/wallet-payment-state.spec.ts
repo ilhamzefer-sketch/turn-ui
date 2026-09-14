@@ -30,9 +30,9 @@ async function walletSession(page: Page, balance = () => 0) {
     userId: 44, balance: balance(), updatedAt: "2026-09-12T08:00:00",
   })));
   await page.route("**/api/users/me/wallet/top-up-options", (route) => route.fulfill(json({
-    coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 1_000_000, currency: "AZN",
+    coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 500, currency: "AZN",
     whatsappUrl: "#", bankCardEnabled: true, manualTopUpEnabled: false,
-    customAmountEnabled: true, minimumAmountAzn: 0.1, maximumAmountAzn: 100000, amountStepAzn: 0.1, packages: [],
+    customAmountEnabled: true, minimumAmountAzn: 0.1, maximumAmountAzn: 50, amountStepAzn: 0.1, packages: [],
   })));
   await page.route("**/api/users/me/wallet/top-up-requests/active", (route) => route.fulfill(json({ message: "Aktiv sorğu yoxdur" }, 404)));
   await page.route("**/api/users/me/wallet/transactions**", (route) => route.fulfill(json({

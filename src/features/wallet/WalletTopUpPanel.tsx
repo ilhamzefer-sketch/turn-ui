@@ -46,8 +46,12 @@ export function WalletTopUpPanel({ options, active, create, upload }: {
               id="wallet-top-up-amount"
               inputMode="decimal"
               min={options.minimumAmountAzn}
+              max={options.maximumAmountAzn}
               onBlur={() => setAmountTouched(true)}
-              onChange={(event) => setAmountText(event.target.value)}
+              onChange={(event) => {
+                const nextValue = sanitizeAmountInput(event.target.value);
+                if (nextValue !== null) setAmountText(nextValue);
+              }}
               placeholder="Məsələn, 7.30"
               step={options.amountStepAzn}
               type="text"
@@ -111,6 +115,14 @@ function ActiveRequest({ active, receipt, setReceipt, upload }: {
 function parseAmount(value: string) {
   const normalized = value.trim().replace(",", ".");
   return /^\d+(?:\.\d{1,2})?$/.test(normalized) ? Number(normalized) : null;
+}
+
+function sanitizeAmountInput(value: string): string | null {
+  const normalized = value.replace(",", ".");
+  if (!/^\d*(?:\.\d{0,2})?$/.test(normalized)) return null;
+  if (!normalized) return "";
+  if (normalized.startsWith(".")) return `0${normalized}`;
+  return normalized.replace(/^0+(?=\d)/, "");
 }
 
 function validateAmount(value: string, amount: number | null, options: WalletTopUpOptions) {

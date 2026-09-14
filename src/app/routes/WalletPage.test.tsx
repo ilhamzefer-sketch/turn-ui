@@ -31,8 +31,8 @@ describe("WalletPage", () => {
     vi.clearAllMocks();
     vi.mocked(walletApi.balance).mockResolvedValue({ userId: 7, balance: 125, updatedAt: "2026-08-30T12:00:00" });
     vi.mocked(walletApi.topUpOptions).mockResolvedValue({
-      coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 1_000_000, currency: "AZN", whatsappUrl: "https://wa.me/message/P63GI5XJ3PQLC1",
-      bankCardEnabled: true, manualTopUpEnabled: false, customAmountEnabled: true, minimumAmountAzn: 0.1, maximumAmountAzn: 100000, amountStepAzn: 0.1, packages: [],
+      coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 500, currency: "AZN", whatsappUrl: "https://wa.me/message/P63GI5XJ3PQLC1",
+      bankCardEnabled: true, manualTopUpEnabled: false, customAmountEnabled: true, minimumAmountAzn: 0.1, maximumAmountAzn: 50, amountStepAzn: 0.1, packages: [],
     });
     vi.mocked(walletApi.transactions).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
     vi.mocked(walletApi.activeTopUpRequest).mockRejectedValue(new ApiError(404, "Aktiv sorğu yoxdur.", null));
@@ -62,6 +62,24 @@ describe("WalletPage", () => {
     expect(input).toHaveValue("0.09");
   });
 
+  it("rejects values above 50 azn", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const input = await screen.findByLabelText("Ödəniş məbləği");
+    await user.type(input, "50.10");
+    await user.tab();
+    expect(screen.getByRole("alert")).toHaveTextContent("Maksimum məbləğ 50 ₼-dir.");
+    expect(screen.getByRole("button", { name: "Ödəniş et" })).toBeDisabled();
+  });
+
+  it("keeps malformed punctuation out of the amount field", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const input = await screen.findByLabelText("Ödəniş məbləği");
+    await user.type(input, ".0.0.0.");
+    expect(input).toHaveValue("0.00");
+  });
+
   it("does not render packages or provider branding in the purchase form", async () => {
     renderPage();
     await screen.findByText("125 coin");
@@ -87,8 +105,8 @@ describe("WalletPage", () => {
 
   it("disables a new payment when custom amounts are unavailable", async () => {
     vi.mocked(walletApi.topUpOptions).mockResolvedValueOnce({
-      coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 1_000_000, currency: "AZN", whatsappUrl: "https://example.com",
-      bankCardEnabled: false, manualTopUpEnabled: false, customAmountEnabled: false, minimumAmountAzn: 0.1, maximumAmountAzn: 100000, amountStepAzn: 0.1, packages: [],
+      coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 500, currency: "AZN", whatsappUrl: "https://example.com",
+      bankCardEnabled: false, manualTopUpEnabled: false, customAmountEnabled: false, minimumAmountAzn: 0.1, maximumAmountAzn: 50, amountStepAzn: 0.1, packages: [],
     });
     renderPage();
     expect(await screen.findByText("Ödəniş xidməti müvəqqəti əlçatan deyil.")).toBeInTheDocument();
