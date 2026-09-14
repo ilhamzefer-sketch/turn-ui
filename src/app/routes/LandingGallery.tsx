@@ -34,7 +34,7 @@ export function LandingGallery() {
     let media: ReturnType<typeof gsap.matchMedia> | null = null;
     const context = gsap.context(() => {
       media = gsap.matchMedia();
-      media.add("(min-width: 64rem) and (min-height: 50rem) and (prefers-reduced-motion: no-preference)", () => {
+      media.add("(min-width: 64rem) and (prefers-reduced-motion: no-preference)", () => {
         section.classList.add("landing-gallery--pinned");
         pinnedRef.current = true;
         const cards = gsap.utils.toArray<HTMLElement>(".landing-gallery__card", track);

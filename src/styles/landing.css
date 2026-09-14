@@ -854,7 +854,7 @@
   cursor: default;
 }
 
-@media (min-width: 64rem) and (min-height: 50rem) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
   .landing-gallery--pinned {
     padding-block: 0;
   }
@@ -862,14 +862,14 @@
   .landing-gallery--pinned .landing-gallery__sticky {
     display: flex;
     height: 100svh;
-    min-height: 50rem;
+    min-height: 0;
     flex-direction: column;
     justify-content: center;
     padding-block: 2rem;
   }
 
   .landing-gallery--pinned .landing-gallery__card img {
-    height: min(48svh, 36rem);
+    height: min(45svh, 36rem);
   }
 
   .landing-gallery--pinned .landing-gallery__rail {

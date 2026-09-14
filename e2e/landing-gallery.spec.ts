@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
 
 test("vertical scrolling moves the gallery both ways and can be skipped", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "chromium", "Desktop scroll narrative.");
-  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.setViewportSize({ width: 1440, height: 720 });
   await page.goto("/");
   const section = page.locator(".landing-gallery");
   const rail = page.locator(".landing-gallery__rail");
