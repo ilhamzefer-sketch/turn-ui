@@ -10,16 +10,18 @@ test("vertical scrolling moves the gallery both ways and can be skipped", async 
   await page.goto("/");
   const section = page.locator(".landing-gallery");
   const rail = page.locator(".landing-gallery__rail");
+  const track = page.locator(".landing-gallery__track");
   await expect(section).toHaveClass(/landing-gallery--pinned/);
   const start = await section.evaluate((element) => window.scrollY + element.getBoundingClientRect().top);
   await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), start);
-  await expect.poll(() => rail.evaluate((element) => element.scrollLeft)).toBeLessThan(2);
+  const initialLeft = await track.evaluate((element) => element.getBoundingClientRect().left);
+  await expect.poll(() => track.evaluate((element, left) => element.getBoundingClientRect().left, initialLeft)).toBeGreaterThan(initialLeft - 2);
   await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), start + 900);
-  await expect.poll(() => rail.evaluate((element) => element.scrollLeft)).toBeGreaterThan(890);
+  await expect.poll(() => track.evaluate((element, left) => element.getBoundingClientRect().left, initialLeft)).toBeLessThan(initialLeft - 890);
   await expect.poll(() => page.locator(".landing-gallery__sticky").evaluate((element) => Math.abs(element.getBoundingClientRect().top))).toBeLessThan(2);
   await page.screenshot({ path: testInfo.outputPath("gallery-desktop.png") });
   await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), start + 200);
-  await expect.poll(() => rail.evaluate((element) => element.scrollLeft)).toBeLessThan(210);
+  await expect.poll(() => track.evaluate((element, left) => Math.abs(element.getBoundingClientRect().left - left), initialLeft)).toBeLessThan(210);
   await rail.focus();
   await page.keyboard.press("End");
   await expect(page.locator(".landing-gallery__count")).toContainText("04 / 04");
@@ -55,7 +57,7 @@ test("motion preference changes reveal every image in a static layout", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
   const section = page.locator(".landing-gallery");
   await expect(section).not.toHaveClass(/landing-gallery--pinned/);
-  await expect(page.locator(".landing-gallery__rail")).toHaveCSS("display", "grid");
+  await expect(page.locator(".landing-gallery__track")).toHaveCSS("display", "grid");
   await expect(page.locator(".landing-gallery__controls")).toBeHidden();
   for (const img of await section.locator("img").all()) {
     await img.scrollIntoViewIfNeeded();

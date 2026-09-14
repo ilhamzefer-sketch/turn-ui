@@ -732,10 +732,8 @@
 
 .landing-gallery__rail {
   position: relative;
-  display: flex;
-  gap: clamp(1rem, 2vw, 2rem);
   overflow-x: auto;
-  padding: 0 var(--gallery-gutter) var(--space-3);
+  padding-bottom: var(--space-3);
   scroll-padding-inline: var(--gallery-gutter);
   scroll-snap-type: x mandatory;
   scrollbar-width: thin;
@@ -745,6 +743,15 @@
 .landing-gallery__rail:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: -3px;
+}
+
+.landing-gallery__track {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  align-items: stretch;
+  gap: clamp(1rem, 2vw, 2rem);
+  padding-inline: var(--gallery-gutter);
 }
 
 .landing-gallery__card {
@@ -853,8 +860,6 @@
   }
 
   .landing-gallery--pinned .landing-gallery__sticky {
-    position: sticky;
-    top: 0;
     display: flex;
     height: 100svh;
     min-height: 50rem;
@@ -871,6 +876,10 @@
     flex-shrink: 0;
     overflow-x: hidden;
     scroll-snap-type: none;
+  }
+
+  .landing-gallery--pinned .landing-gallery__track {
+    will-change: transform;
   }
 }
 
@@ -904,10 +913,16 @@
 
 @media (prefers-reduced-motion: reduce) {
   .landing-gallery__rail {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     overflow: visible;
     scroll-snap-type: none;
+  }
+
+  .landing-gallery__track {
+    display: grid;
+    width: auto;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 2rem);
   }
 
   .landing-gallery__controls {
@@ -916,7 +931,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) and (max-width: 47.99rem) {
-  .landing-gallery__rail {
+  .landing-gallery__track {
     grid-template-columns: minmax(0, 1fr);
   }
 }
