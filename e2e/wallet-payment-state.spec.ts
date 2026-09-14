@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const baseRequest = {
-  id: 9, packageCode: "AZN_10", amountAzn: 10, coinAmount: 100, currency: "AZN",
+  id: 9, packageCode: null, amountAzn: 10, coinAmount: 100, currency: "AZN",
   paymentUrl: null, status: "AWAITING_RECEIPT", paymentProvider: "epoint",
   externalOrderId: "wallet-9-1", checkoutState: "READY",
   clickedAt: "2026-09-12T12:00:00", receiptDeadlineAt: "2026-09-12T12:30:00",
@@ -32,14 +32,14 @@ async function walletSession(page: Page, balance = () => 0) {
   await page.route("**/api/users/me/wallet/top-up-options", (route) => route.fulfill(json({
     coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 1_000_000, currency: "AZN",
     whatsappUrl: "#", bankCardEnabled: true, manualTopUpEnabled: false,
-    packages: [{ code: "AZN_5", amountAzn: 5, coinAmount: 50 }, { code: "AZN_10", amountAzn: 10, coinAmount: 100 }],
+    customAmountEnabled: true, minimumAmountAzn: 0.1, maximumAmountAzn: 100000, amountStepAzn: 0.1, packages: [],
   })));
   await page.route("**/api/users/me/wallet/top-up-requests/active", (route) => route.fulfill(json({ message: "Aktiv sorğu yoxdur" }, 404)));
   await page.route("**/api/users/me/wallet/transactions**", (route) => route.fulfill(json({
     items: balance() ? [{
       id: 1, type: "TOP_UP", direction: "CREDIT", amount: 100, balanceBefore: 0,
       balanceAfter: 100, actorType: "SYSTEM", referenceKey: "top-up-request:9",
-      description: "Epoint ödənişi", createdAt: "2026-09-12T12:02:00",
+      description: "Kart ödənişi", createdAt: "2026-09-12T12:02:00",
     }] : [], page: 0, size: 20, hasNext: false,
   })));
 }
@@ -48,11 +48,10 @@ test("wallet controls stay usable on mobile with enlarged text", async ({ page }
   await walletSession(page);
   await page.goto("/app/wallet");
   await expect(page.getByRole("heading", { name: "Balansınız" })).toBeVisible();
-  const five = page.getByRole("radio", { name: "5 ₼ · 50 coin" });
-  await five.click();
-  await expect(five).toHaveAttribute("aria-checked", "true");
+  await page.getByLabel("Ödəniş məbləği").fill("7.30");
+  await expect(page.getByText("73 coin", { exact: true })).toBeVisible();
   await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
-  await expect(page.getByRole("button", { name: "Epoint ilə ödəniş et 5 ₼" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /ödəniş et/i })).toBeVisible();
   const width = await page.evaluate(() => ({
     scroll: document.documentElement.scrollWidth,
     client: document.documentElement.clientWidth,

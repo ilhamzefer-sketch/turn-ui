@@ -43,7 +43,7 @@ export function AdminPaymentQueue() {
         <div>
           <p className="eyebrow">Balans ödənişləri</p>
           <h2>Kart və balans ödənişləri</h2>
-          <p>Epoint ödənişlərini və yoxlama tələb edən köhnə bank çeklərini izləyin.</p>
+          <p>Kart ödənişlərini və yoxlama tələb edən köhnə bank çeklərini izləyin.</p>
         </div>
       </div>
 
@@ -118,7 +118,7 @@ function PaymentCase({ item, review }: { item: AdminTopUpRequest; review: UseMut
       <dl className="admin-payment-card__meta">
         <div><dt>Məbləğ</dt><dd>{formatMoney(item.amountAzn)}</dd></div>
         <div><dt>Coin</dt><dd>{item.coinAmount} coin</dd></div>
-        <div><dt>Üsul</dt><dd>{item.paymentProvider === "epoint" ? "Epoint" : "Bank çeki"}</dd></div>
+        <div><dt>Üsul</dt><dd>{item.paymentProvider === "epoint" ? "Kart ödənişi" : "Bank çeki"}</dd></div>
         <div><dt>Yaradılıb</dt><dd>{formatDate(item.clickedAt)}</dd></div>
         {item.receiptUploadedAt ? <div><dt>Tamamlanıb</dt><dd>{formatDate(item.reviewedAt ?? item.receiptUploadedAt)}</dd></div> : null}
         {item.externalOrderId ? <div><dt>Sifariş</dt><dd>{item.externalOrderId}</dd></div> : null}

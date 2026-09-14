@@ -588,6 +588,10 @@ export type WalletTopUpOptions = {
   bankCardEnabled: boolean;
   manualTopUpEnabled: boolean;
   packages: WalletTopUpPackage[];
+  customAmountEnabled: boolean;
+  minimumAmountAzn: number;
+  maximumAmountAzn: number;
+  amountStepAzn: number;
 };
 
 export type WalletTopUpRequestStatus =
@@ -610,7 +614,7 @@ export type WalletTopUpPackage = {
   coinAmount: number;
 };
 export type WalletTopUpRequest = {
-  id: number; packageCode: WalletTopUpPackageCode; amountAzn: number; coinAmount: number; currency: "AZN";
+  id: number; packageCode: WalletTopUpPackageCode | null; amountAzn: number; coinAmount: number; currency: "AZN";
   paymentUrl: string | null; status: WalletTopUpRequestStatus; clickedAt: string; receiptDeadlineAt: string;
   receiptUploadedAt: string | null; receiptUploadOpen: boolean; paymentProvider: "epoint" | "manual";
   externalOrderId: string | null; checkoutState: "NOT_REQUIRED" | "PREPARING" | "READY" | "UNKNOWN";
@@ -648,7 +652,7 @@ export type UserSupportRequest = {
 };
 export type UserSupportRequestPage = { items: UserSupportRequest[]; page: number; size: number; hasNext: boolean };
 export type AdminTopUpRequest = {
-  id: number; userId: number; firstName: string; lastName: string; phone: string; packageCode: WalletTopUpPackageCode;
+  id: number; userId: number; firstName: string; lastName: string; phone: string; packageCode: WalletTopUpPackageCode | null;
   amountAzn: number; coinAmount: number; currency: "AZN"; paymentProvider: "epoint" | "manual";
   externalOrderId: string | null; status: WalletTopUpRequestStatus; clickedAt: string;
   receiptDeadlineAt: string; receiptUploadedAt: string | null; receiptAttachmentId: number | null; receiptMediaType: string | null;

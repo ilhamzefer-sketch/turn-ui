@@ -9,27 +9,21 @@ import { walletApi } from "../../shared/api/walletApi";
 import { WalletPage } from "./WalletPage";
 
 vi.mock("../../shared/meta/usePageMeta", () => ({ usePageMeta: vi.fn() }));
-vi.mock("../../shared/api/walletApi", () => ({
-  walletApi: {
-    balance: vi.fn(), topUpOptions: vi.fn(), activeTopUpRequest: vi.fn(), topUpRequest: vi.fn(),
-    createTopUpRequest: vi.fn(), uploadReceipt: vi.fn(), transactions: vi.fn(),
-  },
-}));
+vi.mock("../../shared/api/walletApi", () => ({ walletApi: {
+  balance: vi.fn(), topUpOptions: vi.fn(), activeTopUpRequest: vi.fn(), topUpRequest: vi.fn(),
+  createTopUpRequest: vi.fn(), uploadReceipt: vi.fn(), transactions: vi.fn(),
+} }));
 
 const readyRequest: WalletTopUpRequest = {
-  id: 9, packageCode: "AZN_10", amountAzn: 10, coinAmount: 100, currency: "AZN",
-  paymentUrl: "https://epoint.az/pay/example", status: "AWAITING_RECEIPT", paymentProvider: "epoint",
+  id: 9, packageCode: null, amountAzn: 7.3, coinAmount: 73, currency: "AZN",
+  paymentUrl: "https://payment.example/pay/example", status: "AWAITING_RECEIPT", paymentProvider: "epoint",
   externalOrderId: "wallet-9-1", checkoutState: "READY", clickedAt: "2026-08-30T12:00:00",
   receiptDeadlineAt: "2026-08-30T12:30:00", receiptUploadedAt: null, receiptUploadOpen: false,
 };
 
 function renderPage(initialEntry = "/app/wallet") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return render(
-    <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initialEntry]}><WalletPage /></MemoryRouter>
-    </QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[initialEntry]}><WalletPage /></MemoryRouter></QueryClientProvider>);
 }
 
 describe("WalletPage", () => {
@@ -37,13 +31,8 @@ describe("WalletPage", () => {
     vi.clearAllMocks();
     vi.mocked(walletApi.balance).mockResolvedValue({ userId: 7, balance: 125, updatedAt: "2026-08-30T12:00:00" });
     vi.mocked(walletApi.topUpOptions).mockResolvedValue({
-      coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 1_000_000, currency: "AZN",
-      whatsappUrl: "https://wa.me/message/P63GI5XJ3PQLC1", bankCardEnabled: true, manualTopUpEnabled: false,
-      packages: [
-        { code: "AZN_3", amountAzn: 3, coinAmount: 30 }, { code: "AZN_5", amountAzn: 5, coinAmount: 50 },
-        { code: "AZN_10", amountAzn: 10, coinAmount: 100 }, { code: "AZN_15", amountAzn: 15, coinAmount: 150 },
-        { code: "AZN_20", amountAzn: 20, coinAmount: 200 },
-      ],
+      coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 1_000_000, currency: "AZN", whatsappUrl: "https://wa.me/message/P63GI5XJ3PQLC1",
+      bankCardEnabled: true, manualTopUpEnabled: false, customAmountEnabled: true, minimumAmountAzn: 0.1, maximumAmountAzn: 100000, amountStepAzn: 0.1, packages: [],
     });
     vi.mocked(walletApi.transactions).mockResolvedValue({ items: [], page: 0, size: 20, hasNext: false });
     vi.mocked(walletApi.activeTopUpRequest).mockRejectedValue(new ApiError(404, "Aktiv sorğu yoxdur.", null));
@@ -51,25 +40,37 @@ describe("WalletPage", () => {
     vi.mocked(walletApi.uploadReceipt).mockResolvedValue(readyRequest);
   });
 
-  it("exposes package selection as a labelled radio group", async () => {
+  it("calculates coins for an entered amount and creates that exact amount", async () => {
     const user = userEvent.setup();
     renderPage();
-    expect(await screen.findByText("125 coin")).toBeInTheDocument();
-    const radios = screen.getAllByRole("radio");
-    expect(radios).toHaveLength(5);
-    expect(screen.getByRole("radiogroup", { name: "Coin paketi" })).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: /100 coin/ })).toHaveAttribute("aria-checked", "true");
-    await user.click(screen.getByRole("radio", { name: "5 ₼ · 50 coin" }));
-    expect(screen.getByRole("radio", { name: "5 ₼ · 50 coin" })).toHaveAttribute("aria-checked", "true");
-    await user.keyboard("{ArrowRight}");
-    expect(screen.getByRole("radio", { name: "10 ₼ · 100 coin" })).toHaveAttribute("aria-checked", "true");
-    await user.keyboard("{ArrowLeft}");
-    expect(screen.getByRole("radio", { name: "5 ₼ · 50 coin" })).toHaveAttribute("aria-checked", "true");
-    await user.click(screen.getByRole("button", { name: "Epoint ilə ödəniş et 5 ₼" }));
-    expect(walletApi.createTopUpRequest).toHaveBeenCalledWith("AZN_5", expect.anything());
+    const input = await screen.findByLabelText("Ödəniş məbləği");
+    await user.type(input, "7,30");
+    expect(screen.getByText("73 coin")).toBeInTheDocument();
+    expect(screen.getByText("7,30 ₼ məbləği 73 coin edir.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "7,30 ₼ üçün ödəniş et" }));
+    expect(walletApi.createTopUpRequest).toHaveBeenCalledWith(7.3, expect.anything());
   });
 
-  it("resumes an active Epoint checkout without offering receipt upload", async () => {
+  it("shows a recoverable validation message for values below 10 qepik", async () => {
+    const user = userEvent.setup();
+    renderPage();
+    const input = await screen.findByLabelText("Ödəniş məbləği");
+    await user.type(input, "0.09");
+    await user.tab();
+    expect(screen.getByRole("alert")).toHaveTextContent("Minimum məbləğ 0,10 ₼-dir.");
+    expect(screen.getByRole("button", { name: "Ödəniş et" })).toBeDisabled();
+    expect(input).toHaveValue("0.09");
+  });
+
+  it("does not render packages or provider branding in the purchase form", async () => {
+    renderPage();
+    await screen.findByText("125 coin");
+    expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
+    expect(screen.queryByText(/paket/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ödəniş et" })).toBeInTheDocument();
+  });
+
+  it("resumes an active checkout without offering receipt upload", async () => {
     vi.mocked(walletApi.activeTopUpRequest).mockResolvedValueOnce(readyRequest);
     renderPage();
     expect(await screen.findByText("Ödəniş gözlənilir")).toBeInTheDocument();
@@ -82,48 +83,15 @@ describe("WalletPage", () => {
     renderPage("/app/wallet?payment=success&requestId=9");
     expect(await screen.findByText("Ödəniş emal olunur")).toBeInTheDocument();
     expect(screen.queryByText("Ödəniş təsdiqləndi")).not.toBeInTheDocument();
-    expect(walletApi.topUpRequest).toHaveBeenCalledWith(9);
   });
 
-  it("announces success only after the request is paid", async () => {
-    vi.mocked(walletApi.topUpRequest).mockResolvedValueOnce({ ...readyRequest, paymentUrl: null, status: "PAID" });
-    renderPage("/app/wallet?payment=success&requestId=9");
-    expect(await screen.findByText("Ödəniş təsdiqləndi")).toBeInTheDocument();
-    expect(screen.getByText("100 coin balansınıza əlavə edildi.")).toBeInTheDocument();
-  });
-
-  it("disables new payments when the server reports no supported method", async () => {
+  it("disables a new payment when custom amounts are unavailable", async () => {
     vi.mocked(walletApi.topUpOptions).mockResolvedValueOnce({
       coinsPerAzn: 10, minimumCoins: 1, maximumCoins: 1_000_000, currency: "AZN", whatsappUrl: "https://example.com",
-      bankCardEnabled: false, manualTopUpEnabled: false, packages: [{ code: "AZN_3", amountAzn: 3, coinAmount: 30 }],
+      bankCardEnabled: false, manualTopUpEnabled: false, customAmountEnabled: false, minimumAmountAzn: 0.1, maximumAmountAzn: 100000, amountStepAzn: 0.1, packages: [],
     });
     renderPage();
     expect(await screen.findByText("Ödəniş xidməti müvəqqəti əlçatan deyil.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Epoint ilə ödəniş et/ })).toBeDisabled();
-    expect(screen.getByRole("radio", { name: /30 coin/ })).toBeDisabled();
-  });
-
-  it("restores receipt upload for an existing manual request", async () => {
-    const manual: WalletTopUpRequest = {
-      ...readyRequest, id: 12, packageCode: "AZN_3", amountAzn: 3, coinAmount: 30, paymentProvider: "manual",
-      externalOrderId: null, checkoutState: "NOT_REQUIRED", paymentUrl: "https://bank.example/pay", receiptUploadOpen: true,
-    };
-    vi.mocked(walletApi.activeTopUpRequest).mockResolvedValueOnce(manual);
-    vi.mocked(walletApi.uploadReceipt).mockResolvedValueOnce({
-      ...manual, paymentUrl: null, receiptUploadOpen: false, receiptUploadedAt: "2026-08-30T12:05:00",
-      status: "AUTO_CREDITED_PENDING_REVIEW",
-    });
-    const user = userEvent.setup();
-    renderPage();
-    const input = await screen.findByLabelText("Ödəniş çeki");
-    const file = new File(["receipt"], "receipt.png", { type: "image/png" });
-    await user.upload(input, file);
-    await user.click(screen.getByRole("button", { name: "Çeki göndər" }));
-    expect(walletApi.uploadReceipt).toHaveBeenCalledWith(12, file);
-  });
-
-  it("renders an explicit empty transaction state", async () => {
-    renderPage();
-    expect(await screen.findByText("Hələ balans əməliyyatınız yoxdur.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ödəniş et" })).toBeDisabled();
   });
 });

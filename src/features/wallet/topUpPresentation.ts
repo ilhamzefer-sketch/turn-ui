@@ -49,7 +49,7 @@ export function topUpGuidance(request: WalletTopUpRequest) {
     return "Çekiniz qəbul edildi. Yoxlama tamamlanana qədər bu sorğunu açıq saxlayırıq.";
   }
   if (request.status === "PAYMENT_FAILED") {
-    return "Epoint ödənişi uğursuz kimi bildirdi. Yeni ödəniş yarada bilərsiniz.";
+    return "Ödəniş uğursuz oldu. Yeni ödəniş yarada bilərsiniz.";
   }
   if (request.status === "SUPERSEDED") {
     return "Bu sorğu daha yeni ödəniş sorğusu ilə əvəz edilib.";

@@ -14,15 +14,7 @@ import {
   walletTransactionDate,
   walletTransactionLabel,
 } from "../../features/wallet/walletFormatters";
-import type { WalletTopUpPackage, WalletTransactionPage } from "../../shared/api/contracts";
-
-const FALLBACK_PACKAGES: WalletTopUpPackage[] = [
-  { code: "AZN_3", amountAzn: 3, coinAmount: 30 },
-  { code: "AZN_5", amountAzn: 5, coinAmount: 50 },
-  { code: "AZN_10", amountAzn: 10, coinAmount: 100 },
-  { code: "AZN_15", amountAzn: 15, coinAmount: 150 },
-  { code: "AZN_20", amountAzn: 20, coinAmount: 200 },
-];
+import type { WalletTransactionPage } from "../../shared/api/contracts";
 
 export function WalletPage() {
   const queryClient = useQueryClient();
@@ -111,7 +103,6 @@ export function WalletPage() {
   }
 
   const options = optionsQuery.data;
-  const packages = options.packages.length ? options.packages : FALLBACK_PACKAGES;
   const active = activeMissing ? null : (activeQuery.data ?? null);
   const dismissReturn = () => {
     setSearchParams((current) => {
@@ -139,7 +130,7 @@ export function WalletPage() {
       {showReturn ? <WalletReturnNotice requestId={requestId} query={returnedQuery} onDismiss={dismissReturn} /> : null}
 
       <div className="wallet-top-up-grid wallet-top-up-grid--single">
-        <WalletTopUpPanel options={options} packages={packages} active={active} create={create} upload={upload} />
+        <WalletTopUpPanel options={options} active={active} create={create} upload={upload} />
       </div>
 
       <WalletHistory query={historyQuery} />

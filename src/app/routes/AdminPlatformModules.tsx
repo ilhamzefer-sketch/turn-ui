@@ -21,7 +21,7 @@ export function AdminAccountsPage() {
 }
 
 export function AdminPaymentsPage() {
-  return <AdminModulePage eyebrow="Balans modulu" title="Ödənişlər" description="Epoint ilə uğurlu, uğursuz və gözləyən coin ödənişlərini izləyin."><AdminPaymentQueue /></AdminModulePage>;
+  return <AdminModulePage eyebrow="Balans modulu" title="Ödənişlər" description="Uğurlu, uğursuz və gözləyən coin ödənişlərini izləyin."><AdminPaymentQueue /></AdminModulePage>;
 }
 
 export function AdminRequestsPage() {
