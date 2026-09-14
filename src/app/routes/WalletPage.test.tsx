@@ -62,14 +62,18 @@ describe("WalletPage", () => {
     expect(input).toHaveValue("0.09");
   });
 
-  it("rejects values above 50 azn", async () => {
+  it("clamps values above 50 azn and shows the maximum beside the minimum", async () => {
     const user = userEvent.setup();
     renderPage();
     const input = await screen.findByLabelText("Ödəniş məbləği");
+    expect(screen.getByText("Minimum 0,10 ₼ · maksimum 50 ₼ · 0,10 ₼ addımlarla")).toBeInTheDocument();
+    await user.type(input, "90");
+    expect(input).toHaveValue("50");
+    expect(screen.getByText("500 coin")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "50 ₼ üçün ödəniş et" })).toBeEnabled();
+    await user.clear(input);
     await user.type(input, "50.10");
-    await user.tab();
-    expect(screen.getByRole("alert")).toHaveTextContent("Maksimum məbləğ 50 ₼-dir.");
-    expect(screen.getByRole("button", { name: "Ödəniş et" })).toBeDisabled();
+    expect(input).toHaveValue("50");
   });
 
   it("keeps malformed punctuation out of the amount field", async () => {

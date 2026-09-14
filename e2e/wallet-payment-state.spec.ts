@@ -48,7 +48,12 @@ test("wallet controls stay usable on mobile with enlarged text", async ({ page }
   await walletSession(page);
   await page.goto("/app/wallet");
   await expect(page.getByRole("heading", { name: "Balansınız" })).toBeVisible();
-  await page.getByLabel("Ödəniş məbləği").fill("7.30");
+  const amountInput = page.getByLabel("Ödəniş məbləği");
+  await expect(page.getByText(/Minimum 0[.,]10 ₼ · maksimum 50 ₼ · 0[.,]10 ₼ addımlarla/)).toBeVisible();
+  await amountInput.fill("90");
+  await expect(amountInput).toHaveValue("50");
+  await expect(page.getByText("500 coin", { exact: true })).toBeVisible();
+  await amountInput.fill("7.30");
   await expect(page.getByText("73 coin", { exact: true })).toBeVisible();
   await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
   await expect(page.getByRole("button", { name: /ödəniş et/i })).toBeVisible();

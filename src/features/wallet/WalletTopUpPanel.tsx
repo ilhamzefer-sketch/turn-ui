@@ -49,7 +49,7 @@ export function WalletTopUpPanel({ options, active, create, upload }: {
               max={options.maximumAmountAzn}
               onBlur={() => setAmountTouched(true)}
               onChange={(event) => {
-                const nextValue = sanitizeAmountInput(event.target.value);
+                const nextValue = sanitizeAmountInput(event.target.value, options.maximumAmountAzn);
                 if (nextValue !== null) setAmountText(nextValue);
               }}
               placeholder="Məsələn, 7.30"
@@ -60,7 +60,7 @@ export function WalletTopUpPanel({ options, active, create, upload }: {
             <span aria-hidden="true">₼</span>
           </div>
         </label>
-        <p className="wallet-rate" id="wallet-top-up-amount-help">Minimum {formatAznAmount(options.minimumAmountAzn)} ₼ · {formatAznAmount(options.amountStepAzn)} ₼ addımlarla</p>
+        <p className="wallet-rate" id="wallet-top-up-amount-help">Minimum {formatAznAmount(options.minimumAmountAzn)} ₼ · maksimum {formatAznAmount(options.maximumAmountAzn)} ₼ · {formatAznAmount(options.amountStepAzn)} ₼ addımlarla</p>
         {amountTouched && amountError ? <p className="wallet-field-error" id="wallet-top-up-amount-error" role="alert">{amountError}</p> : null}
       </div>
 
@@ -117,11 +117,12 @@ function parseAmount(value: string) {
   return /^\d+(?:\.\d{1,2})?$/.test(normalized) ? Number(normalized) : null;
 }
 
-function sanitizeAmountInput(value: string): string | null {
+function sanitizeAmountInput(value: string, maximumAmountAzn: number): string | null {
   const normalized = value.replace(",", ".");
   if (!/^\d*(?:\.\d{0,2})?$/.test(normalized)) return null;
   if (!normalized) return "";
   if (normalized.startsWith(".")) return `0${normalized}`;
+  if (Number(normalized) > maximumAmountAzn) return formatAznAmount(maximumAmountAzn);
   return normalized.replace(/^0+(?=\d)/, "");
 }
 
