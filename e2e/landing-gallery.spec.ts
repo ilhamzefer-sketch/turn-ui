@@ -15,9 +15,9 @@ test("vertical scrolling moves the gallery both ways and can be skipped", async 
   const start = await section.evaluate((element) => window.scrollY + element.getBoundingClientRect().top);
   await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), start);
   const initialLeft = await track.evaluate((element) => element.getBoundingClientRect().left);
-  await expect.poll(() => track.evaluate((element, left) => element.getBoundingClientRect().left, initialLeft)).toBeGreaterThan(initialLeft - 2);
+  await expect.poll(() => track.evaluate((element, left) => element.getBoundingClientRect().left - left, initialLeft)).toBeGreaterThan(-2);
   await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), start + 900);
-  await expect.poll(() => track.evaluate((element, left) => element.getBoundingClientRect().left, initialLeft)).toBeLessThan(initialLeft - 890);
+  await expect.poll(() => track.evaluate((element, left) => element.getBoundingClientRect().left - left, initialLeft)).toBeLessThan(-890);
   await expect.poll(() => page.locator(".landing-gallery__sticky").evaluate((element) => Math.abs(element.getBoundingClientRect().top))).toBeLessThan(2);
   await page.screenshot({ path: testInfo.outputPath("gallery-desktop.png") });
   await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), start + 200);
