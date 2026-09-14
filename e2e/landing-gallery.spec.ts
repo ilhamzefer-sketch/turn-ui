@@ -67,3 +67,39 @@ test("motion preference changes reveal every image in a static layout", async ({
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   await section.screenshot({ path: testInfo.outputPath("gallery-reduced-motion.png") });
 });
+
+test("gallery stays responsive across viewport sizes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium", "Viewport matrix is covered on desktop Chromium.");
+  const viewports = [
+    { width: 1024, height: 500, pinned: true },
+    { width: 1280, height: 600, pinned: true },
+    { width: 1440, height: 720, pinned: true },
+    { width: 768, height: 1024, pinned: false },
+    { width: 375, height: 812, pinned: false },
+  ];
+
+  for (const viewport of viewports) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto("/");
+    const section = page.locator(".landing-gallery");
+    if (viewport.pinned) {
+      await expect(section).toHaveClass(/landing-gallery--pinned/);
+    } else {
+      await expect(section).not.toHaveClass(/landing-gallery--pinned/);
+    }
+    const metrics = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+      stickyWidth: document.querySelector<HTMLElement>(".landing-gallery__sticky")?.getBoundingClientRect().width ?? 0,
+    }));
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth);
+    expect(metrics.stickyWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+  }
+});
+
+test("deep links keep the FAQ visible after gallery setup", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium", "Deep-link layout is covered on desktop Chromium.");
+  await page.setViewportSize({ width: 1344, height: 717 });
+  await page.goto("/#landing-faq");
+  await expect.poll(() => page.locator("#landing-faq").evaluate((element) => Math.abs(element.getBoundingClientRect().top))).toBeLessThan(5);
+});

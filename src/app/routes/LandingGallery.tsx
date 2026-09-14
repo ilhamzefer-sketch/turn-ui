@@ -82,6 +82,13 @@ export function LandingGallery() {
           gsap.set(track, { clearProps: "transform" });
         };
       });
+
+      if (window.location.hash) {
+        window.requestAnimationFrame(() => {
+          const target = document.getElementById(window.location.hash.slice(1));
+          target?.scrollIntoView({ block: "start", behavior: "instant" });
+        });
+      }
     }, section);
 
     return () => {
