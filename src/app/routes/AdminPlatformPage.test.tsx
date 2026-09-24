@@ -62,6 +62,25 @@ describe("AdminPlatformPage", () => {
     expect(screen.getByRole("link", { name: /Ödənişlər/ })).toHaveAttribute("href", "/platform/payments");
   });
 
+  it("shows registration dates in the user list and preserves the server's newest-first order", async () => {
+    const page = await stepSixApi.adminUsers();
+    const olderUser = page.items[0];
+    vi.mocked(stepSixApi.adminUsers).mockResolvedValue({ ...page, totalElements: 2, items: [
+      { ...olderUser, id: 8, firstName: "Leyla", createdAt: "2026-09-24T10:00:00" },
+      olderUser,
+    ] });
+    renderPage(<AdminUsersPage />);
+    const newest = await screen.findByRole("button", { name: /Leyla Məmmədova/ });
+    const list = newest.parentElement!;
+    const rows = within(list).getAllByRole("button");
+    expect(rows[0]).toBe(newest);
+    expect(rows[1]).toHaveTextContent("Aysel Məmmədova");
+    expect(newest).toHaveTextContent("Qeydiyyat tarixi:");
+    expect(newest.querySelector("time")).toHaveAttribute("datetime", "2026-09-24T10:00:00");
+    expect(newest.querySelector("time")).toHaveTextContent("24.09.2026");
+    expect(screen.getByText("Ən yeni qeydiyyatdan keçənlər əvvəl göstərilir.")).toBeInTheDocument();
+  });
+
   it("requires confirmation and credits the selected user", async () => {
     const user = userEvent.setup();
     renderPage(<AdminUsersPage />);

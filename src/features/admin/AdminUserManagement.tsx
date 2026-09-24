@@ -31,6 +31,7 @@ export function AdminUserManagement() {
   return <section className="insight-panel admin-section" id="admin-users">
     <div className="admin-section__heading"><div><p className="eyebrow">İstifadəçi modulu</p><h2>{selectedUser ? "İstifadəçi məlumatları" : "İstifadəçilər"}</h2><p>{selectedUser ? "Balansı və hesab təhlükəsizliyini bu səhifədən idarə edin." : "Ad, soyad və ya telefon nömrəsi ilə axtarın. Ətraflı məlumat üçün istifadəçini seçin."}</p></div>{users.data ? <strong>{users.data.totalElements} hesab</strong> : null}</div>
     {selectedUser ? <UserDetail user={selectedUser} onBack={() => setSelectedUserId(null)} /> : <>
+      <p>Ən yeni qeydiyyatdan keçənlər əvvəl göstərilir.</p>
       <form className="admin-search admin-search--users" role="search" onSubmit={submitSearch}>
         <TextField label="Ad və soyad" value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder="Məsələn, Ceyhun Ceyhunov" />
         <TextField label="Telefon nömrəsi" value={draftPhone} onChange={(event) => setDraftPhone(event.target.value)} placeholder="Məsələn, +994 50 123 45 67" inputMode="tel" />
@@ -44,7 +45,7 @@ export function AdminUserManagement() {
 
 function UserListItem({ user, onSelect }: { user: AdminUser; onSelect: () => void }) {
   return <button type="button" className="admin-user-list__item" onClick={onSelect}>
-    <span className="admin-user-list__identity"><strong>{user.firstName} {user.lastName}</strong><span>{user.phone}</span></span>
+    <span className="admin-user-list__identity"><strong>{user.firstName} {user.lastName}</strong><span>{user.phone}</span><span>Qeydiyyat tarixi: <time dateTime={user.createdAt}>{new Date(user.createdAt).toLocaleDateString("az-AZ", { day: "2-digit", month: "2-digit", year: "numeric" })}</time></span></span>
     <span className="admin-user-list__action" aria-hidden="true">Ətraflı bax <b>→</b></span>
   </button>;
 }
