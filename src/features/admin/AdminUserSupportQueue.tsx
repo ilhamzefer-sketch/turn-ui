@@ -5,9 +5,10 @@ import { Button } from "../../shared/ui/Button";
 import { SelectField } from "../../shared/ui/SelectField";
 import { TextAreaField } from "../../shared/ui/TextAreaField";
 export function AdminUserSupportQueue() {
+  const [page, setPage] = useState(0);
   const queue = useQuery({
-    queryKey: ["admin-user-support", "all"],
-    queryFn: () => stepSixApi.adminSupportRequests(),
+    queryKey: ["admin-user-support", "all", page],
+    queryFn: () => stepSixApi.adminSupportRequests("", "", page),
   });
   return (
     <section className="insight-panel admin-section" id="admin-user-support">
@@ -29,15 +30,20 @@ export function AdminUserSupportQueue() {
         <div className="admin-case-list">
           {queue.data.items.map((item) => (
             <SupportCase
-              key={item.id}
+              key={`${item.id}:${item.updatedAt}`}
               item={item}
               onDone={() => queue.refetch()}
             />
           ))}
         </div>
       ) : (
-        <p>Açıq istifadəçi müraciəti yoxdur.</p>
+        <p>Bu səhifədə istifadəçi müraciəti yoxdur.</p>
       )}
+      {(page > 0 || queue.data?.hasNext) && <nav className="admin-pagination" aria-label="Müraciət səhifələri">
+        <Button variant="secondary" disabled={page === 0 || queue.isFetching} onClick={() => setPage(page - 1)}>Əvvəlki səhifə</Button>
+        <span>Səhifə {page + 1}</span>
+        <Button variant="secondary" disabled={!queue.data?.hasNext || queue.isFetching} onClick={() => setPage(page + 1)}>Növbəti səhifə</Button>
+      </nav>}
     </section>
   );
 }
@@ -51,9 +57,10 @@ function SupportCase({
   onDone: () => void;
 }) {
   const [status, setStatus] = useState<"IN_REVIEW" | "RESOLVED" | "REJECTED">(
-    "IN_REVIEW",
+    item.status === "OPEN" ? "IN_REVIEW" : item.status,
   );
-  const [response, setResponse] = useState("");
+  const [response, setResponse] = useState(item.adminResponse ?? "");
+  const closed = item.status === "RESOLVED" || item.status === "REJECTED";
   const mutation = useMutation({
     mutationFn: () =>
       stepSixApi.reviewSupportRequest(item.id, status, response),
@@ -72,13 +79,17 @@ function SupportCase({
         {item.firstName} {item.lastName} · {item.phone}
       </p>
       <p>{item.message}</p>
+      <p><strong>Cari status:</strong> {({ OPEN: "Açıq", IN_REVIEW: "Yoxlanılır", RESOLVED: "Həll edildi", REJECTED: "Rədd edildi" })[item.status]}</p>
+      {item.adminResponse && <p><strong>Əvvəlki admin cavabı:</strong> {item.adminResponse}</p>}
       {item.attachmentId ? (
         <Button variant="secondary" onClick={() => void openAttachment()}>
           Əlavəni aç
         </Button>
       ) : null}
+      {!closed && <>
       <SelectField
-        label="Status"
+        disabled={mutation.isPending}
+        label="Yeni status"
         value={status}
         onChange={(e) => setStatus(e.target.value as typeof status)}
       >
@@ -87,14 +98,16 @@ function SupportCase({
         <option value="REJECTED">Rədd edildi</option>
       </SelectField>
       <TextAreaField
+        disabled={mutation.isPending}
         label="Admin cavabı"
         value={response}
         onChange={(e) => setResponse(e.target.value)}
       />
       {mutation.error ? <p role="alert">{mutation.error.message}</p> : null}
-      <Button loading={mutation.isPending} onClick={() => mutation.mutate()}>
+      <Button disabled={status !== "IN_REVIEW" && !response.trim()} loading={mutation.isPending} onClick={() => mutation.mutate()}>
         Yenilə
       </Button>
+      </>}
     </article>
   );
 }

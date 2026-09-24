@@ -9,7 +9,7 @@ import type { AdminTopUpRequest } from "../../shared/api/contracts";
 import { authApi } from "../../shared/api/authApi";
 import { stepSixApi } from "../../shared/api/stepSixApi";
 import { AdminPlatformPage } from "./AdminPlatformPage";
-import { AdminAccountsPage, AdminBusinessesPage, AdminPaymentsPage, AdminUsersPage } from "./AdminPlatformModules";
+import { AdminAccountsPage, AdminBusinessesPage, AdminPaymentsPage, AdminRequestsPage, AdminUsersPage } from "./AdminPlatformModules";
 
 vi.mock("../../shared/meta/usePageMeta", () => ({ usePageMeta: vi.fn() }));
 vi.mock("../../shared/api/authApi", () => ({ authApi: { logout: vi.fn() } }));
@@ -79,6 +79,45 @@ describe("AdminPlatformPage", () => {
     expect(newest.querySelector("time")).toHaveAttribute("datetime", "2026-09-24T10:00:00");
     expect(newest.querySelector("time")).toHaveTextContent("24.09.2026");
     expect(screen.getByText("Ən yeni qeydiyyatdan keçənlər əvvəl göstərilir.")).toBeInTheDocument();
+  });
+
+  it("reuses the coin operation key after a lost response and rotates it after success", async () => {
+    const user = userEvent.setup();
+    vi.mocked(stepSixApi.adminCreditCoins).mockRejectedValueOnce(new Error("Cavab alınmadı"));
+    renderPage(<AdminUsersPage />);
+    await user.click(await screen.findByRole("button", { name: /Aysel Məmmədova/ }));
+    const submit = async () => {
+      await user.type(screen.getByRole("spinbutton", { name: "Əlavə ediləcək coin" }), "60");
+      await user.type(screen.getByRole("textbox", { name: "Əlavə səbəbi" }), "Manual əlavə");
+      await user.click(screen.getByRole("button", { name: "Coin əlavə et" }));
+      await user.click(screen.getByRole("button", { name: "Əlavəni təsdiqlə" }));
+    };
+    await submit();
+    await screen.findByText("Cavab alınmadı");
+    await user.click(screen.getByRole("button", { name: "Əlavəni təsdiqlə" }));
+    await screen.findByText(/Coin əlavə edildi/);
+    const calls = vi.mocked(stepSixApi.adminCreditCoins).mock.calls;
+    expect(calls[1]).toEqual(calls[0]);
+    await submit();
+    expect(calls[2][3]).not.toBe(calls[0][3]);
+  });
+
+  it("paginates requests and shows closed status and previous response without edit controls", async () => {
+    const user = userEvent.setup();
+    const item = { id: 1, userId: 7, firstName: "Aysel", lastName: "Məmmədova", phone: "+994501112233", requestType: "PROBLEM" as const, message: "Problem həll olundu", status: "RESOLVED" as const, attachmentId: null, attachmentMediaType: null, attachmentSizeBytes: null, attachmentFilename: null, adminResponse: "Əvvəlki cavab", reviewedByAdmin: "admin", createdAt: "2026-09-20T10:00:00", updatedAt: "2026-09-24T10:00:00", reviewedAt: "2026-09-24T10:00:00" };
+    vi.mocked(stepSixApi.adminSupportRequests).mockImplementation(async (_type, _status, page = 0) => ({ items: [{ ...item, id: page + 1, message: page === 0 ? "Birinci səhifə" : "İkinci səhifə" }], page, size: 20, hasNext: page === 0 }));
+    renderPage(<AdminRequestsPage />);
+    await screen.findByText("Birinci səhifə");
+    expect(screen.getByText(/Cari status:/).parentElement).toHaveTextContent("Həll edildi");
+    expect(screen.getByText(/Əvvəlki admin cavabı:/).parentElement).toHaveTextContent("Əvvəlki cavab");
+    expect(screen.queryByRole("button", { name: "Yenilə" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Əvvəlki səhifə" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Növbəti səhifə" }));
+    await screen.findByText("İkinci səhifə");
+    expect(stepSixApi.adminSupportRequests).toHaveBeenLastCalledWith("", "", 1);
+    expect(screen.getByRole("button", { name: "Növbəti səhifə" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Əvvəlki səhifə" }));
+    await screen.findByText("Birinci səhifə");
   });
 
   it("requires confirmation and credits the selected user", async () => {
