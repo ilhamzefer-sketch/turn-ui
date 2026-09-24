@@ -98,6 +98,9 @@ export function BusinessOverviewPage() {
   if (businessQuery.isPending) return <ManagementLoading label="Biznes iş sahəsi açılır…" />;
   if (businessQuery.isError) return <ManagementError message={apiMessage(businessQuery.error, "Biznes açıla bilmədi.")} />;
 
+  const summaryQueries = [branchesQuery, roomsQuery, membersQuery];
+  const summaryFailed = summaryQueries.some((query) => query.isError);
+  const summaryPending = summaryQueries.some((query) => query.isPending);
   const business = businessQuery.data;
   const branchCount = branchesQuery.data?.filter((branch) => branch.status === "ACTIVE").length ?? 0;
   const rooms = roomsQuery.data?.filter((room) => room.status !== "ARCHIVED") ?? [];
@@ -113,6 +116,7 @@ export function BusinessOverviewPage() {
         actions={<ButtonLink to={`/app/businesses/${businessId}/branches`}>Filial əlavə et</ButtonLink>}
       />
 
+      {summaryFailed ? <div role="alert"><p>Biznes xülasəsi yüklənmədi. Yenidən cəhd edin.</p><Button loading={summaryQueries.some((query) => query.isFetching)} onClick={() => { void Promise.all(summaryQueries.map((query) => query.refetch())); }}>Yenidən cəhd et</Button></div> : summaryPending ? <ManagementLoading label="Biznes xülasəsi yüklənir…" /> : <>
       <section className="metric-row" aria-label="Biznes xülasəsi">
         <article><span>Filial</span><strong>{branchCount}</strong><p>Aktiv məkan</p></article>
         <article><span>Otaq</span><strong>{rooms.length}</strong><p>{publishedRooms} yayımlanıb</p></article>
@@ -138,6 +142,8 @@ export function BusinessOverviewPage() {
           </li>
         </ol>
       </section>
+
+      </>}
 
       <section className="management-panel" aria-labelledby="business-profile-title">
         <div className="section-heading">

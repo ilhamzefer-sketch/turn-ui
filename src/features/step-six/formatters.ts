@@ -14,3 +14,16 @@ export function planCodeLabel(value: string) {
   } as Record<string, string>)[value] ?? value.replaceAll("_", " ");
 }
 export function shortDate(value: string | null) { return value ? new Intl.DateTimeFormat("az-AZ", { dateStyle: "medium" }).format(new Date(value)) : "—"; }
+
+export function analyticsRangeError(from: string, to: string): string | null {
+  const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+  if (!validDate(from) || !validDate(to)) return "Başlanğıc və son tarixi düzgün daxil edin.";
+  const days = (Date.parse(to) - Date.parse(from)) / 86_400_000;
+  if (days < 0) return "Son tarix başlanğıc tarixindən əvvəl ola bilməz.";
+  if (days > 366) return "Tarix aralığı 366 gündən çox ola bilməz.";
+  return null;
+}
+
+export function weekdayLabel(value: string | null) {
+  return ({ MONDAY: "Bazar ertəsi", TUESDAY: "Çərşənbə axşamı", WEDNESDAY: "Çərşənbə", THURSDAY: "Cümə axşamı", FRIDAY: "Cümə", SATURDAY: "Şənbə", SUNDAY: "Bazar" } as Record<string, string>)[value ?? ""] ?? "Məlumat yoxdur";
+}

@@ -244,7 +244,7 @@ function DisputeCase({
       />
       {mutation.error ? <p role="alert">{mutation.error.message}</p> : null}
       <Button
-        disabled={!note.trim()}
+        disabled={!note.trim() || mutation.isPending}
         loading={mutation.isPending}
         onClick={() => mutation.mutate()}
       >
@@ -282,7 +282,7 @@ function SimpleCase({
       {mutation.error ? <p role="alert">{mutation.error.message}</p> : null}
       <div>
         <Button
-          disabled={!note.trim()}
+          disabled={!note.trim() || mutation.isPending}
           loading={mutation.isPending}
           onClick={() => mutation.mutate(true)}
         >
@@ -290,7 +290,7 @@ function SimpleCase({
         </Button>
         <Button
           variant="secondary"
-          disabled={!note.trim()}
+          disabled={!note.trim() || mutation.isPending}
           onClick={() => mutation.mutate(false)}
         >
           Rədd et

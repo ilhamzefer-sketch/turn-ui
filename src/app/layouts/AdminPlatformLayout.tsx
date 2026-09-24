@@ -27,11 +27,12 @@ export function AdminPlatformLayout() {
   if (overview.isPending) return <main className="admin-platform shell" role="status">Platform məlumatları açılır…</main>;
   if (overview.error instanceof ApiError && overview.error.status === 428) return <Navigate to="/platform/ilk-giris" replace />;
   if (overview.isError) {
+    const sessionError = overview.error instanceof ApiError && [401, 403].includes(overview.error.status);
     return (
       <main className="admin-platform shell">
-        <h1>Admin sessiyası tələb olunur</h1>
+        <h1>{sessionError ? "Admin sessiyası tələb olunur" : "Platform məlumatları yüklənmədi"}</h1>
         <p>{overview.error.message}</p>
-        <NavLink className="button" to="/platform/login">Admin girişinə keç</NavLink>
+        {sessionError ? <NavLink className="button" to="/platform/login">Admin girişinə keç</NavLink> : <Button loading={overview.isFetching} onClick={() => void overview.refetch()}>Yenidən cəhd et</Button>}
       </main>
     );
   }
