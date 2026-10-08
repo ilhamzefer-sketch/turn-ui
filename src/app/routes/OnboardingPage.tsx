@@ -43,7 +43,7 @@ function invitationDate(value: string) {
 }
 
 export function OnboardingPage() {
-  usePageMeta("İş sahəsini seçin — NövbəTime", "NövbəTime hesabınız üçün müştəri, fərdi mütəxəssis və ya biznes iş sahəsi seçin.");
+  usePageMeta("İş sahənizi seçin — NövbəTime", "NövbəTime hesabınızla şəxsi istifadə edin və ehtiyac olduqda iş sahəsi yaradın.");
   const { user } = useAuth();
   const { workspaces, selectWorkspace, refreshWorkspaces } = useWorkspace();
   const navigate = useNavigate();
@@ -107,11 +107,11 @@ export function OnboardingPage() {
       </header>
       <main id="onboarding-content" className="onboarding-main shell">
         <div className="onboarding-intro">
-          <p className="eyebrow">Vahid hesab, fərqli iş sahələri</p>
-          <h1>{mode === "choose" ? "NövbəTime-dan necə istifadə edəcəksiniz?" : mode === "individual" ? "Fərdi iş sahənizi yaradın" : "Biznesinizi yaradın"}</h1>
+          <p className="eyebrow">Bir hesab, bütün işiniz</p>
+          <h1>{mode === "choose" ? "Bu gün nə etmək istəyirsiniz?" : mode === "individual" ? "Fərdi iş sahənizi yaradın" : "Biznes iş sahənizi yaradın"}</h1>
           <p>
             {mode === "choose"
-              ? "İndi birini seçin. Sonradan eyni hesabda başqa biznes və rollar da əlavə edə bilərsiniz."
+              ? "Şəxsi istifadə ilə davam edin və ya işinizi idarə etmək üçün yeni iş sahəsi yaradın. Sonradan eyni hesabdan bütün iş sahələrinizə keçə bilərsiniz."
               : "Bu addım pulsuzdur. Ödəniş yalnız otağı yayımlamaq və növbə qəbul etməyə başlamaq üçün tələb olunur."}
           </p>
         </div>
@@ -119,7 +119,7 @@ export function OnboardingPage() {
         <NotificationEvent tone="error" message={pageError} />
 
         {mode === "choose" ? (
-          <OnboardingChoices
+        <OnboardingChoices
             pendingInvitationCount={pendingInvitationCount}
             onCustomer={() => void continueAsCustomer()}
             onIndividual={() => chooseMode("individual")}
@@ -173,24 +173,24 @@ type OnboardingChoicesProps = {
 
 function OnboardingChoices({ pendingInvitationCount, onCustomer, onIndividual, onBusiness }: OnboardingChoicesProps) {
   return (
-    <section className="onboarding-choices" aria-label="İstifadə növünü seçin">
+    <section className="onboarding-choices" aria-label="İstifadə sahəsini seçin">
       <button type="button" className="choice-card" onClick={onCustomer}>
         <span className="choice-card__number" aria-hidden="true">01</span>
-        <strong>Müştəri kimi davam et</strong>
-        <span>Otaq tapın, canlı növbəyə qoşulun və planlı rezervasiyalarınızı idarə edin.</span>
-        <span className="choice-card__action">Hesabıma keç <span aria-hidden="true">→</span></span>
+        <strong>Şəxsi istifadə</strong>
+        <span>Otaq tapın, canlı növbəyə qoşulun və planlı rezervasiyalarınızı bir yerdən idarə edin.</span>
+        <span className="choice-card__action">Şəxsi sahəyə keç <span aria-hidden="true">→</span></span>
       </button>
       <button type="button" className="choice-card" onClick={onIndividual}>
         <span className="choice-card__number" aria-hidden="true">02</span>
-        <strong>Fərdi mütəxəssis</strong>
-        <span>Özünüz üçün bir növbə otağı və vahid iş təqvimi yaradın.</span>
-        <span className="choice-card__action">Fərdi sahə yarat <span aria-hidden="true">→</span></span>
+        <strong>Fərdi iş sahəsi</strong>
+        <span>Tək işləyirsinizsə, öz qəbul otağınızı və iş təqviminizi yaradın.</span>
+        <span className="choice-card__action">İş sahəsi yarat <span aria-hidden="true">→</span></span>
       </button>
       <button type="button" className="choice-card" onClick={onBusiness}>
         <span className="choice-card__number" aria-hidden="true">03</span>
-        <strong>Biznes</strong>
-        <span>Filiallar, otaqlar və işçilər üçün çoxsahəli idarəetmə mühiti yaradın.</span>
-        <span className="choice-card__action">Biznes yarat <span aria-hidden="true">→</span></span>
+        <strong>Biznes iş sahəsi</strong>
+        <span>Komandanız, filiallarınız və otaqlarınız üçün vahid idarəetmə mühiti yaradın.</span>
+        <span className="choice-card__action">Biznes sahəsi yarat <span aria-hidden="true">→</span></span>
       </button>
       {pendingInvitationCount > 0 ? (
         <a className="onboarding-invitation-link" href="#pending-invitations">

@@ -44,7 +44,7 @@ export function RegisterPage() {
         <div className="auth-card__intro">
           <p className="eyebrow">Vahid hesab</p>
           <h1 id="register-title">NövbəTime-a qoşulun</h1>
-          <p>Bir telefon nömrəsi ilə müştəri, fərdi mütəxəssis və biznes rollarınızı idarə edin.</p>
+          <p>Bir hesab yaradın, şəxsi istifadənizi və iş sahələrinizi eyni yerdən idarə edin.</p>
         </div>
         <div className="auth-card__notice">
           <strong>Sizin üçün əvvəlcədən hesab yaradılıb?</strong>

@@ -51,7 +51,7 @@ export function LoginPage() {
         <div className="auth-card__intro">
           <p className="eyebrow">Yenidən xoş gəlmisiniz</p>
           <h1 id="login-title">Hesabınıza daxil olun</h1>
-          <p>Telefon nömrəniz bütün müştəri və biznes rollarınızı bir hesabda açır.</p>
+          <p>Bir hesabla şəxsi istifadənizə və bütün iş sahələrinizə daxil olun.</p>
         </div>
         <NotificationEvent
           tone="error"
