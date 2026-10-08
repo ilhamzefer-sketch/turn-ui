@@ -47,13 +47,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      await authApi.logout();
-    } finally {
-      queryClient.clear();
-      setUser(null);
-      setStatus("anonymous");
-    }
+    const logoutRequest = authApi.logout();
+    queryClient.clear();
+    setUser(null);
+    setStatus("anonymous");
+    await logoutRequest;
   }, [queryClient]);
 
   useEffect(() => {

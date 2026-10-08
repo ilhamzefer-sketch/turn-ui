@@ -15,6 +15,7 @@ import {
 } from "./httpClient";
 
 const LOGOUT_PENDING_KEY = "novbetime.logout-pending";
+let logoutGeneration = 0;
 
 function setLogoutPending(pending: boolean) {
   try {
@@ -62,6 +63,7 @@ export const authApi = {
       retryAuthentication: false,
     });
     setAccessToken(response.accessToken);
+    logoutGeneration += 1;
     setLogoutPending(false);
     announceApiSessionChange("signed-in");
     return withoutToken(response);
@@ -74,6 +76,7 @@ export const authApi = {
       retryAuthentication: false,
     });
     setAccessToken(response.accessToken);
+    logoutGeneration += 1;
     setLogoutPending(false);
     announceApiSessionChange("signed-in");
     return withoutToken(response);
@@ -89,17 +92,17 @@ export const authApi = {
     return apiRequest<CurrentUser>("/api/users/me", { retryAuthentication: false });
   },
 
-  async logout() {
+  logout() {
+    const generation = ++logoutGeneration;
     setLogoutPending(true);
-    try {
-      await revokeServerSession();
-      setLogoutPending(false);
-    } catch {
-      setLogoutPending(true);
-    } finally {
-      clearApiSession();
-      announceApiSessionChange("signed-out");
-    }
+    clearApiSession();
+    announceApiSessionChange("signed-out");
+    void revokeServerSession()
+      .then(() => {
+        if (logoutGeneration === generation) setLogoutPending(false);
+      })
+      .catch(() => undefined);
+    return Promise.resolve();
   },
 
   session: () => apiRequest<SessionInfo>("/api/auth/session", { retryAuthentication: false }),
