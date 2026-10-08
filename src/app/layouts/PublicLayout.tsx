@@ -9,7 +9,6 @@ export function PublicLayout() {
   const { status, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isAuthenticated = status === "authenticated";
-  const isChecking = status === "idle" || status === "checking";
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -35,17 +34,15 @@ export function PublicLayout() {
             <a href="/#for-business">Biznes üçün</a>
             <a href="/#suitable-businesses">Kimlər üçün</a>
             {isAuthenticated ? <Link to="/app">Hesabım</Link> : null}
-            {!isAuthenticated && !isChecking ? <Link to="/login">Daxil ol</Link> : null}
-            {isChecking ? <span className="auth-link-placeholder" aria-hidden="true" /> : null}
+            {!isAuthenticated ? <Link to="/login">Daxil ol</Link> : null}
           </nav>
           <div className="desktop-actions">
             {isAuthenticated ? (
               <Button variant="quiet" loading={isLoggingOut} onClick={() => void handleLogout()}>Çıxış et</Button>
             ) : null}
-            {!isAuthenticated && !isChecking ? (
+            {!isAuthenticated ? (
               <ButtonLink to="/register" variant="primary">Hesab yarat</ButtonLink>
             ) : null}
-            {isChecking ? <span className="auth-button-placeholder" aria-hidden="true" /> : null}
           </div>
           <details className="mobile-menu">
             <summary aria-label="Menyunu aç">
@@ -62,9 +59,8 @@ export function PublicLayout() {
               {isAuthenticated ? (
                 <Button variant="quiet" loading={isLoggingOut} onClick={() => void handleLogout()}>Çıxış et</Button>
               ) : null}
-              {!isAuthenticated && !isChecking ? <Link to="/login">Daxil ol</Link> : null}
-              {!isAuthenticated && !isChecking ? <ButtonLink to="/register">Hesab yarat</ButtonLink> : null}
-              {isChecking ? <span className="mobile-auth-status">Hesab yoxlanılır…</span> : null}
+              {!isAuthenticated ? <Link to="/login">Daxil ol</Link> : null}
+              {!isAuthenticated ? <ButtonLink to="/register">Hesab yarat</ButtonLink> : null}
             </nav>
           </details>
         </div>

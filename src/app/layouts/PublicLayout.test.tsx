@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { CurrentUser } from "../../shared/api/contracts";
 import { AuthContext, type AuthStatus } from "../../shared/auth/authContext";
+import { ProtectedRoute } from "../../shared/auth/ProtectedRoute";
 import { PublicLayout } from "./PublicLayout";
 
 const user: CurrentUser = {
@@ -15,8 +16,8 @@ const user: CurrentUser = {
   createdAt: "2026-08-20T10:00:00",
 };
 
-function renderLayout(status: AuthStatus) {
-  render(
+function layout(status: AuthStatus) {
+  return (
     <AuthContext.Provider value={{
       status,
       user: status === "authenticated" ? user : null,
@@ -32,8 +33,12 @@ function renderLayout(status: AuthStatus) {
           </Route>
         </Routes>
       </MemoryRouter>
-    </AuthContext.Provider>,
+    </AuthContext.Provider>
   );
+}
+
+function renderLayout(status: AuthStatus) {
+  return render(layout(status));
 }
 
 describe("PublicLayout", () => {
@@ -46,12 +51,25 @@ describe("PublicLayout", () => {
     expect(screen.queryByRole("link", { name: "Hesab yarat" })).not.toBeInTheDocument();
   });
 
-  it("does not flash anonymous actions while the session is being restored", () => {
-    renderLayout("checking");
+  it.each(["idle", "checking"] as const)("shows usable public actions immediately while auth is %s", (status) => {
+    const { container } = renderLayout(status);
 
+    expect(screen.getAllByRole("link", { name: "Daxil ol" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Hesab yarat" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Daxil ol" })[0]).toHaveAttribute("href", "/login");
+    expect(screen.getAllByRole("link", { name: "Hesab yarat" })[0]).toHaveAttribute("href", "/register");
+    expect(container.querySelector(".auth-link-placeholder, .auth-button-placeholder")).toBeNull();
+    expect(screen.getByText("Ana səhifə")).toBeInTheDocument();
+  });
+
+  it("replaces public actions when a restored account is confirmed", () => {
+    const { rerender } = renderLayout("checking");
+
+    rerender(layout("authenticated"));
+
+    expect(screen.getAllByRole("link", { name: "Hesabım" })).toHaveLength(2);
     expect(screen.queryByRole("link", { name: "Daxil ol" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Hesab yarat" })).not.toBeInTheDocument();
-    expect(screen.getByText("Hesab yoxlanılır…")).toBeInTheDocument();
   });
 
   it("shows login and registration actions after an anonymous session is confirmed", () => {
@@ -59,5 +77,22 @@ describe("PublicLayout", () => {
 
     expect(screen.getAllByRole("link", { name: "Daxil ol" })).toHaveLength(2);
     expect(screen.getAllByRole("link", { name: "Hesab yarat" })).toHaveLength(2);
+  });
+
+  it("still withholds private content until the session is confirmed", () => {
+    render(
+      <AuthContext.Provider value={{ status: "checking", user: null, login: vi.fn(), register: vi.fn(), restore: vi.fn(), logout: vi.fn() }}>
+        <MemoryRouter initialEntries={["/app"]}>
+          <Routes>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/app" element={<p>Private account data</p>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+
+    expect(screen.queryByText("Private account data")).not.toBeInTheDocument();
+    expect(screen.getByText("Hesabınız yoxlanılır")).toBeInTheDocument();
   });
 });
