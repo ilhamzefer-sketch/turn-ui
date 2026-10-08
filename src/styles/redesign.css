@@ -1,0 +1,413 @@
+/* Shared visual system for every screen outside the marketing landing. */
+.site-frame--public:not(.site-frame--landing) {
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 90% 4%, rgb(220 235 229 / 0.7), transparent 24rem),
+    var(--color-canvas);
+  font-family: "Poppins", var(--font-sans);
+}
+
+.site-frame--public:not(.site-frame--landing) .site-header {
+  border-bottom-color: rgb(16 43 37 / 0.12);
+  background: rgb(255 253 248 / 0.9);
+  box-shadow: 0 0.75rem 2.5rem rgb(16 43 37 / 0.04);
+  backdrop-filter: blur(14px);
+}
+
+.site-frame--public:not(.site-frame--landing) .site-header__inner {
+  min-height: 5.5rem;
+}
+
+.site-frame--public:not(.site-frame--landing) .site-header .brand__mark {
+  border-radius: 1rem;
+  box-shadow: 0 0.5rem 1.25rem rgb(16 43 37 / 0.1);
+}
+
+.site-frame--public:not(.site-frame--landing) .desktop-nav a {
+  position: relative;
+  transition: color var(--duration-fast) ease;
+}
+
+.site-frame--public:not(.site-frame--landing) .desktop-nav a::after {
+  position: absolute;
+  right: 0.8rem;
+  bottom: 0.2rem;
+  left: 0.8rem;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-brand-600);
+  content: "";
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition: opacity var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
+}
+
+.site-frame--public:not(.site-frame--landing) .desktop-nav a:hover,
+.site-frame--public:not(.site-frame--landing) .desktop-nav a:focus-visible {
+  color: var(--color-brand-800);
+}
+
+.site-frame--public:not(.site-frame--landing) .desktop-nav a:hover::after,
+.site-frame--public:not(.site-frame--landing) .desktop-nav a:focus-visible::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.site-frame--public:not(.site-frame--landing) .site-footer {
+  border-top-color: rgb(16 43 37 / 0.12);
+  background: #f1f6f2;
+}
+
+.auth-section {
+  position: relative;
+  min-height: calc(100vh - 5.5rem);
+  overflow: clip;
+  padding-block: clamp(3.5rem, 8vw, 7rem);
+  background:
+    radial-gradient(circle at 12% 12%, rgb(220 235 229 / 0.92), transparent 22rem),
+    radial-gradient(circle at 92% 88%, rgb(242 189 104 / 0.16), transparent 20rem),
+    var(--color-canvas);
+}
+
+.auth-section::before {
+  position: absolute;
+  top: 8%;
+  right: -8rem;
+  width: 18rem;
+  height: 18rem;
+  border: 1px solid rgb(17 97 88 / 0.12);
+  border-radius: 50%;
+  content: "";
+}
+
+.auth-card {
+  position: relative;
+  border-color: rgb(17 97 88 / 0.18);
+  border-radius: clamp(1.75rem, 4vw, 2.5rem);
+  background: rgb(255 253 248 / 0.92);
+  box-shadow: 0 2rem 5rem rgb(16 43 37 / 0.11);
+  backdrop-filter: blur(12px);
+}
+
+.auth-card__intro h1 {
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  letter-spacing: -0.055em;
+}
+
+.auth-form .button {
+  min-height: 3.4rem;
+  font-size: 1rem;
+}
+
+.discovery-hero {
+  border-bottom: 0;
+  background:
+    linear-gradient(135deg, rgb(220 235 229 / 0.85), transparent 65%),
+    var(--color-canvas);
+}
+
+.discovery-hero h1,
+.operation-public__hero h1,
+.booking-shell > header h1 {
+  font-size: clamp(2.7rem, 6vw, 5.25rem);
+  letter-spacing: -0.065em;
+}
+
+.discovery-layout {
+  align-items: start;
+}
+
+.discovery-filters,
+.room-card,
+.profile-section,
+.availability-card,
+.join-card,
+.queue-privacy-card,
+.booking-step,
+.booking-submit,
+.result-state,
+.operation-public__hero,
+.booking-success {
+  border-color: rgb(17 97 88 / 0.16);
+  border-radius: var(--radius-large);
+  background: rgb(255 253 248 / 0.9);
+  box-shadow: 0 1rem 3rem rgb(16 43 37 / 0.06);
+}
+
+.room-card,
+.result-state,
+.profile-section,
+.availability-card,
+.join-card,
+.queue-privacy-card,
+.booking-step {
+  transition: border-color var(--duration-normal) ease, box-shadow var(--duration-normal) ease, transform var(--duration-normal) var(--ease-out);
+}
+
+.room-card:hover,
+.result-state:hover,
+.profile-section:hover,
+.availability-card:hover,
+.join-card:hover,
+.queue-privacy-card:hover,
+.booking-step:hover {
+  border-color: rgb(17 97 88 / 0.34);
+  box-shadow: 0 1.5rem 3.5rem rgb(16 43 37 / 0.1);
+  transform: translateY(-3px);
+}
+
+.room-card__link {
+  color: var(--color-brand-800);
+}
+
+.operation-public,
+.booking-shell,
+.booking-success {
+  padding-block: clamp(3rem, 7vw, 7rem);
+}
+
+.operation-public__hero {
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background:
+    linear-gradient(135deg, rgb(220 235 229 / 0.75), transparent 62%),
+    rgb(255 253 248 / 0.92);
+}
+
+.booking-submit {
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.app-frame {
+  background:
+    radial-gradient(circle at 94% 0%, rgb(220 235 229 / 0.7), transparent 26rem),
+    var(--color-canvas);
+}
+
+.app-header {
+  border-bottom-color: rgb(16 43 37 / 0.12);
+  background: rgb(255 253 248 / 0.92);
+  box-shadow: 0 0.75rem 2rem rgb(16 43 37 / 0.06);
+  backdrop-filter: blur(14px);
+}
+
+.app-header__inner {
+  min-height: 5.5rem;
+}
+
+.app-header__add {
+  border-radius: var(--radius-pill);
+  color: var(--color-brand-700);
+  transition: background-color var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+
+.app-header__add:hover,
+.app-header__add:focus-visible {
+  color: var(--color-brand-800);
+  background: var(--color-brand-100);
+}
+
+.app-shell {
+  width: min(calc(100% - 2 * var(--gutter)), 92rem);
+  margin-inline: auto;
+}
+
+.app-sidebar {
+  border-color: rgb(17 97 88 / 0.14);
+}
+
+.app-nav {
+  padding-top: clamp(2rem, 6vw, 4.5rem);
+}
+
+.app-nav > p {
+  color: var(--color-brand-700);
+}
+
+.app-nav__link {
+  border: 1px solid transparent;
+  transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease, border-color var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
+}
+
+.app-nav__link:hover,
+.app-nav__link:focus-visible {
+  border-color: rgb(17 97 88 / 0.16);
+  color: var(--color-brand-800);
+  background: rgb(220 235 229 / 0.6);
+  transform: translateX(2px);
+}
+
+.app-nav__link--active {
+  color: white;
+  background: var(--color-brand-800);
+  box-shadow: 0 0.6rem 1.25rem rgb(7 61 56 / 0.18);
+}
+
+.app-content {
+  min-width: 0;
+}
+
+.management-page,
+.insight-page,
+.admin-platform,
+.admin-module-page {
+  padding-block: clamp(2rem, 5vw, 4rem) clamp(3rem, 7vw, 6rem);
+}
+
+.management-heading h1,
+.insight-header h1,
+.admin-module-heading h2 {
+  font-size: clamp(2.35rem, 5vw, 4.75rem);
+  letter-spacing: -0.065em;
+}
+
+.management-panel,
+.room-setup-progress,
+.room-management-card,
+.insight-panel,
+.subscription-current,
+.payment-state,
+.plan-card,
+.report-filter,
+.metric-grid article,
+.setup-roadmap,
+.admin-module-links a,
+.admin-record,
+.admin-account-list article,
+.admin-user-list__item {
+  border-color: rgb(17 97 88 / 0.15);
+  border-radius: var(--radius-large);
+  box-shadow: 0 0.9rem 2.75rem rgb(16 43 37 / 0.055);
+}
+
+.management-panel,
+.room-setup-progress,
+.room-management-card,
+.insight-panel,
+.payment-state,
+.plan-card,
+.report-filter,
+.admin-record {
+  background: rgb(255 253 248 / 0.88);
+}
+
+.metric-grid article,
+.subscription-current {
+  background: var(--color-brand-800);
+}
+
+.metric-grid article {
+  min-width: 0;
+}
+
+.metric-grid article span,
+.metric-grid article strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.management-panel,
+.room-setup-progress,
+.room-management-card,
+.insight-panel,
+.payment-state,
+.plan-card,
+.admin-record,
+.admin-user-list__item,
+.admin-module-links a {
+  transition: border-color var(--duration-normal) ease, box-shadow var(--duration-normal) ease, transform var(--duration-normal) var(--ease-out);
+}
+
+.management-panel:hover,
+.room-management-card:hover,
+.insight-panel:hover,
+.payment-state:hover,
+.plan-card:hover,
+.admin-record:hover,
+.admin-module-links a:hover {
+  border-color: rgb(17 97 88 / 0.32);
+  box-shadow: 0 1.5rem 3.5rem rgb(16 43 37 / 0.1);
+  transform: translateY(-3px);
+}
+
+.wallet-page {
+  padding-block: clamp(2.5rem, 6vw, 5rem);
+}
+
+.wallet-balance {
+  border-radius: clamp(1.75rem, 4vw, 2.75rem);
+  background: var(--color-brand-800);
+  box-shadow: 0 1.5rem 3.5rem rgb(7 61 56 / 0.18);
+}
+
+.wallet-top-up,
+.wallet-payment,
+.wallet-history {
+  border-color: rgb(17 97 88 / 0.15);
+  border-radius: var(--radius-large);
+  background: rgb(255 253 248 / 0.9);
+  box-shadow: 0 1rem 3rem rgb(16 43 37 / 0.06);
+}
+
+.wallet-pay-button.button {
+  min-height: 3.35rem;
+  border-radius: var(--radius-pill);
+}
+
+@media (min-width: 64rem) {
+  .app-shell {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: clamp(2.5rem, 5vw, 5.5rem);
+  }
+
+  .app-nav {
+    padding-right: var(--space-4);
+  }
+}
+
+@media (max-width: 63.99rem) {
+  .app-content {
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .app-header__inner {
+    align-items: flex-start;
+    padding-block: 0.75rem;
+  }
+
+  .app-header__tools {
+    justify-content: flex-end;
+  }
+
+  .management-page,
+  .insight-page,
+  .admin-platform,
+  .admin-module-page,
+  .wallet-page {
+    padding-block: 1.75rem 3rem;
+  }
+
+  .auth-card {
+    padding: 1.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-card,
+  .result-state,
+  .profile-section,
+  .availability-card,
+  .join-card,
+  .queue-privacy-card,
+  .booking-step,
+  .management-panel,
+  .room-management-card,
+  .insight-panel,
+  .payment-state,
+  .plan-card,
+  .admin-record,
+  .admin-module-links a {
+    transition: none;
+  }
+}
