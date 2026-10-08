@@ -51,7 +51,7 @@ test.beforeEach(async ({ page }) => mockDiscovery(page));
 
 test("landing quick join opens filtered discovery and a complete room profile", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: /Növbəyə qoşul/ }).click();
+  await page.locator(".qless-hero").getByRole("link", { name: /Növbəyə qoşul/ }).click();
   await expect(page).toHaveURL(/\/rooms$/);
 
   const search = page.getByRole("form", { name: "Axtarış filterləri" });

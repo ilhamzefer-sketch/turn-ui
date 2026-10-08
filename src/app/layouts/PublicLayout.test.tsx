@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
@@ -30,6 +31,7 @@ function layout(status: AuthStatus) {
         <Routes>
           <Route element={<PublicLayout />}>
             <Route index element={<p>Ana səhifə</p>} />
+            <Route path="/login" element={<p>Giriş səhifəsi</p>} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -42,6 +44,18 @@ function renderLayout(status: AuthStatus) {
 }
 
 describe("PublicLayout", () => {
+  it("closes mobile navigation and starts the new page at the top", async () => {
+    const user = userEvent.setup();
+    const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
+    const { container } = renderLayout("anonymous");
+    const menu = container.querySelector<HTMLDetailsElement>(".mobile-menu")!;
+    menu.open = true;
+    await user.click(menu.querySelector<HTMLAnchorElement>('a[href="/login"]')!);
+    expect(await screen.findByText("Giriş səhifəsi")).toBeInTheDocument();
+    expect(menu.open).toBe(false);
+    expect(scroll).toHaveBeenCalledWith({ top: 0, left: 0, behavior: "instant" });
+    scroll.mockRestore();
+  });
   it("shows account actions and hides login actions for an authenticated user", () => {
     renderLayout("authenticated");
 

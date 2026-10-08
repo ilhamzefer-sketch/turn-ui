@@ -14,7 +14,7 @@ import { ApiError } from "../../shared/api/httpClient";
 import { publicApi } from "../../shared/api/publicApi";
 import { queueApi } from "../../shared/api/queueApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
-import { ButtonLink } from "../../shared/ui/Button";
+import { Button, ButtonLink } from "../../shared/ui/Button";
 
 export function RoomProfilePage() {
   const roomId = Number(useParams().roomId);
@@ -172,6 +172,7 @@ export function RoomProfilePage() {
           </h2>
 
           {room.reservationMode === "LIVE_QUEUE" ? (
+            liveQueueQuery.isError ? <div role="alert"><p>Canlı növbənin vəziyyəti yüklənmədi. Bağlantını yoxlayın və yenidən cəhd edin.</p><Button variant="secondary" onClick={() => void liveQueueQuery.refetch()}>Yenidən yoxla</Button></div> :
             <div className="live-status-panel">
               <span className={acceptingNewEntries ? "is-open" : "is-closed"} aria-hidden="true" />
               <div>
@@ -183,7 +184,7 @@ export function RoomProfilePage() {
               </div>
             </div>
           ) : (
-            <SlotPreview isPending={slotsQuery.isPending} isError={slotsQuery.isError} slots={slotsQuery.data} />
+            <SlotPreview isPending={slotsQuery.isPending} isError={slotsQuery.isError} slots={slotsQuery.data} onRetry={() => void slotsQuery.refetch()} />
           )}
 
           <ButtonLink to={room.reservationMode === "LIVE_QUEUE" ? `/rooms/${room.id}/live` : `/rooms/${room.id}/book`}>
@@ -200,9 +201,9 @@ export function RoomProfilePage() {
   );
 }
 
-function SlotPreview({ isPending, isError, slots }: { isPending: boolean; isError: boolean; slots?: { startAt: string }[] }) {
+function SlotPreview({ isPending, isError, slots, onRetry }: { isPending: boolean; isError: boolean; slots?: { startAt: string }[]; onRetry: () => void }) {
   if (isPending) return <p className="empty-copy" role="status">Boş saatlar yoxlanılır...</p>;
-  if (isError) return <p className="empty-copy" role="status">Boş saatları hazırda göstərmək mümkün deyil.</p>;
+  if (isError) return <div role="alert"><p className="empty-copy">Boş saatları hazırda göstərmək mümkün deyil.</p><Button variant="secondary" onClick={onRetry}>Yenidən yoxla</Button></div>;
   if (!slots?.length) return <p className="empty-copy">Bu gün üçün boş saat yoxdur.</p>;
   return (
     <ul className="available-slots" aria-label="Bu günün boş saatları">

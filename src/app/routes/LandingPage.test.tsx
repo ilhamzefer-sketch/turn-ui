@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
@@ -22,12 +22,12 @@ describe("LandingPage", () => {
       </AuthContext.Provider>,
     );
 
-    expect(screen.getByRole("heading", { level: 1, name: "Nə etmək istəyirsiniz?" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Növbə yarat/i })).toHaveAttribute("href", "/register");
-    expect(screen.getByRole("link", { name: /Növbəyə qoşul/i })).toHaveAttribute("href", "/rooms");
-    expect(screen.getByText("Davam etmək üçün hesab tələb olunur")).toBeInTheDocument();
-    expect(screen.getByText("Planlı qəbul üçün giriş tələb olunur")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Canlı növbə" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Planlı rezervasiya" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Daha az gözləyin. Daha çox yaşayın." })).toBeInTheDocument();
+    const hero = within(screen.getByRole("region", { name: "Daha az gözləyin. Daha çox yaşayın." }));
+    expect(hero.getByRole("link", { name: /Növbə yarat/i })).toHaveAttribute("href", "/register");
+    expect(hero.getByRole("link", { name: /Növbəyə qoşul/i })).toHaveAttribute("href", "/rooms");
+    expect(hero.getByText("Canlı növbəyə qeydiyyatsız qoşulmaq mümkündür.")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Müştəri" })).toHaveAttribute("aria-selected", "true");
+    expect(within(screen.getByRole("tabpanel", { name: "Müştəri" })).getByRole("link", { name: "Növbəyə qoşul" })).toHaveAttribute("href", "/rooms");
   });
 });

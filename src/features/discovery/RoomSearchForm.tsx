@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import type { PublicCategory, ReservationMode } from "../../shared/api/contracts";
@@ -11,6 +12,7 @@ type RoomSearchFormProps = {
 
 export function RoomSearchForm({ categories = [], initialValues = {}, compact = false }: RoomSearchFormProps) {
   const navigate = useNavigate();
+  const [categoryId, setCategoryId] = useState(String(initialValues.categoryId ?? ""));
 
   function submit(form: HTMLFormElement) {
     const data = new FormData(form);
@@ -73,7 +75,7 @@ export function RoomSearchForm({ categories = [], initialValues = {}, compact = 
         </label>
         <label className="filter-field">
           <span>Kateqoriya</span>
-          <select name="categoryId" defaultValue={initialValues.categoryId ?? ""}>
+          <select name="categoryId" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
             <option value="">Bütün kateqoriyalar</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>{category.name}</option>

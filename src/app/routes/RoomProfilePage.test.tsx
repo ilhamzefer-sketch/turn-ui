@@ -2,8 +2,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 
 import { publicApi } from "../../shared/api/publicApi";
+import { queueApi } from "../../shared/api/queueApi";
+import { ApiError } from "../../shared/api/httpClient";
 import { RoomProfilePage } from "./RoomProfilePage";
 
 vi.mock("../../shared/api/publicApi", () => ({
@@ -12,6 +15,7 @@ vi.mock("../../shared/api/publicApi", () => ({
     availableSlots: vi.fn(),
   },
 }));
+vi.mock("../../shared/api/queueApi", () => ({ queueApi: { publicRoom: vi.fn() } }));
 
 function renderPage() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -62,5 +66,25 @@ describe("RoomProfilePage", () => {
     expect(screen.getByText("Telefon gizlidir")).toBeInTheDocument();
     expect(await screen.findByText("10:00")).toBeInTheDocument();
     expect(screen.getByText("10:30")).toBeInTheDocument();
+  });
+
+  it("offers a retry when available slots fail to load", async () => {
+    vi.mocked(publicApi.availableSlots).mockRejectedValueOnce(new ApiError(503, "Unavailable", null));
+    renderPage();
+    expect(await screen.findByText("Boş saatları hazırda göstərmək mümkün deyil.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Yenidən yoxla" }));
+    expect(await screen.findByText("10:00")).toBeInTheDocument();
+  });
+
+  it("does not represent failed live availability as a closed queue", async () => {
+    const room = await publicApi.room(7);
+    vi.mocked(publicApi.room).mockResolvedValue({ ...room, reservationMode: "LIVE_QUEUE" });
+    vi.mocked(queueApi.publicRoom).mockRejectedValueOnce(new ApiError(503, "Unavailable", null));
+    vi.mocked(queueApi.publicRoom).mockResolvedValueOnce({ roomId: 7, roomName: room.name, sessionId: 1, status: "OPEN", acceptingNewEntries: true, nextOpeningAt: null, nextResetAt: null, currentPublicReference: null, waitingCount: 0, approximateWaitingMinutes: 0, entries: [] });
+    renderPage();
+    expect(await screen.findByText(/Canlı növbənin vəziyyəti yüklənmədi/)).toBeInTheDocument();
+    expect(screen.queryByText("Hazırda qoşulmaq mümkün deyil")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Yenidən yoxla" }));
+    expect(await screen.findByText("Yeni iştirakçılar qəbul olunur")).toBeInTheDocument();
   });
 });

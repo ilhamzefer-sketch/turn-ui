@@ -26,53 +26,569 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
     <link rel="manifest" href="/site.webmanifest" />
     <title>Onlayn növbə və rezervasiya sistemi | NövbəTime</title>
-    <style>
-      #root[data-legacy-shell] { display: none; }
-      html[data-app-ready] #root[data-legacy-shell] { display: block; }
-    </style>
+    <link rel="stylesheet" href="/src/styles/index.css" />
     <script type="application/ld+json" data-page-json-ld="true">
       {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://novbetime.az/#organization","name":"NövbəTime","url":"https://novbetime.az/","logo":{"@type":"ImageObject","url":"https://novbetime.az/web-app-manifest-512x512.png","width":512,"height":512}},{"@type":"WebSite","@id":"https://novbetime.az/#website","url":"https://novbetime.az/","name":"NövbəTime","inLanguage":"az","publisher":{"@id":"https://novbetime.az/#organization"}},{"@type":"WebApplication","@id":"https://novbetime.az/#application","name":"NövbəTime","url":"https://novbetime.az/","applicationCategory":"BusinessApplication","operatingSystem":"Web","inLanguage":"az","description":"Azərbaycanda bizneslər və müştərilər üçün canlı növbə və onlayn rezervasiya platforması.","publisher":{"@id":"https://novbetime.az/#organization"},"featureList":["Canlı növbəyə uzaqdan qoşulma","Onlayn qəbul və rezervasiya","QR kodla növbəyə qoşulma","Filial, otaq və iş qrafiki idarəetməsi"]}]}
     </script>
   </head>
   <body>
-    <div id="root" data-legacy-shell>
-      <div class="site-frame">
-        <a class="skip-link" href="#main-content">Əsas məzmuna keç</a>
-        <header class="site-header">
-          <div class="shell site-header__inner">
-            <a class="brand" href="/" aria-label="NövbəTime ana səhifə"><span class="brand__mark" aria-hidden="true"><img class="brand__logo" src="/novbetime-logo.png" alt="" width="512" height="512" /></span><span class="brand__name">NövbəTime</span></a>
-            <nav class="desktop-nav" aria-label="Əsas naviqasiya"><a href="/rooms">Otaq tap</a><a href="#how-it-works">Necə işləyir</a><a href="#for-business">Biznes üçün</a><a href="#suitable-businesses">Kimlər üçün</a></nav>
-            <div class="desktop-actions"><a class="button button--primary" href="/register"><span>Hesab yarat</span></a></div>
-          </div>
-        </header>
-        <main id="main-content">
-          <div class="landing-page">
-            <section class="landing-hero" aria-labelledby="hero-title">
-              <div class="shell landing-hero__grid">
-                <div class="landing-hero__copy">
-                  <p class="eyebrow">Azərbaycanda onlayn növbə sistemi</p>
-                  <h1 id="hero-title">Növbəni deyil, gününüzü planlayın.</h1>
-                  <p class="landing-hero__lede">Canlı növbəyə uzaqdan qoşulun və ya uyğun qəbul saatını əvvəlcədən rezervasiya edin. Növbənizin vəziyyətini telefondan izləyin.</p>
-                  <form class="quick-search" action="/rooms" method="get" aria-label="Otaq axtarışı">
-                    <label class="quick-search__query"><span>Nə axtarırsınız?</span><input name="q" maxlength="120" placeholder="Biznes, klinika, salon və ya mütəxəssis" /></label>
-                    <label class="quick-search__mode"><span>Növbə növü</span><select name="mode"><option value="">Hamısı</option><option value="LIVE_QUEUE">Canlı növbə</option><option value="PLANNED_BOOKING">Planlı rezervasiya</option></select></label>
-                    <button class="button button--primary quick-search__submit" type="submit">Otaq tap <span aria-hidden="true">→</span></button>
-                  </form>
-                  <div class="landing-hero__trust" aria-label="Platformanın əsas imkanları"><span><i aria-hidden="true"></i> Qeydiyyatsız canlı növbə</span><span><i aria-hidden="true"></i> Telefonla vahid hesab</span></div>
-                </div>
-                <div class="landing-hero__media"><img src="/landing/hero-queue-studio.jpg" width="1672" height="941" alt="Müasir qəbul məkanında telefondan idarə olunan rəqəmsal növbə" fetchpriority="high" /><p class="landing-hero__caption"><span>01</span> Gözləmə artıq görünür</p></div>
-              </div>
-            </section>
-            <section class="landing-proof" aria-label="NövbəTime platformasının əsas üstünlükləri"><div class="shell landing-proof__grid"><p><strong>2 növbə modeli</strong><span>Canlı və planlı axın</span></p><p><strong>1 telefon nömrəsi</strong><span>Bütün rollar üçün vahid hesab</span></p><p><strong>Real vaxt</strong><span>Növbə və boş saat məlumatı</span></p><p><strong>QR ilə giriş</strong><span>Sürətli qoşulma</span></p></div></section>
-            <section class="landing-journey shell" id="how-it-works" aria-labelledby="journey-title"><div class="landing-section-heading"><p class="eyebrow">Müştəri üçün</p><h2 id="journey-title">Qapıda gözləmək əvəzinə, vaxtınız çatanda gəlin.</h2><p>Otağı tapın, canlı növbəyə qoşulun və ya boş saatı seçin, sonra vəziyyəti telefondan izləyin.</p></div><ol class="landing-steps"><li><span>01</span><div><h3>Otağı tapın</h3><p>Biznesi, filialı, klinikanı, salonu və ya mütəxəssisi axtarın.</p></div></li><li><span>02</span><div><h3>Axını seçin</h3><p>Canlı növbəyə qoşulun və ya onlayn qəbul saatını rezervasiya edin.</p></div></li><li><span>03</span><div><h3>Vaxtınız çatanda gəlin</h3><p>Növbəni telefondan izləyin və gözləmə vaxtını azaldın.</p></div></li></ol></section>
-            <section class="landing-business" id="for-business" aria-labelledby="business-title"><div class="shell landing-business__grid"><div class="landing-business__copy"><p class="eyebrow eyebrow--light">Biznes və mütəxəssislər üçün</p><h2 id="business-title">Filialdan otağa qədər qəbul axınını bir yerdə idarə edin.</h2><p>İşçiləri, otaqları, iş saatlarını, canlı növbəni və planlı rezervasiyaları vahid sistemdə görün.</p><ul><li>Filial və otaqları bir strukturda qurun</li><li>Otaq sahiblərini və iş qrafikini idarə edin</li><li>Canlı əməliyyatları və nəticələri izləyin</li></ul><a class="button button--secondary" href="/register"><span>Hesab yarat →</span></a></div></div></section>
-            <section class="landing-sectors shell" id="suitable-businesses" aria-labelledby="sectors-title"><div class="landing-section-heading"><p class="eyebrow">Kimlər üçün</p><h2 id="sectors-title">Onlayn növbə və rezervasiya sistemi kimlər üçün uyğundur?</h2><p>NövbəTime müştəri qəbulu aparan klinikalar, salonlar, xidmət mərkəzləri, filiallı bizneslər və fərdi mütəxəssislər üçün hazırlanıb.</p></div><div class="landing-sectors__grid"><article><span>01</span><h3>Klinika və tibbi qəbul</h3><p>Pasiyent axınını canlı növbə və əvvəlcədən seçilən qəbul saatları ilə idarə edin.</p></article><article><span>02</span><h3>Gözəllik və şəxsi qulluq</h3><p>Salon, bərbər və ustalar üçün boş saatları göstərib onlayn rezervasiya qəbul edin.</p></article><article><span>03</span><h3>Xidmət və qəbul mərkəzləri</h3><p>Müştərilərin qapıda gözləməsini azaldın və növbəni real vaxtda göstərin.</p></article><article><span>04</span><h3>Fərdi mütəxəssislər</h3><p>İş qrafikinizi və müştəri qəbulunuzu vahid səhifədən idarə edin.</p></article></div></section>
-            <section class="landing-faq" aria-labelledby="faq-title"><div class="shell landing-faq__grid"><div class="landing-section-heading"><p class="eyebrow">Aydın cavablar</p><h2 id="faq-title">NövbəTime haqqında tez-tez verilən suallar</h2></div><div class="landing-faq__list"><details open><summary>Onlayn növbə sistemi necə işləyir?</summary><p>Müştəri uyğun otağı tapır, canlı növbəyə uzaqdan qoşulur və növbədəki yerini telefondan izləyir.</p></details><details><summary>Canlı növbə ilə planlı rezervasiyanın fərqi nədir?</summary><p>Canlı növbədə iştirakçılar cari ardıcıllığa qoşulur. Planlı rezervasiyada isə boş tarix və saat əvvəlcədən seçilir.</p></details><details><summary>NövbəTime hansı bizneslər üçün uyğundur?</summary><p>Müştəri qəbulu aparan klinikalar, salonlar, xidmət mərkəzləri, filiallı bizneslər və fərdi mütəxəssislər üçün uyğundur.</p></details></div></div></section>
-            <section class="landing-closing shell" aria-labelledby="closing-title"><div><p class="eyebrow">Başlamaq üçün</p><h2 id="closing-title">Bir telefon nömrəsi.<br />Bütün növbələriniz.</h2></div><div class="landing-closing__action"><p>Müştəri, fərdi mütəxəssis və biznes rolları eyni hesabda işləyir.</p><a class="button button--primary" href="/register"><span>Hesab yarat →</span></a></div></section>
-          </div>
-        </main>
-        <footer class="site-footer"><div class="shell site-footer__inner"><p><strong>NövbəTime</strong></p><p>Canlı növbə və planlı rezervasiya üçün vahid platforma.</p><p>© 2026 NövbəTime</p></div></footer>
-      </div>
+    <div id="root">
+<link rel="preload" as="image" href="/novbetime-logo.png"/>
+<link rel="preload" as="image" href="/landing/qless/avatars.webp"/>
+<div class="site-frame site-frame--public site-frame--landing">
+<a class="skip-link" href="#main-content">Əsas məzmuna keç</a>
+<div class="site-announcement">
+<p>
+<strong>Növbəniz telefonunuzda.</strong> Vaxtınız çatanda gəlin.</p>
+<a href="#how-it-works">Necə işləyir <span aria-hidden="true">↗</span>
+</a>
+</div>
+<header class="site-header">
+<div class="shell site-header__inner">
+<a class="brand" aria-label="NövbəTime ana səhifə" href="/" data-discover="true">
+<span class="brand__mark" aria-hidden="true">
+<img class="brand__logo" src="/novbetime-logo.png" alt="" width="512" height="512"/>
+</span>
+<span class="brand__name">NövbəTime</span>
+</a>
+<nav class="desktop-nav" aria-label="Əsas naviqasiya">
+<a href="/rooms" data-discover="true">Otaq tap</a>
+<a href="/#how-it-works">Necə işləyir</a>
+<a href="/#for-business">Biznes üçün</a>
+<a href="/#suitable-businesses">Kimlər üçün</a>
+<a href="/login" data-discover="true">Daxil ol</a>
+</nav>
+<div class="desktop-actions">
+<a class="button button--primary" href="/register" data-discover="true">Hesab yarat</a>
+</div>
+<details class="mobile-menu">
+<summary aria-label="Menyunu aç">
+<span aria-hidden="true">
+</span>
+<span aria-hidden="true">
+</span>
+</summary>
+<nav aria-label="Mobil naviqasiya">
+<a href="/rooms" data-discover="true">Otaq tap</a>
+<a href="/app/bookings" data-discover="true">Növbələrim</a>
+<a href="/#how-it-works">Necə işləyir</a>
+<a href="/#for-business">Biznes üçün</a>
+<a href="/#suitable-businesses">Kimlər üçün</a>
+<a href="/login" data-discover="true">Daxil ol</a>
+<a class="button button--primary" href="/register" data-discover="true">Hesab yarat</a>
+</nav>
+</details>
+</div>
+</header>
+<main id="main-content">
+<div class="landing-page landing-page--qless">
+<section class="qless-hero" aria-labelledby="hero-title">
+<div class="qless-floating qless-floating--one" data-hero-float="1" aria-hidden="true" data-parallax="layer">
+<span>Qəbul otağı <small>Nümunə</small>
+</span>
+<strong>A-12</strong>
+<p>
+<i>
+</i> Hazırda qəbulda</p>
+</div>
+<div class="qless-floating qless-floating--two" data-hero-float="2" aria-hidden="true" data-parallax="true">
+<span>Rezervasiya <small>Nümunə</small>
+</span>
+<strong>10:00</strong>
+<p>Seçilən qəbul saatı</p>
+</div>
+<div class="qless-floating qless-floating--three" data-hero-float="3" aria-hidden="true" data-parallax="layer">
+<span>Sizin növbəniz <small>Nümunə</small>
+</span>
+<strong>A-15</strong>
+<p>Sizdən əvvəl: 3 nəfər</p>
+</div>
+<div class="qless-floating qless-floating--four" data-hero-float="4" aria-hidden="true" data-parallax="true">
+<span>Qəbulun vəziyyəti <small>Nümunə</small>
+</span>
+<strong>Növbə açıqdır</strong>
+<p>
+<i>
+</i> Canlı axın</p>
+</div>
+<div class="shell qless-hero__content" data-reveal="true">
+<img class="qless-hero__avatars" src="/landing/qless/avatars.webp" width="480" height="160" alt=""/>
+<p class="eyebrow">Vaxtınıza dəyər verən növbə sistemi</p>
+<h1 id="hero-title">Daha az gözləyin. <span>Daha çox yaşayın.</span>
+</h1>
+<p class="qless-hero__lede">Növbənizi uzaqdan götürün, qəbul saatınızı seçin və gününüzə davam edin. Gözləmənin gedişi hər an telefonunuzda olsun.</p>
+<div class="qless-hero__actions">
+<a class="button button--primary" href="/rooms" data-discover="true">Növbəyə qoşul <svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</a>
+<a class="button button--secondary" href="/register" data-discover="true">Növbə yarat <svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</a>
+</div>
+<p class="qless-hero__note">Canlı növbəyə qeydiyyatsız qoşulmaq mümkündür.</p>
+</div>
+</section>
+<section class="qless-roles" aria-labelledby="roles-title">
+<div class="shell qless-roles__heading" data-reveal="true">
+<h2 id="roles-title">Uzun növbələrə və dolu<br/>gözləmə zallarına son qoyun.</h2>
+<p>Müştəri üçün rahatlıq. Komanda üçün aydınlıq. Biznes üçün nəzarət.</p>
+</div>
+<div class="qless-roles__tabs" role="tablist" aria-label="NövbəTime kimlər üçündür">
+<button id="role-tab-0" type="button" role="tab" aria-selected="true" aria-controls="role-panel-0" tabindex="0">Müştəri</button>
+<button id="role-tab-1" type="button" role="tab" aria-selected="false" aria-controls="role-panel-1" tabindex="-1">Əməkdaş</button>
+<button id="role-tab-2" type="button" role="tab" aria-selected="false" aria-controls="role-panel-2" tabindex="-1">Biznes sahibi</button>
+</div>
+<div class="qless-roles__viewport">
+<div class="qless-roles__track" style="--role-index:1">
+<article class="qless-role qless-role--business" role="presentation" aria-hidden="true" data-role-clone="true">
+<div class="qless-role__scene" data-parallax="true">
+<img src="/landing/qless/workspace.webp" width="1000" height="750" loading="lazy" decoding="async" alt=""/>
+<div class="qless-role__sample">
+<small>Nümunə görünüş</small>
+<strong>Otaqlarınız</strong>
+<span>Canlı və planlı axın</span>
+</div>
+</div>
+<div class="qless-role__copy">
+<h3>Hər otaq işləsin. Siz ümumi mənzərəni görün.</h3>
+<p>Filialları, otaqları, komandanı və iş saatlarını vahid iş sahəsində idarə edin.</p>
+<span class="qless-role__action" aria-hidden="true">Növbə yarat<svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</span>
+</div>
+</article>
+<article class="qless-role qless-role--customer" id="role-panel-0" role="tabpanel" aria-labelledby="role-tab-0" aria-hidden="false">
+<div class="qless-role__scene" data-parallax="true">
+<img src="/landing/qless/phone.webp" width="1000" height="1000" loading="lazy" decoding="async" alt=""/>
+<div class="qless-role__sample">
+<small>Nümunə görünüş</small>
+<strong>A-15</strong>
+<span>Sizdən əvvəl: 3 nəfər</span>
+</div>
+</div>
+<div class="qless-role__copy">
+<h3>Gününüzü gözləmə zalında keçirməyin.</h3>
+<p>Növbənizi uzaqdan götürün, yerinizi izləyin və vaxtınız çatanda gəlin.</p>
+<a class="qless-role__action" tabindex="0" href="/rooms" data-discover="true">Növbəyə qoşul<svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</a>
+</div>
+</article>
+<article class="qless-role qless-role--employee" id="role-panel-1" role="tabpanel" aria-labelledby="role-tab-1" aria-hidden="true">
+<div class="qless-role__scene" data-parallax="true">
+<img src="/landing/qless/workspace.webp" width="1000" height="750" loading="lazy" decoding="async" alt=""/>
+<div class="qless-role__sample">
+<small>Nümunə görünüş</small>
+<strong>Növbəti qəbul</strong>
+<span>A-13 · Gözləyir</span>
+</div>
+</div>
+<div class="qless-role__copy">
+<h3>Qəbula fokuslanın. Axını aydın görün.</h3>
+<p>Növbəni irəli aparın, qəbulun gedişini izləyin və müştəriləri ardıcıllıqla qarşılayın.</p>
+<a class="qless-role__action" tabindex="-1" href="/register" data-discover="true">İş sahəsinə keçin<svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</a>
+</div>
+</article>
+<article class="qless-role qless-role--business" id="role-panel-2" role="tabpanel" aria-labelledby="role-tab-2" aria-hidden="true">
+<div class="qless-role__scene" data-parallax="true">
+<img src="/landing/qless/workspace.webp" width="1000" height="750" loading="lazy" decoding="async" alt=""/>
+<div class="qless-role__sample">
+<small>Nümunə görünüş</small>
+<strong>Otaqlarınız</strong>
+<span>Canlı və planlı axın</span>
+</div>
+</div>
+<div class="qless-role__copy">
+<h3>Hər otaq işləsin. Siz ümumi mənzərəni görün.</h3>
+<p>Filialları, otaqları, komandanı və iş saatlarını vahid iş sahəsində idarə edin.</p>
+<a class="qless-role__action" tabindex="-1" href="/register" data-discover="true">Növbə yarat<svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</a>
+</div>
+</article>
+<article class="qless-role qless-role--customer" role="presentation" aria-hidden="true" data-role-clone="true">
+<div class="qless-role__scene" data-parallax="true">
+<img src="/landing/qless/phone.webp" width="1000" height="1000" loading="lazy" decoding="async" alt=""/>
+<div class="qless-role__sample">
+<small>Nümunə görünüş</small>
+<strong>A-15</strong>
+<span>Sizdən əvvəl: 3 nəfər</span>
+</div>
+</div>
+<div class="qless-role__copy">
+<h3>Gününüzü gözləmə zalında keçirməyin.</h3>
+<p>Növbənizi uzaqdan götürün, yerinizi izləyin və vaxtınız çatanda gəlin.</p>
+<span class="qless-role__action" aria-hidden="true">Növbəyə qoşul<svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</span>
+</div>
+</article>
+</div>
+</div>
+<div class="shell qless-roles__footer">
+<span>Bir platforma. Üç baxış.</span>
+<span aria-live="polite">01 / 03</span>
+</div>
+</section>
+<section class="qless-benefits" id="product-benefits" aria-label="NövbəTime ilə daha rahat qəbul" data-mode="static">
+<div class="qless-benefits__sticky shell">
+<div class="qless-benefits__slides" aria-label="Platformanın imkanları">
+<article class="qless-benefits__slide" data-active="true">
+<div class="qless-benefits__copy">
+<p class="eyebrow">Canlı növbə</p>
+<h2>Gözləmək yerinə gününüzü yaşayın.</h2>
+<p>Növbənizi uzaqdan götürün. Vaxtınızı özünüzə ayırın.</p>
+<ul class="qless-benefits__checks">
+<li>
+<span aria-hidden="true">✓</span>Telefondan və ya QR ilə növbəyə qoşulun</li>
+<li>
+<span aria-hidden="true">✓</span>Növbədəki yerinizi və təxmini gözləməni görün</li>
+<li>
+<span aria-hidden="true">✓</span>Canlı növbəyə qeydiyyatsız başlayın</li>
+</ul>
+</div>
+<figure class="qless-benefits__visual">
+<img src="/landing/qless/phone.webp" width="1000" height="1000" loading="lazy" decoding="async" alt="Telefon üzərində illüstrativ canlı növbə görünüşü"/>
+<figcaption>İllüstrativ məhsul görünüşü</figcaption>
+</figure>
+</article>
+<article class="qless-benefits__slide" data-active="false">
+<div class="qless-benefits__copy">
+<p class="eyebrow">Planlı rezervasiya</p>
+<h2>Qəbul vaxtı sizə uyğun olsun.</h2>
+<p>Gününüzü qəbul saatına görə deyil, qəbulunuzu gününüzə görə planlayın.</p>
+<ul class="qless-benefits__checks">
+<li>
+<span aria-hidden="true">✓</span>Otağın mövcud boş saatlarına baxın</li>
+<li>
+<span aria-hidden="true">✓</span>Uyğun vaxtı seçib rezervasiya edin</li>
+<li>
+<span aria-hidden="true">✓</span>Qəbullarınızı şəxsi hesabınızdan izləyin</li>
+</ul>
+</div>
+<figure class="qless-benefits__visual">
+<img src="/landing/qless/phone.webp" width="1000" height="1000" loading="lazy" decoding="async" alt="Telefon üzərində illüstrativ şəxsi qəbul görünüşü"/>
+<figcaption>İllüstrativ məhsul görünüşü</figcaption>
+</figure>
+</article>
+<article class="qless-benefits__slide" data-active="false">
+<div class="qless-benefits__copy">
+<p class="eyebrow">Biznes üçün</p>
+<h2>Hər otaq bir baxışda.</h2>
+<p>Qəbul axını aydın olanda diqqətiniz müştərinizdə qalır.</p>
+<ul class="qless-benefits__checks">
+<li>
+<span aria-hidden="true">✓</span>Canlı növbə və ya planlı qəbul rejimini qurun</li>
+<li>
+<span aria-hidden="true">✓</span>Otağın iş qrafikini idarə edin</li>
+<li>
+<span aria-hidden="true">✓</span>QR kodunuzu paylaşaraq qoşulmağı asanlaşdırın</li>
+</ul>
+</div>
+<figure class="qless-benefits__visual">
+<img src="/landing/qless/workspace.webp" width="1000" height="750" loading="lazy" decoding="async" alt="Kompüter üzərində illüstrativ otaq idarəetmə görünüşü"/>
+<figcaption>İllüstrativ məhsul görünüşü</figcaption>
+</figure>
+</article>
+<article class="qless-benefits__slide" data-active="false">
+<div class="qless-benefits__copy">
+<p class="eyebrow">Komanda və filiallar</p>
+<h2>Komandanız vahid axında.</h2>
+<p>Filiallar, otaqlar və müştəri qəbulu eyni iş sahəsində.</p>
+<ul class="qless-benefits__checks">
+<li>
+<span aria-hidden="true">✓</span>Filialları və otaqları bir strukturda görün</li>
+<li>
+<span aria-hidden="true">✓</span>Komandanızın rol və səlahiyyətlərini təyin edin</li>
+<li>
+<span aria-hidden="true">✓</span>Əməliyyatları və hesabatları izləyin</li>
+</ul>
+</div>
+<figure class="qless-benefits__visual">
+<img src="/landing/qless/workspace.webp" width="1000" height="750" loading="lazy" decoding="async" alt="Kompüter üzərində illüstrativ biznes iş sahəsi"/>
+<figcaption>İllüstrativ məhsul görünüşü</figcaption>
+</figure>
+</article>
+</div>
+</div>
+</section>
+<section class="qless-journey" id="how-it-works" aria-labelledby="journey-title">
+<div class="shell">
+<div class="qless-section-heading" data-reveal="true">
+<p class="eyebrow">NövbəTime ilə daha rahat gün</p>
+<h2 id="journey-title">Gözləmək üçün deyil,<br/>yaşamaq üçün vaxt.</h2>
+<p>Növbənizi götürmək üç sadə addımdan ibarətdir.</p>
+</div>
+<div class="qless-journey__grid">
+<article data-reveal="true">
+<span>01</span>
+<h3>Otağı tapın</h3>
+<p>Biznesi, filialı və ya mütəxəssisi axtarın.</p>
+</article>
+<article data-reveal="true">
+<span>02</span>
+<h3>Növbə və ya saat seçin</h3>
+<p>Canlı növbəyə qoşulun və ya boş qəbul saatını rezervasiya edin.</p>
+</article>
+<article data-reveal="true">
+<span>03</span>
+<h3>Vaxtınız çatanda gəlin</h3>
+<p>Növbənizin gedişini telefondan izləyin, gününüzə davam edin.</p>
+</article>
+</div>
+</div>
+</section>
+<section class="qless-business" id="for-business" aria-labelledby="business-title">
+<div class="shell">
+<div class="qless-section-heading" data-reveal="true">
+<p class="eyebrow">Biznes və mütəxəssislər üçün</p>
+<h2 id="business-title">Hər otağın öz ritmi.<br/>Hamısı bir platformada.</h2>
+<p>Filialları, otaqları, komandanı və iş saatlarını bir yerdə idarə edin.</p>
+<a class="button button--primary" href="/register" data-discover="true">Hesab yarat<svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</a>
+</div>
+<img src="/landing/qless/workspace.webp" width="1000" height="750" loading="lazy" decoding="async" alt="NövbəTime iş sahəsini təsvir edən illüstrativ görünüş" data-parallax="true"/>
+</div>
+</section>
+<section class="landing-gallery" id="suitable-businesses" aria-labelledby="sectors-title">
+<div class="landing-gallery__sticky">
+<div class="shell landing-gallery__heading">
+<div>
+<p class="eyebrow">Kimlər üçün</p>
+<h2 id="sectors-title">Hər qəbulun öz ritmi var.</h2>
+<p>Klinikadan fərdi mütəxəssisə — növbə və rezervasiya bir platformada.</p>
+</div>
+<a class="landing-gallery__skip" href="#landing-faq">Qalereyadan sonra davam et <span aria-hidden="true">↓</span>
+</a>
+</div>
+<div class="landing-gallery__rail" id="service-gallery" role="region" aria-label="Xidmət sahələri qalereyası" tabindex="0">
+<div class="landing-gallery__track">
+<figure class="landing-gallery__card">
+<img src="/landing/qless/clinic.webp" srcSet="/landing/qless/clinic-768.webp 768w, /landing/qless/clinic.webp 1536w" sizes="(min-width: 64rem) 66vw, 88vw" width="1536" height="1024" loading="lazy" decoding="async" alt="Klinika qəbulunda pasiyenti qarşılayan əməkdaş"/>
+<figcaption>
+<span aria-hidden="true">01</span>
+<div>
+<h3>Klinika və tibbi qəbul</h3>
+<p>Qəbul vaxtı aydın olsun, diqqət pasiyentdə qalsın.</p>
+</div>
+</figcaption>
+</figure>
+<figure class="landing-gallery__card">
+<img src="/landing/qless/salon.webp" srcSet="/landing/qless/salon-768.webp 768w, /landing/qless/salon.webp 1536w" sizes="(min-width: 64rem) 66vw, 88vw" width="1536" height="1024" loading="lazy" decoding="async" alt="Salon qəbulunda müştəri ilə məsləhətləşən stilist"/>
+<figcaption>
+<span aria-hidden="true">02</span>
+<div>
+<h3>Gözəllik və şəxsi qulluq</h3>
+<p>Müştəri öz saatını seçsin, siz işinizə fokuslanın.</p>
+</div>
+</figcaption>
+</figure>
+<figure class="landing-gallery__card">
+<img src="/landing/qless/service.webp" srcSet="/landing/qless/service-768.webp 768w, /landing/qless/service.webp 1536w" sizes="(min-width: 64rem) 66vw, 88vw" width="1536" height="1024" loading="lazy" decoding="async" alt="Xidmət mərkəzində müştərini qarşılayan əməkdaş"/>
+<figcaption>
+<span aria-hidden="true">03</span>
+<div>
+<h3>Xidmət və qəbul mərkəzləri</h3>
+<p>QR ilə qoşulun, növbənin gedişini telefondan izləyin.</p>
+</div>
+</figcaption>
+</figure>
+<figure class="landing-gallery__card">
+<img src="/landing/qless/specialist.webp" srcSet="/landing/qless/specialist-768.webp 768w, /landing/qless/specialist.webp 1536w" sizes="(min-width: 64rem) 66vw, 88vw" width="1536" height="1024" loading="lazy" decoding="async" alt="Öz iş otağında müştəri ilə görüşən fərdi mütəxəssis"/>
+<figcaption>
+<span aria-hidden="true">04</span>
+<div>
+<h3>Fərdi mütəxəssislər</h3>
+<p>Bir otaq, aydın iş qrafiki, rahat müştəri qəbulu.</p>
+</div>
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="shell landing-gallery__progress" aria-hidden="true">
+<span>
+</span>
+</div>
+<div class="shell landing-gallery__footer">
+<p class="landing-gallery__note">İllüstrativ xidmət ssenariləri</p>
+<div class="landing-gallery__controls" aria-label="Qalereya idarəsi">
+<span class="landing-gallery__count" aria-live="off">01 <span>/ 04</span>
+</span>
+<button type="button" disabled="" aria-label="Əvvəlki şəkil" aria-controls="service-gallery">
+<svg class="icon icon--left" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</button>
+<button type="button" aria-label="Növbəti şəkil" aria-controls="service-gallery">
+<svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</section>
+<section class="qless-scenarios" aria-labelledby="scenarios-title">
+<div class="shell">
+<div class="qless-section-heading" data-reveal="true">
+<p class="eyebrow">Qəbulun hər növü üçün</p>
+<h2 id="scenarios-title">Fərqli xidmətlər.<br/>Eyni rahat təcrübə.</h2>
+<p>İllüstrativ xidmət ssenariləri.</p>
+</div>
+<div class="qless-scenarios__grid">
+<a class="qless-scenario qless-scenario--featured" data-reveal="true" href="/rooms" data-discover="true">
+<img src="/landing/qless/clinic.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Klinika və tibbi qəbul üçün illüstrativ xidmət səhnəsi"/>
+<div>
+<span>Klinika və tibbi qəbul</span>
+<h3>Diqqətiniz pasiyentdə qalsın.</h3>
+<p>Canlı növbə və planlı qəbul ilə pasiyent axınını təşkil edin.</p>
+<span class="qless-scenario__link">Otaqları kəşf edin <svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</span>
+</div>
+</a>
+<a class="qless-scenario" data-reveal="true" href="/rooms" data-discover="true">
+<img src="/landing/qless/salon.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Gözəllik və şəxsi qulluq üçün illüstrativ xidmət səhnəsi"/>
+<div>
+<span>Gözəllik və şəxsi qulluq</span>
+<h3>Hər müştərinin öz saatı olsun.</h3>
+<p>Qəbul saatlarını göstərin və günün iş qrafikini planlayın.</p>
+<span class="qless-scenario__link">Otaqları kəşf edin <svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</span>
+</div>
+</a>
+<a class="qless-scenario" data-reveal="true" href="/rooms" data-discover="true">
+<img src="/landing/qless/service.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Xidmət mərkəzləri üçün illüstrativ xidmət səhnəsi"/>
+<div>
+<span>Xidmət mərkəzləri</span>
+<h3>Qapıdan əvvəl növbə götürülsün.</h3>
+<p>QR kodla qoşulma və telefonla növbənin gedişini izləmə.</p>
+<span class="qless-scenario__link">Otaqları kəşf edin <svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</span>
+</div>
+</a>
+<a class="qless-scenario" data-reveal="true" href="/rooms" data-discover="true">
+<img src="/landing/qless/specialist.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Fərdi mütəxəssislər üçün illüstrativ xidmət səhnəsi"/>
+<div>
+<span>Fərdi mütəxəssislər</span>
+<h3>İşinizi öz ritminizdə qurun.</h3>
+<p>Bir otaq, aydın qrafik və rahat müştəri qəbulu.</p>
+<span class="qless-scenario__link">Otaqları kəşf edin <svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</span>
+</div>
+</a>
+</div>
+</div>
+</section>
+<section class="landing-faq" id="landing-faq" aria-labelledby="faq-title" tabindex="-1">
+<div class="shell landing-faq__grid">
+<div class="qless-section-heading" data-reveal="true">
+<p class="eyebrow">Aydın cavablar</p>
+<h2 id="faq-title">Başlamazdan əvvəl.</h2>
+</div>
+<div class="landing-faq__list" data-reveal="true">
+<details open="">
+<summary>Onlayn növbə sistemi necə işləyir?</summary>
+<p>Uyğun otağı tapın, canlı növbəyə uzaqdan qoşulun və növbədəki yerinizi telefondan izləyin. Vaxtınız yaxınlaşanda məkana gəlin.</p>
+</details>
+<details>
+<summary>Canlı növbə ilə planlı rezervasiyanın fərqi nədir?</summary>
+<p>Canlı növbədə cari ardıcıllığa qoşulursunuz. Planlı rezervasiyada isə otağın iş qrafikindən yaranan boş tarix və saatı əvvəlcədən seçirsiniz.</p>
+</details>
+<details>
+<summary>Hesab yaratmadan qoşula bilərəm?</summary>
+<p>Canlı növbəyə qeydiyyatsız qoşulmaq mümkündür. Planlı qəbul və növbə yaratmaq üçün hesabınıza daxil olun.</p>
+</details>
+</div>
+</div>
+</section>
+<section class="qless-closing" aria-labelledby="closing-title">
+<div class="shell">
+<div data-reveal="true">
+<p class="eyebrow">Növbəti addım sizindir</p>
+<h2 id="closing-title">Vaxtınızı<br/>geri alın.</h2>
+<p>Növbə gözləməyə deyil, gününüzə vaxt ayırın.</p>
+<a class="button button--primary" href="/rooms" data-discover="true">Uyğun otağı tap <svg class="icon icon--right" viewBox="0 0 20 20" width="20" height="20" aria-hidden="true">
+<path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+</path>
+</svg>
+</a>
+</div>
+<img src="/landing/qless/phone.webp" width="1000" height="1000" loading="lazy" decoding="async" alt="Telefondan növbəni izləmənin illüstrativ görünüşü" data-parallax="true"/>
+</div>
+</section>
+</div>
+</main>
+<footer class="site-footer">
+<div class="shell site-footer__inner">
+<div class="site-footer__identity">
+<a class="brand" aria-label="NövbəTime ana səhifə" href="/" data-discover="true">
+<span class="brand__mark" aria-hidden="true">
+<img class="brand__logo" src="/novbetime-logo.png" alt="" width="512" height="512"/>
+</span>
+<span class="brand__name">NövbəTime</span>
+</a>
+<p>Növbələriniz qaydasında.<br/>Vaxtınız özünüzə qalsın.</p>
+</div>
+<nav class="site-footer__links" aria-label="Alt naviqasiya">
+<div>
+<span>Platforma</span>
+<a href="/rooms" data-discover="true">Otaqları kəşf edin</a>
+<a href="/app/bookings" data-discover="true">Növbələriniz</a>
+</div>
+<div>
+<span>NövbəTime</span>
+<a href="/#how-it-works">İş prinsipi</a>
+<a href="/#for-business">Bizneslər üçün</a>
+<a href="/#landing-faq">Suallar və cavablar</a>
+</div>
+<div>
+<span>Xidmət sahələri</span>
+<a href="/#suitable-businesses">Klinika və tibbi qəbul</a>
+<a href="/#suitable-businesses">Gözəllik və şəxsi qulluq</a>
+<a href="/#suitable-businesses">Xidmət mərkəzləri</a>
+<a href="/#suitable-businesses">Fərdi mütəxəssislər</a>
+</div>
+</nav>
+<div class="site-footer__bottom">
+<p>© 2026 NövbəTime</p>
+<p>Növbə və rezervasiya platforması</p>
+</div>
+</div>
+</footer>
+</div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

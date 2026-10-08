@@ -84,6 +84,9 @@ test("gallery stays responsive across viewport sizes", async ({ page }, testInfo
     const section = page.locator(".landing-gallery");
     if (viewport.pinned) {
       await expect(section).toHaveClass(/landing-gallery--pinned/);
+      const start = await section.evaluate((element) => window.scrollY + element.getBoundingClientRect().top);
+      await page.evaluate((top) => window.scrollTo({ top: top + 100, behavior: "instant" }), start);
+      await expect.poll(() => page.locator(".landing-gallery__footer").evaluate((element) => element.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height);
     } else {
       await expect(section).not.toHaveClass(/landing-gallery--pinned/);
     }

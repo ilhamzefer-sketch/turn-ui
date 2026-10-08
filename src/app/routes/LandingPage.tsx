@@ -1,285 +1,316 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { Link } from "react-router-dom";
-
 import { useAuth } from "../../shared/auth/useAuth";
 import { homeStructuredData } from "../../shared/meta/siteMetadata";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { ArrowIcon } from "../../shared/ui/ArrowIcon";
 import { ButtonLink } from "../../shared/ui/Button";
 import { LandingGallery } from "./LandingGallery";
+import { QlessRoleShowcase } from "./QlessRoleShowcase";
+import { QlessBenefits } from "./QlessBenefits";
+import { useLandingMotion } from "./useLandingMotion";
 
-const customerSteps = [
-  { number: "01", title: "Otağı tapın", text: "Biznesi, filialı və ya mütəxəssisi axtarın." },
-  { number: "02", title: "Axını seçin", text: "Canlı növbəyə qoşulun və ya boş saatı rezervasiya edin." },
-  { number: "03", title: "Vaxtınız çatanda gəlin", text: "Vəziyyəti telefondan izləyin və gözləməni azaldın." },
-] as const;
-
-const businessCapabilities = [
-  "Filial və otaqları bir strukturda qurun",
-  "Otaq sahiblərini və iş qrafikini idarə edin",
-  "Canlı əməliyyatları və nəticələri izləyin",
-] as const;
-
-const frequentlyAskedQuestions = [
+const steps = [
+  { title: "Otağı tapın", text: "Biznesi, filialı və ya mütəxəssisi axtarın." },
+  {
+    title: "Növbə və ya saat seçin",
+    text: "Canlı növbəyə qoşulun və ya boş qəbul saatını rezervasiya edin.",
+  },
+  {
+    title: "Vaxtınız çatanda gəlin",
+    text: "Növbənizin gedişini telefondan izləyin, gününüzə davam edin.",
+  },
+];
+const questions = [
   {
     question: "Onlayn növbə sistemi necə işləyir?",
-    answer: "Müştəri uyğun otağı tapır, canlı növbəyə uzaqdan qoşulur və növbədəki yerini telefondan izləyir. Vaxtı yaxınlaşanda məkana gəlir.",
+    answer:
+      "Uyğun otağı tapın, canlı növbəyə uzaqdan qoşulun və növbədəki yerinizi telefondan izləyin. Vaxtınız yaxınlaşanda məkana gəlin.",
   },
   {
     question: "Canlı növbə ilə planlı rezervasiyanın fərqi nədir?",
-    answer: "Canlı növbədə iştirakçılar cari ardıcıllığa qoşulur. Planlı rezervasiyada isə müştəri iş qrafikindən yaranan boş tarix və saatı əvvəlcədən seçir.",
+    answer:
+      "Canlı növbədə cari ardıcıllığa qoşulursunuz. Planlı rezervasiyada isə otağın iş qrafikindən yaranan boş tarix və saatı əvvəlcədən seçirsiniz.",
   },
   {
-    question: "NövbəTime hansı bizneslər üçün uyğundur?",
-    answer: "Müştəri qəbulu aparan klinikalar, salonlar, xidmət mərkəzləri, filiallı bizneslər və fərdi mütəxəssislər hər otaq üçün uyğun növbə rejimi qura bilər.",
+    question: "Hesab yaratmadan qoşula bilərəm?",
+    answer:
+      "Canlı növbəyə qeydiyyatsız qoşulmaq mümkündür. Planlı qəbul və növbə yaratmaq üçün hesabınıza daxil olun.",
   },
-] as const;
+];
+const scenarios = [
+  {
+    image: "clinic.webp",
+    label: "Klinika və tibbi qəbul",
+    title: "Diqqətiniz pasiyentdə qalsın.",
+    text: "Canlı növbə və planlı qəbul ilə pasiyent axınını təşkil edin.",
+  },
+  {
+    image: "salon.webp",
+    label: "Gözəllik və şəxsi qulluq",
+    title: "Hər müştərinin öz saatı olsun.",
+    text: "Qəbul saatlarını göstərin və günün iş qrafikini planlayın.",
+  },
+  {
+    image: "service.webp",
+    label: "Xidmət mərkəzləri",
+    title: "Qapıdan əvvəl növbə götürülsün.",
+    text: "QR kodla qoşulma və telefonla növbənin gedişini izləmə.",
+  },
+  {
+    image: "specialist.webp",
+    label: "Fərdi mütəxəssislər",
+    title: "İşinizi öz ritminizdə qurun.",
+    text: "Bir otaq, aydın qrafik və rahat müştəri qəbulu.",
+  },
+];
 
 export function LandingPage() {
   const { status } = useAuth();
   const pageRef = useRef<HTMLDivElement>(null);
   const accountTarget = status === "authenticated" ? "/app" : "/register";
-  const accountLabel = status === "authenticated"
-    ? "İş sahəsinə keçin"
-    : status === "checking" || status === "idle"
-      ? "Hesab yoxlanılır…"
-      : "Hesab yarat";
-
+  const accountLabel =
+    status === "authenticated" ? "İş sahəsinə keçin" : "Hesab yarat";
   usePageMeta(
     "Onlayn növbə və rezervasiya sistemi | NövbəTime",
     "Azərbaycanda bizneslər və müştərilər üçün onlayn növbə, canlı növbə və qəbul rezervasiyası. QR ilə qoşulun, növbənizi telefondan izləyin.",
     { canonicalPath: "/", structuredData: homeStructuredData },
   );
-
-  useEffect(() => {
-    const page = pageRef.current;
-    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (!page || prefersReducedMotion) return;
-
-    const items = Array.from(page.querySelectorAll<HTMLElement>("[data-reveal]"));
-    page.classList.add("landing-page--motion-ready");
-
-    if (!("IntersectionObserver" in window)) {
-      page.classList.remove("landing-page--motion-ready");
-      return;
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        entry.target.classList.toggle("is-visible", entry.isIntersecting);
-      }
-    }, { rootMargin: "-8% 0px -10%", threshold: 0.12 });
-
-    items.forEach((item) => observer.observe(item));
-    return () => {
-      observer.disconnect();
-      page.classList.remove("landing-page--motion-ready");
-    };
-  }, []);
-
+  useLandingMotion(pageRef);
   return (
-    <div className="landing-page" ref={pageRef}>
-      <section className="landing-hero" aria-labelledby="hero-title">
-        <div className="shell landing-hero__inner">
-          <div className="landing-hero__intro" data-reveal>
-            <p className="eyebrow">Birbaşa başlayın</p>
-            <h1 id="hero-title">Nə etmək istəyirsiniz?</h1>
-            <p className="landing-hero__lede">
-              Sizə uyğun seçimi edin — qalan addımları NövbəTime aydın şəkildə göstərəcək.
-            </p>
-          </div>
-
-          <nav className="landing-hero__choices" aria-label="Sürətli başlanğıc seçimləri" data-reveal>
-            <Link className="landing-choice-card landing-choice-card--create" to={accountTarget}>
-              <span className="landing-choice-card__topline">
-                <span>01</span>
-                <span className="landing-choice-card__badge">Hesab ilə</span>
-              </span>
-              <div className="landing-choice-card__body">
-                <span className="landing-choice-card__artwork" aria-hidden="true">
-                  <svg viewBox="0 0 96 96">
-                    <rect x="12" y="12" width="72" height="72" rx="18" />
-                    <path d="M29 29h13v13H29zM54 29h13v13H54zM29 54h13v13H29zM55 54h5v5h-5zM63 54h5v14h-5zM54 63h5v5h-5z" />
-                  </svg>
-                </span>
-                <div>
-                  <h2>Növbə yarat</h2>
-                  <p>Canlı və ya planlı növbə qurun, QR kodunuzu paylaşın və axını idarə edin.</p>
-                </div>
-              </div>
-              <span className="landing-choice-card__footer">
-                <span>Davam etmək üçün hesab tələb olunur</span>
-                <ArrowIcon />
-              </span>
-            </Link>
-
-            <Link className="landing-choice-card landing-choice-card--join" to="/rooms">
-              <span className="landing-choice-card__topline">
-                <span>02</span>
-                <span className="landing-choice-card__badge">Sürətli giriş</span>
-              </span>
-              <div className="landing-choice-card__body">
-                <span className="landing-choice-card__artwork" aria-hidden="true">
-                  <svg viewBox="0 0 96 96">
-                    <rect x="13" y="20" width="70" height="56" rx="16" />
-                    <path d="M27 39h42M27 50h29M27 61h20" />
-                    <circle cx="70" cy="61" r="5" />
-                  </svg>
-                </span>
-                <div>
-                  <h2>Növbəyə qoşul</h2>
-                  <p>Otağı tapın, canlı növbəyə qeydiyyatsız qoşulun və yerinizi izləyin.</p>
-                </div>
-              </div>
-              <span className="landing-choice-card__footer">
-                <span>Planlı qəbul üçün giriş tələb olunur</span>
-                <ArrowIcon />
-              </span>
-            </Link>
-          </nav>
+    <div className="landing-page landing-page--qless" ref={pageRef}>
+      <section className="qless-hero" aria-labelledby="hero-title">
+        <div
+          className="qless-floating qless-floating--one"
+          data-hero-float="1"
+          aria-hidden="true"
+          data-parallax="layer"
+        >
+          <span>
+            Qəbul otağı <small>Nümunə</small>
+          </span>
+          <strong>A-12</strong>
+          <p>
+            <i /> Hazırda qəbulda
+          </p>
         </div>
-        <a className="landing-scroll-cue" href="#how-it-works" aria-label="Necə işlədiyini görmək üçün aşağı keçin">
-          <span aria-hidden="true" /> Necə işləyir
-        </a>
-      </section>
-
-      <section className="landing-proof" aria-label="NövbəTime platformasının əsas üstünlükləri">
-        <div className="shell landing-proof__grid" data-reveal>
-          <p><strong>2 növbə modeli</strong><span>Canlı və planlı axın</span></p>
-          <p><strong>1 telefon nömrəsi</strong><span>Bütün rollar üçün vahid hesab</span></p>
-          <p><strong>Real vaxt</strong><span>Növbə və boş saat məlumatı</span></p>
-          <p><strong>QR ilə giriş</strong><span>Parol tələb etmədən sürətli qoşulma</span></p>
+        <div
+          className="qless-floating qless-floating--two"
+          data-hero-float="2"
+          aria-hidden="true"
+          data-parallax
+        >
+          <span>
+            Rezervasiya <small>Nümunə</small>
+          </span>
+          <strong>10:00</strong>
+          <p>Seçilən qəbul saatı</p>
         </div>
-      </section>
-
-      <section className="landing-journey shell" id="how-it-works" aria-labelledby="journey-title">
-        <div className="landing-section-heading" data-reveal>
-          <p className="eyebrow">Müştəri üçün</p>
-          <h2 id="journey-title">Qapıda gözləmək əvəzinə, vaxtınız çatanda gəlin.</h2>
-          <p>İstər QR kodla, istər uzaqdan — üç sadə addımda növbənizi götürün.</p>
+        <div
+          className="qless-floating qless-floating--three"
+          data-hero-float="3"
+          aria-hidden="true"
+          data-parallax="layer"
+        >
+          <span>
+            Sizin növbəniz <small>Nümunə</small>
+          </span>
+          <strong>A-15</strong>
+          <p>Sizdən əvvəl: 3 nəfər</p>
         </div>
-
-        <div className="landing-journey__layout">
-          <figure className="landing-image-card landing-image-card--qr" data-reveal>
-            <img
-              src="/landing/qr-live-queue.webp"
-              srcSet="/landing/qr-live-queue-768.webp 768w, /landing/qr-live-queue.webp 1536w"
-              sizes="(min-width: 64rem) 50vw, 100vw"
-              width="1536"
-              height="1024"
-              loading="lazy"
-              decoding="async"
-              alt="QR stendi və telefonda növbəyə qoşulma təsdiqinin illüstrativ görünüşü"
-            />
-            <figcaption>QR kodu oxudun. Ad və nömrənizi yazın. Növbənizi izləyin.</figcaption>
-          </figure>
-
-          <ol className="landing-steps" aria-label="Növbə götürməyin addımları">
-            {customerSteps.map((step) => (
-              <li key={step.number} data-reveal>
-                <span>{step.number}</span>
-                <div><h3>{step.title}</h3><p>{step.text}</p></div>
-              </li>
-            ))}
-          </ol>
+        <div
+          className="qless-floating qless-floating--four"
+          data-hero-float="4"
+          aria-hidden="true"
+          data-parallax
+        >
+          <span>
+            Qəbulun vəziyyəti <small>Nümunə</small>
+          </span>
+          <strong>Növbə açıqdır</strong>
+          <p>
+            <i /> Canlı axın
+          </p>
         </div>
-      </section>
-
-      <section className="landing-modes" aria-labelledby="modes-title">
-        <div className="shell">
-          <div className="landing-section-heading landing-section-heading--center" data-reveal>
-            <p className="eyebrow">Bir sistem, iki axın</p>
-            <h2 id="modes-title">Günün ritminə uyğun seçim edin.</h2>
-          </div>
-
-          <div className="landing-modes__grid">
-            <article className="landing-mode-card landing-mode-card--live" data-reveal>
-              <div className="landing-mode-card__topline"><span>01</span><i aria-hidden="true" /></div>
-              <h3>Canlı növbə</h3>
-              <p>İnsanlar ardıcıllıqla qoşulur, otaq sahibi növbəni real vaxtda irəli aparır.</p>
-              <div className="landing-mode-card__queue" aria-hidden="true">
-                <span>A-14</span><span className="is-current">A-15 · Siz</span><span>A-16</span>
-              </div>
-            </article>
-
-            <article className="landing-mode-card landing-mode-card--planned" data-reveal>
-              <div className="landing-mode-card__topline"><span>02</span><i aria-hidden="true" /></div>
-              <h3>Planlı rezervasiya</h3>
-              <p>Real iş qrafikindən yaranan boş vaxtlardan birini seçin və gününüzü əvvəlcədən planlayın.</p>
-              <div className="landing-mode-card__slots" aria-label="Nümunə boş saatlar">
-                <span>09:30</span><span className="is-selected">10:00</span><span>10:30</span><span>11:00</span>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-business" id="for-business" aria-labelledby="business-title">
-        <div className="shell landing-business__grid">
-          <div className="landing-business__copy" data-reveal>
-            <p className="eyebrow eyebrow--light">Biznes və mütəxəssislər üçün</p>
-            <h2 id="business-title">Filialdan otağa qədər bütün axını bir yerdə idarə edin.</h2>
-            <p>
-              İşçiləri, otaqları, iş saatlarını və növbə nəticələrini eyni sistemdə görün.
-              Hər otaq öz rejimi ilə işləsin, biznes isə ümumi mənzərəni itirməsin.
-            </p>
-            <ul>
-              {businessCapabilities.map((capability) => <li key={capability}>{capability}</li>)}
-            </ul>
+        <div className="shell qless-hero__content" data-reveal>
+          <img
+            className="qless-hero__avatars"
+            src="/landing/qless/avatars.webp"
+            width="480"
+            height="160"
+            alt=""
+          />
+          <p className="eyebrow">Vaxtınıza dəyər verən növbə sistemi</p>
+          <h1 id="hero-title">
+            Daha az gözləyin. <span>Daha çox yaşayın.</span>
+          </h1>
+          <p className="qless-hero__lede">
+            Növbənizi uzaqdan götürün, qəbul saatınızı seçin və gününüzə davam
+            edin. Gözləmənin gedişi hər an telefonunuzda olsun.
+          </p>
+          <div className="qless-hero__actions">
+            <ButtonLink to="/rooms">
+              Növbəyə qoşul <ArrowIcon />
+            </ButtonLink>
             <ButtonLink to={accountTarget} variant="secondary">
-              {accountLabel}<ArrowIcon />
+              Növbə yarat <ArrowIcon />
             </ButtonLink>
           </div>
-
-          <div className="landing-business__media" data-reveal>
-            <img
-              src="/landing/multi-room-operations.webp"
-              srcSet="/landing/multi-room-operations-768.webp 768w, /landing/multi-room-operations.webp 1536w"
-              sizes="(min-width: 64rem) 50vw, 100vw"
-              width="1536"
-              height="1024"
-              loading="lazy"
-              decoding="async"
-              alt="Kompüterdə üç otağın növbələrini bir yerdə göstərən illüstrativ idarəetmə paneli"
-            />
-            <div className="business-insight-card">
-              <span>Bugünkü əməliyyat</span>
-              <strong>3 otaq aktivdir</strong>
-              <div aria-hidden="true"><i /><i /><i /><i /><i /></div>
-              <small>Günün gedişi bir baxışda</small>
-            </div>
+          <p className="qless-hero__note">
+            Canlı növbəyə qeydiyyatsız qoşulmaq mümkündür.
+          </p>
+        </div>
+      </section>
+      <QlessRoleShowcase accountTarget={accountTarget} />
+      <QlessBenefits />
+      <section
+        className="qless-journey"
+        id="how-it-works"
+        aria-labelledby="journey-title"
+      >
+        <div className="shell">
+          <div className="qless-section-heading" data-reveal>
+            <p className="eyebrow">NövbəTime ilə daha rahat gün</p>
+            <h2 id="journey-title">
+              Gözləmək üçün deyil,
+              <br />
+              yaşamaq üçün vaxt.
+            </h2>
+            <p>Növbənizi götürmək üç sadə addımdan ibarətdir.</p>
+          </div>
+          <div className="qless-journey__grid">
+            {steps.map((step, index) => (
+              <article key={step.title} data-reveal>
+                <span>0{index + 1}</span>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
-
+      <section
+        className="qless-business"
+        id="for-business"
+        aria-labelledby="business-title"
+      >
+        <div className="shell">
+          <div className="qless-section-heading" data-reveal>
+            <p className="eyebrow">Biznes və mütəxəssislər üçün</p>
+            <h2 id="business-title">
+              Hər otağın öz ritmi.
+              <br />
+              Hamısı bir platformada.
+            </h2>
+            <p>
+              Filialları, otaqları, komandanı və iş saatlarını bir yerdə idarə
+              edin.
+            </p>
+            <ButtonLink to={accountTarget}>
+              {accountLabel}
+              <ArrowIcon />
+            </ButtonLink>
+          </div>
+          <img
+            src="/landing/qless/workspace.webp"
+            width="1000"
+            height="750"
+            loading="lazy"
+            decoding="async"
+            alt="NövbəTime iş sahəsini təsvir edən illüstrativ görünüş"
+            data-parallax
+          />
+        </div>
+      </section>
       <LandingGallery />
-
-      <section className="landing-faq" id="landing-faq" aria-labelledby="faq-title" tabIndex={-1}>
+      <section className="qless-scenarios" aria-labelledby="scenarios-title">
+        <div className="shell">
+          <div className="qless-section-heading" data-reveal>
+            <p className="eyebrow">Qəbulun hər növü üçün</p>
+            <h2 id="scenarios-title">
+              Fərqli xidmətlər.
+              <br />
+              Eyni rahat təcrübə.
+            </h2>
+            <p>İllüstrativ xidmət ssenariləri.</p>
+          </div>
+          <div className="qless-scenarios__grid">
+            {scenarios.map((scene, index) => (
+              <Link
+                className={
+                  index === 0
+                    ? "qless-scenario qless-scenario--featured"
+                    : "qless-scenario"
+                }
+                key={scene.image}
+                to="/rooms"
+                data-reveal
+              >
+                <img
+                  src={"/landing/qless/" + scene.image}
+                  width="1536"
+                  height="1024"
+                  loading="lazy"
+                  decoding="async"
+                  alt={scene.label + " üçün illüstrativ xidmət səhnəsi"}
+                />
+                <div>
+                  <span>{scene.label}</span>
+                  <h3>{scene.title}</h3>
+                  <p>{scene.text}</p>
+                  <span className="qless-scenario__link">
+                    Otaqları kəşf edin <ArrowIcon />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section
+        className="landing-faq"
+        id="landing-faq"
+        aria-labelledby="faq-title"
+        tabIndex={-1}
+      >
         <div className="shell landing-faq__grid">
-          <div className="landing-section-heading" data-reveal>
+          <div className="qless-section-heading" data-reveal>
             <p className="eyebrow">Aydın cavablar</p>
-            <h2 id="faq-title">NövbəTime haqqında tez-tez verilən suallar</h2>
-            <p>Canlı növbə və planlı qəbul modelini ehtiyacınıza uyğun seçin.</p>
+            <h2 id="faq-title">Başlamazdan əvvəl.</h2>
           </div>
           <div className="landing-faq__list" data-reveal>
-            {frequentlyAskedQuestions.map((item, index) => (
-              <details key={item.question} open={index === 0}>
-                <summary>{item.question}</summary>
-                <p>{item.answer}</p>
+            {questions.map((q, index) => (
+              <details key={q.question} open={index === 0}>
+                <summary>{q.question}</summary>
+                <p>{q.answer}</p>
               </details>
             ))}
           </div>
         </div>
       </section>
-
-      <section className="landing-closing shell" aria-labelledby="closing-title" data-reveal>
-        <div>
-          <p className="eyebrow">Başlamaq üçün</p>
-          <h2 id="closing-title">Bir telefon nömrəsi.<br />Bütün növbələriniz.</h2>
-        </div>
-        <div className="landing-closing__action">
-          <p>Müştəri, fərdi mütəxəssis və biznes rolları eyni hesabda işləyir.</p>
-          <ButtonLink to={accountTarget}>{accountLabel}<ArrowIcon /></ButtonLink>
+      <section className="qless-closing" aria-labelledby="closing-title">
+        <div className="shell">
+          <div data-reveal>
+            <p className="eyebrow">Növbəti addım sizindir</p>
+            <h2 id="closing-title">
+              Vaxtınızı
+              <br />
+              geri alın.
+            </h2>
+            <p>Növbə gözləməyə deyil, gününüzə vaxt ayırın.</p>
+            <ButtonLink to="/rooms">
+              Uyğun otağı tap <ArrowIcon />
+            </ButtonLink>
+          </div>
+          <img
+            src="/landing/qless/phone.webp"
+            width="1000"
+            height="1000"
+            loading="lazy"
+            decoding="async"
+            alt="Telefondan növbəni izləmənin illüstrativ görünüşü"
+            data-parallax
+          />
         </div>
       </section>
     </div>

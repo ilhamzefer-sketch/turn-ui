@@ -7,6 +7,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { guestQueueSchema, type GuestQueueFormValues } from "../../features/operations/schemas";
 import { localDateTimeLabel } from "../../features/operations/operationFormatters";
 import { queueApi } from "../../shared/api/queueApi";
+import { ApiError } from "../../shared/api/httpClient";
 import { useAuth } from "../../shared/auth/useAuth";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
@@ -16,6 +17,7 @@ import { TextField } from "../../shared/ui/TextField";
 
 export function RoomLiveQueuePage() {
   const roomId = Number(useParams().roomId);
+  const hasValidId = Number.isInteger(roomId) && roomId > 0;
   const [searchParams] = useSearchParams();
   const qrToken = searchParams.get("qr") ?? "";
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ export function RoomLiveQueuePage() {
   const queueQuery = useQuery({
     queryKey: ["public-live-queue", roomId, qrToken],
     queryFn: () => qrToken ? queueApi.publicQr(qrToken) : queueApi.publicRoom(roomId),
-    enabled: Number.isInteger(roomId) && roomId > 0,
+    enabled: hasValidId,
     refetchInterval: 10_000,
   });
   const form = useForm<GuestQueueFormValues>({ resolver: zodResolver(guestQueueSchema) });
@@ -46,8 +48,12 @@ export function RoomLiveQueuePage() {
   const queue = queueQuery.data;
   usePageMeta(queue ? `${queue.roomName} canlı növbəsi — NövbəTime` : "Canlı növbə — NövbəTime", "Canlı növbənin vəziyyətini görün və qoşulun.");
 
+  if (!hasValidId) return <OperationPublicError title="Otaq keçidi düzgün deyil" />;
   if (queueQuery.isPending) return <div className="operation-public-state shell" role="status">Canlı növbə açılır…</div>;
-  if (queueQuery.isError || !queue) return <OperationPublicError title="Canlı növbə açılmadı" />;
+  if (!queue) {
+    const unavailable = queueQuery.error instanceof ApiError && [404, 410].includes(queueQuery.error.status);
+    return <OperationPublicError title={unavailable ? "Canlı növbə tapılmadı" : "Canlı növbə yüklənmədi"} onRetry={unavailable ? undefined : () => void queueQuery.refetch()} />;
+  }
 
   const joinError = guestJoin.error ?? accountJoin.error;
   return (
@@ -64,6 +70,8 @@ export function RoomLiveQueuePage() {
           <strong>{queue.acceptingNewEntries ? "Qəbul açıqdır" : "Qəbul bağlıdır"}</strong>
         </div>
       </header>
+
+      {queueQuery.isError ? <div role="alert"><p>Növbənin son vəziyyəti yenilənmədi. Son alınan məlumat göstərilir.</p><Button variant="secondary" onClick={() => void queueQuery.refetch()}>Yenidən yoxla</Button></div> : null}
 
       <section className="queue-public-summary" aria-label="Cari növbə məlumatları">
         <dl>
@@ -83,14 +91,14 @@ export function RoomLiveQueuePage() {
           {authStatus === "authenticated" && user ? (
             <div className="account-join">
               <div><strong>{user.firstName} {user.lastName}</strong><span>{user.phone}</span></div>
-              <Button disabled={!queue.acceptingNewEntries} loading={accountJoin.isPending} onClick={() => accountJoin.mutate()}>Hesabımla növbəyə qoşul</Button>
+              <Button disabled={!queue.acceptingNewEntries || queueQuery.isError || guestJoin.isPending} loading={accountJoin.isPending} onClick={() => accountJoin.mutate()}>Hesabımla növbəyə qoşul</Button>
               <p className="form-note">Başqa nömrə ilə qoşulmaq üçün aşağıdakı qonaq formasından istifadə edin.</p>
             </div>
           ) : null}
           <form className="operation-form" onSubmit={form.handleSubmit((values) => guestJoin.mutate(values))} noValidate>
             <TextField label="Ad və soyad" autoComplete="name" error={form.formState.errors.displayName?.message} {...form.register("displayName")} />
             <PhoneField label="Telefon nömrəsi" error={form.formState.errors.phone?.message} {...form.register("phone")} />
-            <Button type="submit" disabled={!queue.acceptingNewEntries} loading={guestJoin.isPending}>Qonaq kimi növbəyə qoşul</Button>
+            <Button type="submit" disabled={!queue.acceptingNewEntries || queueQuery.isError || accountJoin.isPending} loading={guestJoin.isPending}>Qonaq kimi növbəyə qoşul</Button>
           </form>
         </section>
 
@@ -107,6 +115,6 @@ export function RoomLiveQueuePage() {
   );
 }
 
-function OperationPublicError({ title }: { title: string }) {
-  return <main className="operation-public-state shell" role="alert"><p className="eyebrow">Canlı növbə</p><h1>{title}</h1><p>Otaq bağlı, yayımdan çıxarılmış və ya link etibarsız ola bilər.</p><Link className="button button--secondary" to="/rooms">Otaqlara bax</Link></main>;
+function OperationPublicError({ title, onRetry }: { title: string; onRetry?: () => void }) {
+  return <section className="operation-public-state shell" role="alert"><p className="eyebrow">Canlı növbə</p><h1>{title}</h1><p>{onRetry ? "Bağlantını yoxlayın və yenidən cəhd edin." : "Otaq yayımdan çıxarılmış və ya link etibarsız ola bilər."}</p>{onRetry ? <Button variant="secondary" onClick={onRetry}>Yenidən yoxla</Button> : null}<Link className="button button--secondary" to="/rooms">Otaqlara bax</Link></section>;
 }
