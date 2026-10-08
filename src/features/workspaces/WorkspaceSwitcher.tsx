@@ -90,7 +90,7 @@ export function WorkspaceSwitcher() {
           <span className="workspace-switcher__chevron" aria-hidden="true">⌄</span>
         </button>
         {isOpen ? <div className="workspace-switcher__menu" id="workspace-options" role="listbox" aria-label="İş sahəsi seçimi">
-          <div className="workspace-switcher__menu-heading">İş sahəsini seçin</div>
+          <div className="workspace-switcher__menu-heading">Aktiv iş sahəsi</div>
           {workspaces.map((workspace, index) => {
             const selected = workspaceKey(workspace) === workspaceKey(displayedWorkspace);
             return <button

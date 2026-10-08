@@ -22,7 +22,7 @@ export function AppLayout() {
           <Brand />
           <div className="app-header__tools">
             <WorkspaceSwitcher />
-            <Link className="app-header__add" to="/onboarding">Yeni iş sahəsi</Link>
+            <Link className="app-header__add" to="/onboarding">İş sahəsi yarat</Link>
             <Link className="app-header__add" to="/app/security">Təhlükəsizlik</Link>
             <Button variant="quiet" onClick={() => void logout()}>Çıxış et</Button>
           </div>

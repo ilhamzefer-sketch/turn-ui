@@ -26,7 +26,7 @@ describe("WorkspaceSwitcher", () => {
     const user = userEvent.setup();
     render(<MemoryRouter><WorkspaceSwitcher /></MemoryRouter>);
 
-    expect(screen.getByText("Fərdi mütəxəssis")).toBeInTheDocument();
+    expect(screen.getByText("Fərdi iş sahəsi")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Aktiv iş sahəsi" })).toHaveTextContent("Camal Cavadov");
 
     await user.click(screen.getByRole("button", { name: "Aktiv iş sahəsi" }));

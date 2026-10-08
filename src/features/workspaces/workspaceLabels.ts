@@ -3,13 +3,13 @@ import type { WorkspaceContext } from "../../shared/api/contracts";
 export function workspaceTypeLabel(type: WorkspaceContext["type"]) {
   switch (type) {
     case "CUSTOMER":
-      return "Müştəri";
+      return "Şəxsi istifadə";
     case "INDIVIDUAL":
-      return "Fərdi mütəxəssis";
+      return "Fərdi iş sahəsi";
     case "BUSINESS":
-      return "Biznes";
+      return "Biznes iş sahəsi";
     case "ROOM":
-      return "Otaq sahibi";
+      return "Otaq iş sahəsi";
   }
 }
 
