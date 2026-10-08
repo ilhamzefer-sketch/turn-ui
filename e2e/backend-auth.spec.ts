@@ -21,7 +21,7 @@ test.describe("backend authentication integration", () => {
     expect(response.status(), responseBody).toBe(200);
 
     await expect(page).toHaveURL(/\/onboarding$/);
-    await page.getByRole("button", { name: /Müştəri kimi davam et/ }).click();
+    await page.getByRole("button", { name: /Şəxsi istifadə/ }).click();
     await expect(page).toHaveURL(/\/app$/);
     await expect(page.getByRole("heading", { name: /Xoş gəldiniz, Test/i })).toBeVisible();
     await expect(page.getByText("+994")).toBeVisible();
@@ -31,17 +31,17 @@ test.describe("backend authentication integration", () => {
     await expect(page.getByRole("heading", { name: /Xoş gəldiniz, Test/i })).toBeVisible();
 
     await page.goto("/onboarding");
-    await page.getByRole("button", { name: /Fərdi mütəxəssis/ }).click();
+    await page.getByRole("button", { name: /Fərdi iş sahəsi/ }).click();
     await page.getByLabel("İş sahəsinin adı").fill(`Test Studio ${phone.slice(-4)}`);
     await page.getByRole("button", { name: "Fərdi sahə yarat" }).click();
     await expect(page).toHaveURL(/\/app$/);
-    await expect(page.getByLabel("Aktiv sahə")).toHaveValue(/INDIVIDUAL:/);
+    await expect(page.getByRole("button", { name: "Aktiv iş sahəsi" })).toContainText(/Test Studio/);
 
     await page.goto("/onboarding");
-    await page.getByRole("button", { name: /Biznes/ }).click();
+    await page.getByRole("button", { name: /Biznes iş sahəsi/ }).click();
     await page.getByLabel("Biznes adı").fill(`Test Biznes ${phone.slice(-4)}`);
     await page.getByRole("button", { name: "Biznes yarat" }).click();
     await expect(page).toHaveURL(/\/app$/);
-    await expect(page.getByLabel("Aktiv sahə")).toHaveValue(/BUSINESS:/);
+    await expect(page.getByRole("button", { name: "Aktiv iş sahəsi" })).toContainText(/Test Biznes/);
   });
 });

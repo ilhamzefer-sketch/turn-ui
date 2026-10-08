@@ -77,9 +77,9 @@ export function IndividualWorkspacePage() {
   });
 
   if (!Number.isInteger(workspaceId)) return <ManagementError message="İş sahəsi identifikatoru düzgün deyil." />;
-  if (workspaceQuery.isPending || existingRoomQuery.isPending) return <ManagementLoading label="Fərdi sahə açılır…" />;
+  if (workspaceQuery.isPending || existingRoomQuery.isPending) return <ManagementLoading label="Fərdi iş sahəsi açılır…" />;
   if (workspaceQuery.isError || existingRoomQuery.isError) {
-    return <ManagementError message={apiMessage(workspaceQuery.error ?? existingRoomQuery.error, "Fərdi sahə açıla bilmədi.")} />;
+    return <ManagementError message={apiMessage(workspaceQuery.error ?? existingRoomQuery.error, "Fərdi iş sahəsi açıla bilmədi.")} />;
   }
 
   const existingRoom = existingRoomQuery.data?.[0] ?? null;
@@ -87,9 +87,9 @@ export function IndividualWorkspacePage() {
   return (
     <div className="management-page">
       <ManagementPageHeader
-        eyebrow="Fərdi mütəxəssis"
+        eyebrow="Fərdi iş sahəsi"
         title={workspaceQuery.data.name}
-        description="Fərdi sahədə bir otaq və bir ortaq qrafik olur. Otağın sahibi avtomatik olaraq siz olursunuz."
+        description="Fərdi iş sahəsində bir otaq və bir ortaq qrafik olur. Otağın sahibi avtomatik olaraq siz olursunuz."
         actions={existingRoom ? (
           <>
             <ButtonLink variant="secondary" to={`/app/rooms/${existingRoom.id}/settings`}>Otaq ayarları</ButtonLink>
@@ -126,7 +126,7 @@ export function IndividualWorkspacePage() {
         <section className="management-panel management-panel--editor" aria-labelledby="individual-room-details-title">
           <div className="section-heading">
             <div><p className="eyebrow">Yeganə qəbul sahəniz</p><h2 id="individual-room-details-title">Qəbul məlumatlarınızı tamamlayın</h2></div>
-            <p>Fərdi mütəxəssis üçün ayrıca otaq yaratmağa ehtiyac yoxdur. Bu məlumatlar sizin yeganə qəbul sahənizə aid olacaq.</p>
+            <p>Fərdi iş sahəsi üçün ayrıca otaq yaratmağa ehtiyac yoxdur. Bu məlumatlar sizin yeganə qəbul sahənizə aid olacaq.</p>
           </div>
           <RoomSetupProgress currentStep="basics" />
           <NotificationEvent tone="error" message={createMutation.isError ? apiMessage(createMutation.error, "Qəbul məlumatları saxlanılmadı.") : null} />

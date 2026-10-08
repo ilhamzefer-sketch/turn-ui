@@ -32,7 +32,7 @@ export function AppHomePage() {
         action={pendingInvitationCount > 0 ? { label: "Dəvətlərə bax və cavablandır", to: "/onboarding#pending-invitations" } : undefined}
       />
       <section className="welcome-panel" aria-labelledby="welcome-title">
-        <p className="eyebrow">{activeWorkspace ? workspaceTypeLabel(activeWorkspace.type) : "Şəxsi hesab"}</p>
+        <p className="eyebrow">{activeWorkspace ? workspaceTypeLabel(activeWorkspace.type) : "Şəxsi istifadə"}</p>
         <h1 id="welcome-title">Xoş gəldiniz, {user?.firstName}.</h1>
         {status === "loading" ? <p role="status">İş sahəniz açılır…</p> : (
           <p>

@@ -358,7 +358,7 @@ test("individual workspace opens its only room and returns to its details form a
   await page.getByRole("button", { name: "Otağı sil" }).click();
 
   await expect(page.getByRole("heading", { name: "Qəbul məlumatlarınızı tamamlayın" })).toBeVisible();
-  await expect(page.getByText("Fərdi mütəxəssis üçün ayrıca otaq yaratmağa ehtiyac yoxdur.")).toBeVisible();
+  await expect(page.getByText("Fərdi iş sahəsi üçün ayrıca otaq yaratmağa ehtiyac yoxdur.")).toBeVisible();
   await expect(page.getByText("Otağınızı yaradın")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Otağı sil" })).toHaveCount(0);
 });

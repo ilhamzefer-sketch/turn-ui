@@ -27,7 +27,7 @@ function navigationItems(type: "CUSTOMER" | "INDIVIDUAL" | "BUSINESS" | "ROOM", 
 
   if (type === "INDIVIDUAL") {
     return [
-    { to: `/app/individual/${contextId}`, label: "Ümumi baxış", end: true },
+      { to: `/app/individual/${contextId}`, label: "Ümumi baxış", end: true },
       { to: "/app/wallet", label: "Balans" },
       { to: `/app/individual/${contextId}/subscription`, label: "Abunəlik" },
       { to: "/app/support", label: "Dəstək" },
@@ -61,7 +61,7 @@ export function AppNavigation() {
   if (!displayedWorkspace) return null;
 
   return (
-    <nav className="app-nav" aria-label="İş sahəsi bölmələri">
+    <nav className="app-nav" aria-label="İş sahəsinin bölmələri">
       <p>{displayedWorkspace.name}</p>
       <ul>
         {navigationItems(displayedWorkspace.type, displayedWorkspace.contextId).map((item) => (

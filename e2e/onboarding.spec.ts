@@ -63,9 +63,9 @@ test.beforeEach(async ({ page }) => mockAuthenticatedOnboarding(page));
 
 test("creates an individual workspace and selects it", async ({ page }) => {
   await page.goto("/onboarding");
-  await expect(page.getByRole("heading", { name: "NövbəTime-dan necə istifadə edəcəksiniz?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bu gün nə etmək istəyirsiniz?" })).toBeVisible();
 
-  await page.getByRole("button", { name: /Fərdi mütəxəssis/ }).click();
+  await page.getByRole("button", { name: /Fərdi iş sahəsi/ }).click();
   await page.getByLabel("İş sahəsinin adı").fill("Leyla Studio");
   await page.getByRole("button", { name: "Davam et" }).click();
 
@@ -84,15 +84,15 @@ test("onboarding remains usable on a compact touch viewport", async ({ page }) =
   }));
 
   expect(widthState.scrollWidth).toBeLessThanOrEqual(widthState.clientWidth);
-  await expect(page.getByRole("button", { name: /Müştəri kimi davam et/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Biznes/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Şəxsi istifadə/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Biznes iş sahəsi/ })).toBeVisible();
 });
 
 test("onboarding keeps keyboard focus and survives enlarged text", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile-chromium", "The desktop project covers enlarged browser text.");
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/onboarding");
-  await expect(page.getByRole("heading", { name: "NövbəTime-dan necə istifadə edəcəksiniz?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Bu gün nə etmək istəyirsiniz?" })).toBeVisible();
 
   await page.keyboard.press("Tab");
   await expect(page.getByText("Əsas məzmuna keç", { exact: true })).toBeFocused();
@@ -103,7 +103,7 @@ test("onboarding keeps keyboard focus and survives enlarged text", async ({ page
     clientWidth: document.documentElement.clientWidth,
   }));
   expect(widthState.scrollWidth).toBeLessThanOrEqual(widthState.clientWidth);
-  await expect(page.getByRole("button", { name: /Müştəri kimi davam et/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Şəxsi istifadə/ })).toBeVisible();
 });
 
 test("manual account recovery explains the support flow and preserves a reference", async ({ page }) => {

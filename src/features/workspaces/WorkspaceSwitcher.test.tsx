@@ -31,9 +31,9 @@ describe("WorkspaceSwitcher", () => {
 
     await user.click(screen.getByRole("button", { name: "Aktiv iş sahəsi" }));
     expect(screen.getByRole("listbox", { name: "İş sahəsi seçimi" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: /BiznesNövbəTime StudioSahib/ })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /Biznes iş sahəsiNövbəTime StudioSahib/ })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("option", { name: /BiznesNövbəTime StudioSahib/ }));
+    await user.click(screen.getByRole("option", { name: /Biznes iş sahəsiNövbəTime StudioSahib/ }));
     expect(selectWorkspace).toHaveBeenCalledWith(expect.objectContaining({ type: "BUSINESS", contextId: 21 }));
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
