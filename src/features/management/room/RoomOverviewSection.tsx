@@ -5,7 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 
 import type { ManagedRoom } from "../../../shared/api/contracts";
 import { managementApi } from "../../../shared/api/managementApi";
-import { NotificationEvent } from "../../../shared/notifications/NotificationProvider";
+import { RoomInlineFeedback, type RoomNavigationState } from "./RoomInlineFeedback";
 import { Button } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 import { TextAreaField } from "../../../shared/ui/TextAreaField";
@@ -20,7 +20,11 @@ import {
   type RoomTimingFormValues,
 } from "../schemas";
 
-export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
+export function RoomOverviewSection({ room, setupNavigation, onNavigationStateChange }: {
+  room: ManagedRoom;
+  setupNavigation?: { onBack: () => void; onContinue: () => void };
+  onNavigationStateChange?: (state: RoomNavigationState) => void;
+}) {
   const queryClient = useQueryClient();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const roomForm = useForm<RoomFormValues>({
@@ -34,8 +38,8 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
   const selectedMode = useWatch({ control: roomForm.control, name: "reservationMode" });
 
   useEffect(() => {
-    roomForm.reset(roomValues(room));
-    configForm.reset(timingValues(room));
+    roomForm.reset(roomValues(room), { keepDirtyValues: true });
+    configForm.reset(timingValues(room), { keepDirtyValues: true });
   }, [configForm, room, roomForm]);
 
   const roomMutation = useMutation({
@@ -52,9 +56,12 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
       personalLatitude: room.personalLatitude,
       personalLongitude: room.personalLongitude,
     }),
-    onSuccess: async () => {
+    onSuccess: (saved) => {
+      roomForm.reset(roomValues(saved));
+      queryClient.setQueryData(["management-room", room.id], saved);
+      void queryClient.invalidateQueries({ queryKey: ["management-room-readiness", room.id] });
       setSuccessMessage("Otağın əsas məlumatları saxlanıldı.");
-      await queryClient.invalidateQueries({ queryKey: ["management-room", room.id] });
+      setupNavigation?.onContinue();
     },
   });
   const configurationMutation = useMutation({
@@ -70,28 +77,35 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
       liveQueueMaxParticipants: room.reservationMode === "LIVE_QUEUE" ? room.liveQueueMaxParticipants : null,
       liveQueueAcceptingNewEntries: room.liveQueueAcceptingNewEntries,
     }),
-    onSuccess: async () => {
+    onSuccess: (saved) => {
+      configForm.reset(timingValues(saved));
+      queryClient.setQueryData(["management-room", room.id], saved);
+      void queryClient.invalidateQueries({ queryKey: ["management-room-readiness", room.id] });
       setSuccessMessage("Növbə rejiminin ayarları saxlanıldı.");
-      await queryClient.invalidateQueries({ queryKey: ["management-room", room.id] });
     },
   });
+  const busy = roomMutation.isPending || configurationMutation.isPending;
+  const dirty = roomForm.formState.isDirty || (!setupNavigation && configForm.formState.isDirty);
+  useEffect(() => {
+    onNavigationStateChange?.({ busy, dirty });
+    return () => onNavigationStateChange?.({ busy: false, dirty: false });
+  }, [busy, dirty, onNavigationStateChange]);
   const error = roomMutation.error ?? configurationMutation.error;
   const errorAction = error ? roomErrorNavigation(error, {
     roomId: room.id,
     businessId: room.businessId,
     individualWorkspaceId: room.individualWorkspaceId,
-    setupMode: false,
+    setupMode: Boolean(setupNavigation),
   }) : null;
 
   return (
     <div className="room-section-stack">
-      <NotificationEvent tone="success" message={successMessage} />
-      <NotificationEvent tone="error" message={error ? apiMessage(error, "Dəyişiklik saxlanılmadı.") : null} action={errorAction} />
+      <RoomInlineFeedback success={successMessage} error={error ? apiMessage(error, "Dəyişiklik saxlanılmadı.") : null} action={errorAction} />
 
       <section className="management-panel" aria-labelledby="room-details-title">
         <div className="section-heading">
           <div><p className="eyebrow">Kimlik və görünürlük</p><h2 id="room-details-title">Əsas məlumatlar</h2></div>
-          <p>Rejimi dəyişərkən açıq canlı sessiya və gələcək rezervasiyalar əvvəl həll edilməlidir.</p>
+          <p>{setupNavigation ? "Otağın adını, iş rejimini və görünürlüyünü yoxlayın." : "Rejimi dəyişərkən açıq canlı sessiya və gələcək rezervasiyalar əvvəl həll edilməlidir."}</p>
         </div>
         <form className="management-form" onSubmit={roomForm.handleSubmit((values) => { setSuccessMessage(null); roomMutation.mutate(values); })} noValidate>
           <div className="management-form__grid">
@@ -114,11 +128,14 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
           <TextAreaField label="Müştəri üçün açıqlama (istəyə bağlı)" rows={4} error={roomForm.formState.errors.description?.message} {...roomForm.register("description")} />
           <TextAreaField label="Otaq sahibləri üçün daxili qeyd (istəyə bağlı)" rows={3} error={roomForm.formState.errors.notes?.message} {...roomForm.register("notes")} />
           {selectedMode !== room.reservationMode ? <div className="warning-note">Rejim saxlanıldıqdan sonra aşağıdakı ayarlar yeni rejimə uyğun yenilənəcək.</div> : null}
-          <div className="management-form__actions"><Button type="submit" loading={roomMutation.isPending}>Əsas məlumatları saxla</Button></div>
+          <div className={setupNavigation ? "room-setup-actions" : "management-form__actions"}>
+            {setupNavigation ? <Button variant="secondary" disabled={busy} onClick={setupNavigation.onBack}>Qurulumdan çıx</Button> : null}
+            <Button type="submit" loading={roomMutation.isPending} disabled={busy}>{setupNavigation ? "Saxla və davam et" : "Əsas məlumatları saxla"}</Button>
+          </div>
         </form>
       </section>
 
-      <section className="management-panel" aria-labelledby="room-config-title">
+      {!setupNavigation ? <section className="management-panel" aria-labelledby="room-config-title">
         <div className="section-heading">
           <div><p className="eyebrow">{room.reservationMode === "LIVE_QUEUE" ? "Ümumi vaxtlar" : "Planlı rezervasiya"}</p><h2 id="room-config-title">Vaxt ayarları</h2></div>
           <p>Canlı növbənin sıfırlanma vaxtı “İş qrafiki” bölməsində idarə olunur.</p>
@@ -135,9 +152,9 @@ export function RoomOverviewSection({ room }: { room: ManagedRoom }) {
               </>
             ) : null}
           </div>
-          <div className="management-form__actions"><Button type="submit" loading={configurationMutation.isPending}>Vaxt ayarlarını saxla</Button></div>
+          <div className="management-form__actions"><Button type="submit" loading={configurationMutation.isPending} disabled={busy}>Vaxt ayarlarını saxla</Button></div>
         </form>
-      </section>
+      </section> : null}
     </div>
   );
 }

@@ -166,6 +166,11 @@ async function mockManagement(page: Page) {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(individualRoom) });
   });
   await page.route("**/api/rooms/30", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(room) }));
+  await page.route("**/api/rooms/30/setup-readiness", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ ready: true, issues: [] }) }));
+  await page.route("**/api/rooms/30/setup-schedule", (route) => {
+    const payload = route.request().postDataJSON();
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ room: { ...room, ...payload.configuration }, weeklyAvailability: (payload.weeklyAvailability ?? [{ dayOfWeek: "MONDAY", startTime: "09:00:00", endTime: "18:00:00", active: true }]).map((rule: Record<string, unknown>, index: number) => ({ ...rule, id: index + 1, roomId: 30 })) }) });
+  });
   await page.route("**/api/rooms/30/assignments", (route) => route.fulfill({
     contentType: "application/json",
     body: JSON.stringify([{ id: 50, roomId: 30, roomName: room.name, userId: 44, firstName: "Leyla", lastName: "Məmmədova", phone: user.phone, role: "ROOM_OWNER", status: "ACTIVE", showPhonePublicly: false, invitedByUserId: 44, invitedAt: user.createdAt, respondedAt: user.createdAt }]),
@@ -283,7 +288,7 @@ test("room management remains usable on a compact viewport and exposes permanent
   await page.screenshot({ path: testInfo.outputPath("room-qr-compact.png"), fullPage: true });
 });
 
-test("publish error opens an actionable popup with the correct recovery page", async ({ page }, testInfo) => {
+test("publish error remains inline with the correct recovery page", async ({ page }, testInfo) => {
   await page.route("**/api/rooms/30/publish", (route) => route.fulfill({
     status: 402,
     contentType: "application/json",
@@ -300,13 +305,13 @@ test("publish error opens an actionable popup with the correct recovery page", a
 
   await page.getByRole("button", { name: "Otağı yayımla" }).click();
 
-  const popup = page.getByRole("alert", { name: "Otaq yayımlanmadı" });
+  const popup = page.getByRole("alert").filter({ hasText: "Otaq yayımlanmadı" });
   await expect(popup).toBeVisible();
   await expect(popup).toContainText("Aktiv abunəlik tələb olunur.");
   await expect(popup.getByRole("link", { name: "Abunəliyə keç" })).toHaveAttribute("href", "/app/businesses/10/subscription");
   await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
-  const popupBox = await popup.boundingBox();
-  expect(Math.round(popupBox?.width ?? 0)).toBeLessThanOrEqual(336);
+  const widthState = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth }));
+  expect(widthState.width).toBeLessThanOrEqual(widthState.viewport);
   await page.screenshot({ path: testInfo.outputPath("actionable-error-popup-mobile.png"), fullPage: true });
 });
 
@@ -337,7 +342,7 @@ test("reset policy error links to and focuses the exact room setting", async ({ 
 
   await page.getByRole("button", { name: "Əsas məlumatları saxla" }).click();
 
-  const popup = page.getByRole("alert", { name: "Əməliyyat tamamlanmadı" });
+  const popup = page.getByRole("alert").filter({ hasText: "reset qaydası" });
   const recoveryLink = popup.getByRole("link", { name: "Sıfırlama ayarına keç" });
   await expect(recoveryLink).toHaveAttribute("href", "/app/rooms/30/settings?section=schedule#live-queue-reset-policy");
   await recoveryLink.click();
@@ -370,18 +375,18 @@ test("edited weekend schedule is submitted and confirmed as saved", async ({ pag
   await expect(page.getByText("Saxlanmamış dəyişikliklər var")).toBeVisible();
 
   const requestPromise = page.waitForRequest((request) => (
-    request.url().endsWith("/api/rooms/30/availability-rules") && request.method() === "PUT"
+    request.url().endsWith("/api/rooms/30/setup-schedule") && request.method() === "PUT"
   ));
   await page.getByRole("button", { name: "Dəyişiklikləri saxla" }).click();
   const request = await requestPromise;
-  const rules = (request.postDataJSON() as { rules: Array<{ dayOfWeek: string }> }).rules;
+  const rules = (request.postDataJSON() as { weeklyAvailability: Array<{ dayOfWeek: string }> }).weeklyAvailability;
 
   expect(rules.map((rule) => rule.dayOfWeek)).toEqual(expect.arrayContaining(["SATURDAY", "SUNDAY"]));
-  const confirmationPopup = page.getByRole("status", { name: "Əməliyyat tamamlandı" });
+  const confirmationPopup = page.getByRole("status").filter({ hasText: "Həftəlik iş qrafiki saxlanıldı." });
   await expect(confirmationPopup).toBeVisible();
   await expect(confirmationPopup).toContainText("Həftəlik iş qrafiki saxlanıldı.");
   await expect(page.locator(".success-alert, .form-alert")).toHaveCount(0);
-  await confirmationPopup.getByRole("button", { name: "Bildirişi bağla" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByText("Qrafik serverlə eynidir")).toBeVisible();
 });
 
@@ -396,10 +401,11 @@ test("live queue setup uses daily midnight by default and publishes an active ro
   let configurationPayload: Record<string, unknown> | null = null;
   let publishRequests = 0;
   await page.route("**/api/rooms/30", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoom) }));
-  await page.route("**/api/rooms/30/configuration", (route) => {
-    configurationPayload = route.request().postDataJSON() as Record<string, unknown>;
+  await page.route("**/api/rooms/30/setup-schedule", (route) => {
+    const payload = route.request().postDataJSON();
+    configurationPayload = payload.configuration as Record<string, unknown>;
     liveRoom = { ...liveRoom, ...configurationPayload };
-    return route.fulfill({ contentType: "application/json", body: JSON.stringify(liveRoom) });
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ room: liveRoom, weeklyAvailability: [{ id: 1, roomId: 30, dayOfWeek: "MONDAY", startTime: "09:00:00", endTime: "18:00:00", active: true }] }) });
   });
   await page.route("**/api/rooms/30/publish", (route) => {
     publishRequests += 1;
@@ -431,7 +437,7 @@ test("live queue setup uses daily midnight by default and publishes an active ro
 
   await expect(page.getByLabel("Növbənin sıfırlanma qaydası")).toHaveValue("DAILY_AT_TIME");
   await expect(page.getByLabel("Gündəlik sıfırlama saatı")).toHaveValue("00:00");
-  await page.getByRole("button", { name: "Davam et" }).click();
+  await page.getByRole("button", { name: /^(Saxla və davam et|Davam et)$/ }).click();
 
   await expect(page).toHaveURL(/\?step=qr$/);
   expect(configurationPayload).toMatchObject({
@@ -457,4 +463,60 @@ test("management navigation and actions survive doubled text", async ({ page }, 
   await expect(page.getByRole("link", { name: "Filiallar", exact: true })).toBeVisible();
   const widthState = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
   expect(widthState.scrollWidth).toBeLessThanOrEqual(widthState.clientWidth);
+});
+
+test("setup retains keyboard edits across stages and prevents publishing an unsaved draft", async ({ page }) => {
+  await page.goto("/app/rooms/30/settings?step=schedule");
+  const start = page.getByLabel("Başlayır", { exact: true });
+  await start.focus();
+  await start.press("ControlOrMeta+A");
+  await start.pressSequentially("0800");
+  await expect(start).toHaveValue("08:00");
+  await expect(start).toBeFocused();
+  page.on("dialog", (dialog) => dialog.accept());
+  await page.locator(".room-setup-progress").getByRole("button", { name: /QR və tamamla/ }).click();
+  await expect(page.getByRole("button", { name: "Otağı yayımla" })).toBeDisabled();
+  await expect(page.getByText("İş qrafikində saxlanmamış dəyişiklikləriniz var.", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "İş qrafikinə qayıt" }).click();
+  await expect(start).toHaveValue("08:00");
+  await page.getByRole("button", { name: "Saxla və davam et" }).click();
+  await expect(page).toHaveURL(/\?step=qr$/);
+  await expect(page.getByRole("button", { name: "Otağı yayımla" })).toBeEnabled();
+});
+
+test("setup basics can be edited and subscription blockers appear before publishing", async ({ page }) => {
+  await page.route("**/api/rooms/30/setup-readiness", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ ready: false, issues: [{ code: "subscription", step: "qr", message: "Aktiv abunəlik tələb olunur." }] }) }));
+  await page.goto("/app/rooms/30/settings?step=qr");
+  await expect(page.getByRole("link", { name: "Abunəliyə bax" })).toHaveAttribute("href", "/app/businesses/10/subscription");
+  await expect(page.getByRole("button", { name: "Otağı yayımla" })).toBeDisabled();
+  await page.locator(".room-setup-progress").getByRole("button", { name: /Əsas məlumatlar/ }).click();
+  await expect(page.getByRole("heading", { name: "Əsas məlumatlar", exact: true })).toBeVisible();
+  const roomName = page.getByLabel("Otaq adı", { exact: true });
+  await expect(roomName).toHaveValue(room.name);
+  await roomName.fill("Yeni qəbul otağı");
+  let prompted = false;
+  page.on("dialog", async (dialog) => { prompted = true; await dialog.dismiss(); });
+  await page.locator(".room-setup-progress").getByRole("button", { name: /Otaq sahibləri/ }).click();
+  expect(prompted).toBe(true);
+  await expect(roomName).toHaveValue("Yeni qəbul otağı");
+});
+
+test("room setup invites a team member without leaving the wizard", async ({ page }) => {
+  let invitedRole: string | null = null;
+  await page.route("**/api/businesses/10/members/by-phone", (route) => {
+    const payload = route.request().postDataJSON();
+    invitedRole = payload.role;
+    return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ id: 2, businessId: 10, businessName: business.name, userId: 55, firstName: payload.firstName, lastName: payload.lastName, phone: "+994507778899", role: "EMPLOYEE", status: "PENDING_ACCEPTANCE", invitedByUserId: 44, invitedAt: user.createdAt, acceptedAt: null }) });
+  });
+  await page.addInitScript(() => localStorage.setItem("novbetime.active-workspace:44", "BUSINESS:10"));
+  await page.goto("/app/rooms/30/settings?step=owners");
+  await page.getByText("Telefonla komanda üzvü əlavə et", { exact: true }).click();
+  await page.getByLabel("Telefon nömrəsi", { exact: true }).fill("0507778899");
+  await page.getByLabel("Ad (yeni hesab üçün)", { exact: true }).fill("Nigar");
+  await page.getByLabel("Soyad (yeni hesab üçün)", { exact: true }).fill("Əliyeva");
+  await page.getByRole("button", { name: "Komandaya dəvət et" }).click();
+  await expect(page.getByLabel("Komandadan otaq sahibi seçin", { exact: true })).toHaveValue("55");
+  await expect(page.getByRole("button", { name: "Otaq sahibi dəvəti göndər" })).toBeEnabled();
+  await expect(page).toHaveURL(/\?step=owners$/);
+  expect(invitedRole).toBe("EMPLOYEE");
 });

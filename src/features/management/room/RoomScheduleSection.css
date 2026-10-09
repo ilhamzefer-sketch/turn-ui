@@ -1,0 +1,47 @@
+.room-schedule__controls {
+  min-width: 0;
+  display: grid;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.room-schedule .week-editor { gap: 10px; }
+.room-schedule .day-editor {
+  display: grid;
+  grid-template-columns: minmax(150px, .7fr) minmax(0, 2fr);
+  gap: 16px;
+  padding: 14px 18px;
+  align-items: center;
+}
+.room-schedule .day-editor__intervals { gap: 8px; }
+.room-schedule .time-interval {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+.room-schedule .time-interval > span { padding-bottom: 14px; }
+.room-schedule .time-interval .field { gap: 4px; min-width: 0; }
+.room-schedule .time-interval .field__control { min-height: 42px; padding: 9px 12px; }
+.room-schedule .time-interval .field__label { font-size: .8rem; }
+.room-schedule .time-interval .field__info { display: none; }
+.room-schedule .day-editor__intervals > .button { justify-self: start; min-height: 34px; padding-block: 5px; }
+.room-schedule__time-hint { margin-top: 14px; font-size: .85rem; color: var(--color-muted, #667a74); }
+.room-schedule__feedback { padding: 12px 18px; background: #e5f1ec; border-radius: 12px; margin: 0; }
+.room-schedule__feedback--error { color: #923c29; background: #fff0e9; }
+.room-schedule__exceptions > summary { cursor: pointer; padding: 4px 0; }
+.room-schedule__exceptions > summary strong { margin-inline-end: 16px; }
+.room-schedule__exceptions > summary span { color: var(--color-muted, #667a74); font-size: .85rem; }
+.room-schedule__exceptions > section { margin-top: 24px; }
+@media (max-width: 600px) {
+  .room-schedule .day-editor { grid-template-columns: 1fr; gap: 8px; padding: 12px; }
+  .room-schedule .day-editor__toggle { display: flex; gap: 10px; }
+  .room-schedule .day-editor__toggle > span { display: flex; align-items: baseline; gap: 10px; }
+  .room-schedule .time-interval { gap: 6px; }
+  .room-schedule .time-interval .button { padding-inline: 6px; min-height: 42px; }
+  .room-schedule .schedule-toolbar { gap: 8px; }
+  .room-schedule .schedule-toolbar { display: grid; grid-template-columns: 1fr; }
+  .room-schedule .schedule-toolbar > .button { width: 100%; }
+  .room-schedule__exceptions > summary span { display: block; margin-top: 4px; }
+}

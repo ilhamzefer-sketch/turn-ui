@@ -14,6 +14,9 @@ import type {
   RoomAssignment,
   RoomConfigurationInput,
   RoomInput,
+  RoomSetupReadiness,
+  RoomSetupScheduleInput,
+  RoomSetupScheduleResult,
   WeeklyAvailabilityRule,
   WeeklyAvailabilityRuleInput,
 } from "./contracts";
@@ -67,6 +70,12 @@ export const managementApi = {
       body: JSON.stringify(input),
     }),
   room: (roomId: number) => apiRequest<ManagedRoom>(`/api/rooms/${roomId}`),
+  roomSetupReadiness: (roomId: number) => apiRequest<RoomSetupReadiness>(`/api/rooms/${roomId}/setup-readiness`),
+  saveRoomSetupSchedule: (roomId: number, input: RoomSetupScheduleInput) =>
+    apiRequest<RoomSetupScheduleResult>(`/api/rooms/${roomId}/setup-schedule`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
   updateRoom: (roomId: number, input: RoomInput) =>
     apiRequest<ManagedRoom>(`/api/rooms/${roomId}`, {
       method: "PUT",
@@ -107,10 +116,18 @@ export const managementApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  updateAvailabilityException: (roomId: number, exceptionId: number, input: AvailabilityExceptionInput) =>
+    apiRequest<AvailabilityException>(`/api/rooms/${roomId}/availability-exceptions/${exceptionId}`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
   deleteAvailabilityException: (roomId: number, exceptionId: number) =>
     apiRequest<void>(`/api/rooms/${roomId}/availability-exceptions/${exceptionId}`, { method: "DELETE" }),
   qrCodes: (roomId: number) => apiRequest<QrCredential[]>(`/api/rooms/${roomId}/qr-codes`),
-  createQrCode: (roomId: number) => apiRequest<QrCredential>(`/api/rooms/${roomId}/qr-codes`, { method: "POST" }),
+  createQrCode: (roomId: number, idempotencyKey?: string) => apiRequest<QrCredential>(`/api/rooms/${roomId}/qr-codes`, {
+    method: "POST",
+    headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
+  }),
   updateQrPosterTitle: (roomId: number, credentialId: number, posterTitle: string | null) =>
     apiRequest<QrCredential>(`/api/rooms/${roomId}/qr-codes/${credentialId}`, {
       method: "PATCH",

@@ -60,13 +60,13 @@ const credential: QrCredential = {
   revokedAt: null,
 };
 
-function renderSection() {
+function renderSection(setupNavigation?: { finishing: boolean; canFinish: boolean; onBack: () => void; onFinish: () => void }) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   return render(
     <QueryClientProvider client={client}>
-      <RoomQrSection room={room} />
+      <RoomQrSection room={room} setupNavigation={setupNavigation} />
     </QueryClientProvider>,
   );
 }
@@ -75,7 +75,7 @@ describe("RoomQrSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(managementApi.qrCodes).mockResolvedValue([credential]);
-    vi.mocked(managementApi.updateQrPosterTitle).mockResolvedValue(credential);
+    vi.mocked(managementApi.updateQrPosterTitle).mockImplementation(async (_, __, posterTitle) => ({ ...credential, posterTitle }));
     vi.mocked(managementApi.downloadQrPoster).mockResolvedValue(undefined);
   });
 
@@ -101,4 +101,40 @@ describe("RoomQrSection", () => {
     await waitFor(() => expect(managementApi.downloadQrPoster).toHaveBeenCalledWith(42, 91, "qapı-ustası-qr-1.pdf"));
     expect(screen.queryByRole("button", { name: /SVG/i })).not.toBeInTheDocument();
   });
+  it("keeps the title field mounted after saving and unlocks publishing", async () => {
+    const user = userEvent.setup();
+    renderSection({ finishing: false, canFinish: true, onBack: vi.fn(), onFinish: vi.fn() });
+    const title = await screen.findByRole("textbox", { name: "Afişa başlığı" });
+    await user.clear(title);
+    await user.type(title, "Yeni qəbul");
+    expect(screen.getByRole("button", { name: "Otağı yayımla" })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Başlığı yadda saxla" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Otağı yayımla" })).toBeEnabled());
+    expect(screen.getByRole("textbox", { name: "Afişa başlığı" })).toBe(title);
+    expect(managementApi.qrCodes).toHaveBeenCalledTimes(1);
+  });
+
+  it("requires confirmation before invalidating a printed QR code", async () => {
+    const user = userEvent.setup();
+    const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
+    vi.mocked(managementApi.regenerateQrCode).mockResolvedValue({ ...credential, id: 92, token: "renewed-token" });
+    renderSection();
+    await user.click(await screen.findByRole("button", { name: "Yenilə" }));
+    expect(managementApi.regenerateQrCode).not.toHaveBeenCalled();
+    confirmation.mockReturnValue(true);
+    await user.click(screen.getByRole("button", { name: "Yenilə" }));
+    await waitFor(() => expect(managementApi.regenerateQrCode).toHaveBeenCalledWith(42, 91));
+    expect(confirmation).toHaveBeenCalledWith(expect.stringContaining("çap edilmiş afişalar"));
+    confirmation.mockRestore();
+  });
+
+  it("offers the link when clipboard access fails", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
+    renderSection();
+    await user.click(await screen.findByRole("button", { name: "Linki kopyala" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Link kopyalanmadı");
+    expect((screen.getByRole("textbox", { name: "QR keçidi" }) as HTMLInputElement).value).toContain("/q/poster-token");
+  });
+
 });

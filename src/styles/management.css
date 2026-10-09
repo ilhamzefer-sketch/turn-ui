@@ -141,6 +141,11 @@
 }
 
 .room-setup-progress__step {
+  min-width: 0;
+  list-style: none;
+}
+
+.room-setup-progress__step > button {
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
   align-items: center;
@@ -152,7 +157,7 @@
   background: var(--color-surface);
 }
 
-.room-setup-progress__step > span {
+.room-setup-progress__step > button > span {
   display: grid;
   width: 2.5rem;
   height: 2.5rem;
@@ -174,13 +179,13 @@
   line-height: 1.35;
 }
 
-.room-setup-progress__step--current {
+.room-setup-progress__step--current > button {
   border-color: var(--color-brand-700);
   background: var(--color-brand-100);
 }
 
-.room-setup-progress__step--current > span,
-.room-setup-progress__step--complete > span {
+.room-setup-progress__step--current > button > span,
+.room-setup-progress__step--complete > button > span {
   color: white;
   background: var(--color-brand-700);
 }
@@ -1454,3 +1459,32 @@
     background: var(--color-brand-100);
   }
 }
+
+/* Compact, accessible room setup navigation. */
+.room-setup-progress__step > button { width: 100%; height: 100%; font: inherit; text-align: start; color: inherit; cursor: pointer; }
+.room-setup-progress__step > button:disabled { cursor: default; }
+.room-setup-progress__step > button:focus-visible { outline: 3px solid var(--color-brand-700); outline-offset: 3px; }
+.room-workspace__content h2 { scroll-margin-top: 7rem; }
+.room-workspace__content h2:focus { outline: none; }
+.room-inline-feedback { margin: 0; }
+.room-text-link { border: 0; padding: .25rem; background: transparent; color: var(--color-brand-700); font: inherit; text-decoration: underline; cursor: pointer; }
+.room-readiness-notice ul { margin: .5rem 0 0; padding-inline-start: 1.25rem; }
+.room-setup-summary dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.room-setup-summary dt { color: var(--color-muted); font-size: .875rem; }
+.room-setup-summary dd { margin: .25rem 0 0; font-weight: 700; }
+@media (max-width: 48rem) {
+  .room-setup-progress { padding: 1rem; gap: 1rem; }
+  .room-setup-progress ol { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+  .room-setup-progress__step > button { padding: .75rem .5rem; gap: .5rem; grid-template-columns: 1.75rem minmax(0, 1fr); }
+  .room-setup-progress__step > button > span { width: 1.75rem; height: 1.75rem; }
+  .room-setup-progress__step strong { font-size: .8125rem; }
+  .room-setup-progress__step small { display: none; }
+  .room-setup-actions { position: sticky; bottom: .5rem; z-index: 8; flex-direction: row; align-items: center; gap: .5rem; padding: .75rem; box-shadow: 0 6px 30px rgb(0 50 40 / 12%); }
+  .room-setup-actions > div { min-width: 0; flex: 1; gap: .4rem; }
+  .room-setup-actions > .button { width: auto; flex-shrink: 0; }
+  .room-setup-actions p { font-size: .75rem; line-height: 1.4; }
+  .room-setup-actions--final { flex-wrap: wrap; }
+  .room-setup-summary dl { gap: .75rem; }
+}
+.room-owner-invite-fields { display: grid; gap: 1rem; border: 0; padding: 1rem 0 0; margin: 0; min-width: 0; }
+.room-helper-card details > summary { cursor: pointer; color: var(--color-brand-700); padding-block: .5rem; }

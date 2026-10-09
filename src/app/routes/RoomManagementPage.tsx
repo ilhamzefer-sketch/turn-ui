@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { NavLink, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { NavLink, useBeforeUnload, useBlocker, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { ManagementError, ManagementLoading, StatusBadge } from "../../features/management/ManagementUi";
 import { apiMessage } from "../../features/management/managementUtils";
@@ -11,26 +11,27 @@ import { RoomQrSection } from "../../features/management/room/RoomQrSection";
 import { RoomScheduleSection } from "../../features/management/room/RoomScheduleSection";
 import { RoomSetupProgress, type RoomSetupStep } from "../../features/management/room/RoomSetupProgress";
 import { roomErrorNavigation } from "../../features/management/room/roomErrorNavigation";
+import { readScheduleDraft } from "../../features/management/room/roomScheduleDraft";
 import { managementApi } from "../../shared/api/managementApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
-import { NotificationEvent } from "../../shared/notifications/NotificationProvider";
+import { RoomInlineFeedback, type RoomNavigationState } from "../../features/management/room/RoomInlineFeedback";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 
 type RoomSection = "overview" | "owners" | "schedule" | "qr";
-type ActiveSetupStep = Exclude<RoomSetupStep, "basics">;
+type ActiveSetupStep = RoomSetupStep;
 
 function roomSection(value: string | null): RoomSection {
   return value === "owners" || value === "schedule" || value === "qr" ? value : "overview";
 }
 
 function requestedSetupStep(value: string | null): ActiveSetupStep | null {
-  return value === "owners" || value === "schedule" || value === "qr" ? value : null;
+  return value === "basics" || value === "owners" || value === "schedule" || value === "qr" ? value : null;
 }
 
 function activeSetupStep(value: string | null, hasOwner: boolean, hasSchedule: boolean, hasModeConfiguration: boolean): ActiveSetupStep {
   const requested = requestedSetupStep(value);
+  if (requested) return requested;
   if (!hasOwner) return "owners";
-  if (requested === "owners") return "owners";
   if (!hasSchedule || !hasModeConfiguration) return "schedule";
   return requested ?? "qr";
 }
@@ -41,6 +42,36 @@ export function RoomManagementPage() {
   const section = roomSection(searchParams.get("section"));
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const completedNavigationRef = useRef(false);
+  const [navigationState, setNavigationState] = useState<RoomNavigationState>({ busy: false, dirty: false });
+  const reportNavigationState = useCallback((state: RoomNavigationState) => {
+    setNavigationState((current) => current.busy === state.busy && current.dirty === state.dirty ? current : state);
+  }, []);
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => !completedNavigationRef.current && currentLocation.pathname !== nextLocation.pathname && (navigationState.busy || navigationState.dirty));
+  useEffect(() => {
+    if (blocker.state !== "blocked") return;
+    if (!navigationState.busy && window.confirm("Saxlanmamış dəyişikliklər var. Onları saxlamadan çıxmaq istəyirsiniz?")) blocker.proceed();
+    else blocker.reset();
+  }, [blocker, navigationState.busy]);
+  useBeforeUnload(useCallback((event) => {
+    if (!navigationState.dirty && !navigationState.busy) return;
+    event.preventDefault();
+    event.returnValue = "";
+  }, [navigationState]));
+  const stepParam = searchParams.get("step");
+  const sectionParam = searchParams.get("section");
+  useEffect(() => {
+    if (window.location.hash) return;
+    const frame = window.requestAnimationFrame(() => {
+      const heading = contentRef.current?.querySelector<HTMLElement>("h2");
+      if (!heading) return;
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+      heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [stepParam, sectionParam]);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const roomQuery = useQuery({
     queryKey: ["management-room", roomId],
@@ -57,15 +88,27 @@ export function RoomManagementPage() {
     queryFn: () => managementApi.weeklyAvailability(roomId),
     enabled: Number.isInteger(roomId),
   });
+  const readinessQuery = useQuery({
+    queryKey: ["management-room-readiness", roomId],
+    queryFn: () => managementApi.roomSetupReadiness(roomId),
+    enabled: Number.isInteger(roomId) && roomQuery.data?.status === "DRAFT",
+  });
+  const ownerStatusSignature = (assignmentsQuery.data ?? []).map((assignment) => `${assignment.id}:${assignment.status}`).join(",");
+  useEffect(() => {
+    if (roomQuery.data?.status === "DRAFT") void queryClient.invalidateQueries({ queryKey: ["management-room-readiness", roomId] });
+  }, [ownerStatusSignature, queryClient, roomId, roomQuery.data?.status]);
   const publishMutation = useMutation({
     mutationFn: (finishSetup: boolean) => {
       void finishSetup;
       return managementApi.publishRoom(roomId);
     },
-    onSuccess: async (_, finishSetup) => {
+    onSuccess: async (saved, finishSetup) => {
       setActionMessage("Otaq yayımlandı və yeni növbələr üçün hazırdır.");
-      await queryClient.invalidateQueries({ queryKey: ["management-room", roomId] });
-      if (finishSetup) await navigate(`/app/rooms/${roomId}/today`);
+      queryClient.setQueryData(["management-room", roomId], saved);
+      if (finishSetup) {
+        completedNavigationRef.current = true;
+        await navigate(`/app/rooms/${roomId}/today`);
+      }
     },
   });
   const deactivateMutation = useMutation({
@@ -103,21 +146,34 @@ export function RoomManagementPage() {
   usePageMeta(title, "Otaq sahibləri, iş qrafiki, növbə rejimi və QR kodlarını idarə edin.");
 
   if (!Number.isInteger(roomId)) return <ManagementError message="Otaq identifikatoru düzgün deyil." />;
-  if (roomQuery.isPending || assignmentsQuery.isPending || scheduleQuery.isPending) return <ManagementLoading label="Otaq idarəetməsi açılır…" />;
-  if (roomQuery.isError || assignmentsQuery.isError || scheduleQuery.isError) {
+  if (roomQuery.isPending) return <ManagementLoading label="Otaq idarəetməsi açılır…" />;
+  if (roomQuery.isError) {
     return <ManagementError message={apiMessage(roomQuery.error ?? assignmentsQuery.error ?? scheduleQuery.error, "Otaq açıla bilmədi.")} />;
   }
 
   const room = roomQuery.data;
-  const hasOwner = assignmentsQuery.data.some((assignment) => assignment.status === "ACTIVE");
-  const hasSchedule = scheduleQuery.data.some((rule) => rule.active);
+  const hasOwner = (assignmentsQuery.data ?? []).some((assignment) => assignment.status === "ACTIVE");
+  const hasSchedule = (scheduleQuery.data ?? []).some((rule) => rule.active);
   const hasModeConfiguration = room.reservationMode === "PLANNED_BOOKING"
     ? room.bookingWindowDays > 0
     : Boolean(room.liveQueueResetPolicy && (room.liveQueueResetLocalTime || room.liveQueueResetIntervalMinutes));
   const readyCount = [Boolean(room.name), hasOwner, hasSchedule, hasModeConfiguration].filter(Boolean).length;
   const setupMode = room.status === "DRAFT";
   const setupStep = activeSetupStep(searchParams.get("step"), hasOwner, hasSchedule, hasModeConfiguration);
+  const retainedScheduleDraft = readScheduleDraft(roomId);
+  const hasRetainedScheduleDraft = Boolean(retainedScheduleDraft?.days || retainedScheduleDraft?.configuration);
   const goToSetupStep = (step: ActiveSetupStep) => setSearchParams({ step });
+  const requestSetupStep = (step: ActiveSetupStep) => {
+    if (navigationState.busy || publishMutation.isPending) return;
+    if (navigationState.dirty && !window.confirm("Saxlanmamış dəyişikliklər var. İndi başqa mərhələyə keçmək istəyirsiniz?")) return;
+    goToSetupStep(step);
+  };
+  const setupContentPending = setupMode && !requestedSetupStep(stepParam) && (assignmentsQuery.isPending || scheduleQuery.isPending);
+  const completedSteps: RoomSetupStep[] = [
+    ...(room.name ? ["basics" as const] : []),
+    ...(hasOwner ? ["owners" as const] : []),
+    ...(hasSchedule && hasModeConfiguration ? ["schedule" as const] : []),
+  ];
   const returnFromSetup = () => room.businessId
     ? navigate(`/app/businesses/${room.businessId}/rooms`)
     : navigate(`/app/individual/${room.individualWorkspaceId}`);
@@ -155,13 +211,7 @@ export function RoomManagementPage() {
         </div>
       </header>
 
-      <NotificationEvent tone="success" message={actionMessage} />
-      <NotificationEvent
-        tone="error"
-        title={errorTitle}
-        message={actionError ? apiMessage(actionError, "Otaq əməliyyatı tamamlanmadı.") : null}
-        action={errorAction}
-      />
+      <RoomInlineFeedback success={actionMessage} error={actionError ? `${errorTitle}: ${apiMessage(actionError, "Otaq əməliyyatı tamamlanmadı.")}` : null} action={errorAction} />
 
       {!setupMode && room.status !== "PUBLISHED" ? (
         <section className="readiness-strip" aria-label={`Otaq hazırlığı: 4 addımdan ${readyCount} addım tamamlanıb`}>
@@ -175,7 +225,16 @@ export function RoomManagementPage() {
         </section>
       ) : null}
 
-      {setupMode ? <RoomSetupProgress currentStep={setupStep} /> : null}
+      {setupMode ? <RoomSetupProgress currentStep={setupStep} completed={completedSteps} onStepChange={requestSetupStep} disabled={navigationState.busy || publishMutation.isPending} /> : null}
+      {setupMode && readinessQuery.isError ? <aside className="warning-note" role="alert">
+        Yayımlama tələblərini yoxlamaq mümkün olmadı. Daxil etdiyiniz məlumatlar qorunur.
+        <Button variant="secondary" loading={readinessQuery.isFetching} onClick={() => void readinessQuery.refetch()}>Yoxlamanı təkrarla</Button>
+      </aside> : null}
+      {setupMode && readinessQuery.isError ? <div className="warning-note" role="alert">Yayımlama tələbləri yoxlanılmadı. <Button variant="quiet" loading={readinessQuery.isFetching} onClick={() => void readinessQuery.refetch()}>Yenidən yoxla</Button></div> : null}
+      {(assignmentsQuery.isError || scheduleQuery.isError) ? <div className="warning-note" role="alert">Otaq sahibləri və ya qrafik məlumatı açılmadı. <Button variant="quiet" onClick={() => { void assignmentsQuery.refetch(); void scheduleQuery.refetch(); }}>Yenidən yoxla</Button></div> : null}
+      {setupMode && readinessQuery.data && !readinessQuery.data.ready ? <aside className="room-helper-card room-readiness-notice" aria-label="Yayımlama üçün tələb olunanlar">
+        <div><strong>Yayımlamadan əvvəl</strong><ul>{readinessQuery.data.issues.map((issue) => <li key={issue.code}>{issue.message} {issue.code.toUpperCase().includes("SUBSCRIPTION") || issue.code.toUpperCase().includes("LIMIT") ? <ButtonLink variant="quiet" to={room.businessId ? `/app/businesses/${room.businessId}/subscription` : `/app/individual/${room.individualWorkspaceId}/subscription`}>Abunəliyə bax</ButtonLink> : <button className="room-text-link" onClick={() => requestSetupStep(issue.step)}>Düzəlt</button>}</li>)}</ul></div>
+      </aside> : null}
 
       {!setupMode ? <nav className="room-tabs" aria-label="Otaq ayarları">
         {[
@@ -190,36 +249,51 @@ export function RoomManagementPage() {
             className={section === value ? "room-tabs__link room-tabs__link--active" : "room-tabs__link"}
             onClick={(event) => {
               event.preventDefault();
+              if (navigationState.busy) return;
+              if (navigationState.dirty && !window.confirm("Saxlanmamış dəyişiklikləri saxlamadan keçmək istəyirsiniz?")) return;
               setSearchParams({ section: value });
             }}
           >{label}</NavLink>
         ))}
       </nav> : null}
 
-      {!setupMode && section === "overview" ? <RoomOverviewSection room={room} /> : null}
-      {!setupMode && section === "owners" ? <RoomOwnersSection room={room} /> : null}
-      {!setupMode && section === "schedule" ? <RoomScheduleSection room={room} /> : null}
-      {!setupMode && section === "qr" ? <RoomQrSection room={room} /> : null}
+      <div ref={contentRef} className="room-workspace__content">
+      {setupContentPending ? <ManagementLoading label="Qurulum mərhələsi açılır…" /> : null}
+      {!setupMode && section === "overview" ? <RoomOverviewSection room={room} onNavigationStateChange={reportNavigationState} /> : null}
+      {!setupMode && section === "owners" ? <RoomOwnersSection room={room} onNavigationStateChange={reportNavigationState} /> : null}
+      {!setupMode && section === "schedule" ? <RoomScheduleSection room={room} onNavigationStateChange={reportNavigationState} /> : null}
+      {!setupMode && section === "qr" ? <RoomQrSection room={room} onNavigationStateChange={reportNavigationState} /> : null}
 
-      {setupMode && setupStep === "owners" ? (
+      {setupMode && !setupContentPending && setupStep === "basics" ? <RoomOverviewSection room={room} onNavigationStateChange={reportNavigationState} setupNavigation={{ onBack: () => void returnFromSetup(), onContinue: () => goToSetupStep("owners") }} /> : null}
+      {setupMode && !setupContentPending && setupStep === "owners" ? (
         <RoomOwnersSection
           room={room}
-          setupNavigation={{ canContinue: hasOwner, onBack: () => void returnFromSetup(), onContinue: () => goToSetupStep("schedule") }}
+          onNavigationStateChange={reportNavigationState}
+          setupNavigation={{ canContinue: hasOwner, onBack: () => requestSetupStep("basics"), onContinue: () => goToSetupStep("schedule") }}
         />
       ) : null}
-      {setupMode && setupStep === "schedule" ? (
+      {setupMode && !setupContentPending && setupStep === "schedule" ? (
         <RoomScheduleSection
           room={room}
-          setupNavigation={{ onBack: () => goToSetupStep("owners"), onContinue: () => goToSetupStep("qr") }}
+          onNavigationStateChange={reportNavigationState}
+          setupNavigation={{ onBack: () => requestSetupStep("owners"), onContinue: () => goToSetupStep("qr") }}
         />
       ) : null}
-      {setupMode && setupStep === "qr" ? (
+      {setupMode && !setupContentPending && setupStep === "qr" ? (
+        <>
+        {hasRetainedScheduleDraft ? <aside className="warning-note" role="status">
+          İş qrafikində saxlanmamış dəyişiklikləriniz var. Yayımlamadan əvvəl onları saxlayın və ya ləğv edin.
+          <Button variant="secondary" disabled={navigationState.busy} onClick={() => requestSetupStep("schedule")}>İş qrafikinə qayıt</Button>
+        </aside> : null}
         <RoomQrSection
           room={room}
-          setupNavigation={{ finishing: publishMutation.isPending, onBack: () => goToSetupStep("schedule"), onFinish: () => publishMutation.mutate(true) }}
+          onNavigationStateChange={reportNavigationState}
+          setupNavigation={{ finishing: publishMutation.isPending, canFinish: readinessQuery.data?.ready === true && !readinessQuery.isFetching && !hasRetainedScheduleDraft, onBack: () => requestSetupStep("schedule"), onFinish: () => publishMutation.mutate(true) }}
         />
+        </>
       ) : null}
 
+      </div>
       {!setupMode && section === "overview" ? <section className="danger-zone" aria-labelledby="room-danger-title">
         <div><h2 id="room-danger-title">Otağı arxivləşdir</h2><p>Tarixçə və hesabatlar saxlanılır, yeni növbə qəbul edilmir.</p></div>
         <Button

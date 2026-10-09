@@ -186,6 +186,7 @@ export type ManagedRoom = RoomInput & {
   liveQueueAcceptingNewEntries: boolean;
   status: RoomStatus;
   createdAt: string;
+  updatedAt?: string;
   archivedAt: string | null;
 };
 
@@ -239,6 +240,26 @@ export type WeeklyAvailabilityRuleInput = {
 export type WeeklyAvailabilityRule = WeeklyAvailabilityRuleInput & {
   id: number;
   roomId: number;
+};
+
+export type RoomSetupReadiness = {
+  ready: boolean;
+  issues: Array<{
+    code: string;
+    step: "basics" | "owners" | "schedule" | "qr";
+    message: string;
+  }>;
+};
+
+export type RoomSetupScheduleInput = {
+  weeklyAvailability: WeeklyAvailabilityRuleInput[] | null;
+  configuration: RoomConfigurationInput | null;
+  expectedUpdatedAt?: string | null;
+};
+
+export type RoomSetupScheduleResult = {
+  room: ManagedRoom;
+  weeklyAvailability: WeeklyAvailabilityRule[];
 };
 
 export type AvailabilityExceptionType = "CLOSED" | "CUSTOM_HOURS" | "BLOCKED_INTERVAL";

@@ -11,6 +11,12 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
+function clearPrivateDrafts() {
+  try {
+    Object.keys(sessionStorage).filter((key) => key.startsWith("novbetime.room-schedule-draft.")).forEach((key) => sessionStorage.removeItem(key));
+  } catch { /* Storage can be unavailable in private browsing. */ }
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<AuthStatus>("checking");
@@ -75,6 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async () => {
     sessionRevision.current += 1;
     const logoutRequest = authApi.logout();
+    clearPrivateDrafts();
     queryClient.clear();
     setUser(null);
     setStatus("anonymous");
@@ -100,6 +107,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
     sessionRevision.current += 1;
+    clearPrivateDrafts();
     clearApiSession();
     setUser(null);
     setStatus("anonymous");

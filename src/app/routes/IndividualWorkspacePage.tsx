@@ -61,7 +61,9 @@ export function IndividualWorkspacePage() {
       personalLongitude: null,
     }),
     onSuccess: async (room) => {
-      await Promise.all([refreshWorkspaces(), queryClient.invalidateQueries({ queryKey: ["individual-workspace-rooms", workspaceId] })]);
+      queryClient.setQueryData(["management-room", room.id], room);
+      void refreshWorkspaces();
+      void queryClient.invalidateQueries({ queryKey: ["individual-workspace-rooms", workspaceId] });
       await navigate(`/app/rooms/${room.id}/settings?step=owners`);
     },
   });

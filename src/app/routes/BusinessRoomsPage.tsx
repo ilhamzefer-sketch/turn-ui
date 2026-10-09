@@ -69,10 +69,9 @@ export function BusinessRoomsPage() {
       });
     },
     onSuccess: async (room) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["management-business-rooms", businessId] }),
-        queryClient.invalidateQueries({ queryKey: ["workspaces"] }),
-      ]);
+      queryClient.setQueryData(["management-room", room.id], room);
+      void queryClient.invalidateQueries({ queryKey: ["management-business-rooms", businessId] });
+      void queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       await navigate(`/app/rooms/${room.id}/settings?step=owners`);
     },
   });

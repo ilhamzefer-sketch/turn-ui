@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import type {
@@ -8,41 +8,43 @@ import type {
   AvailabilityExceptionType,
   ManagedRoom,
   Weekday,
-  WeeklyAvailabilityRule,
 } from "../../../shared/api/contracts";
 import { managementApi } from "../../../shared/api/managementApi";
-import { NotificationEvent } from "../../../shared/notifications/NotificationProvider";
 import { Button } from "../../../shared/ui/Button";
 import { SelectField } from "../../../shared/ui/SelectField";
 import { TextField } from "../../../shared/ui/TextField";
 import { TimeField } from "../../../shared/ui/TimeField";
-import { isTime24 } from "../../../shared/time/time24Hour";
 import { StatusBadge } from "../ManagementUi";
 import { apiMessage } from "../managementUtils";
-import { nullableNumber, weekdayOptions } from "../managementLabels";
+import { weekdayOptions } from "../managementLabels";
 import { liveQueueConfigurationSchema, type LiveQueueConfigurationFormValues } from "../schemas";
 
-type ScheduleInterval = { key: string; startTime: string; endTime: string };
-type DaySchedule = { day: Weekday; enabled: boolean; intervals: ScheduleInterval[] };
-
-let intervalSequence = 0;
+import { emptyWeek, liveQueueConfigurationInput, liveQueueValues, newInterval, readScheduleDraft, replaceInterval, scheduleFromRules, scheduleInput, scheduleSignature, validateSchedule, writeScheduleDraft, type DaySchedule } from "./roomScheduleDraft";
+import "./RoomScheduleSection.css";
 
 type RoomScheduleSetupNavigation = {
   onBack: () => void;
   onContinue: () => void;
 };
 
-export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRoom; setupNavigation?: RoomScheduleSetupNavigation }) {
+export function RoomScheduleSection({ room, setupNavigation, onNavigationStateChange }: {
+  room: ManagedRoom;
+  setupNavigation?: RoomScheduleSetupNavigation;
+  onNavigationStateChange?: (state: { busy: boolean; dirty: boolean }) => void;
+}) {
   const queryClient = useQueryClient();
+  const [restoredDraft] = useState(() => readScheduleDraft(room.id));
+  const liveQueueBaseline = useRef(liveQueueValues(room));
   const liveQueueForm = useForm<LiveQueueConfigurationFormValues>({
     resolver: zodResolver(liveQueueConfigurationSchema),
-    defaultValues: liveQueueValues(room),
+    defaultValues: restoredDraft?.configuration ?? liveQueueValues(room),
   });
   const selectedResetPolicy = useWatch({ control: liveQueueForm.control, name: "liveQueueResetPolicy" });
-  const [scheduleDraft, setScheduleDraft] = useState<{
-    source: WeeklyAvailabilityRule[] | undefined;
-    days: DaySchedule[];
-  } | null>(null);
+  const configurationValues = useWatch({ control: liveQueueForm.control });
+  const [scheduleDraft, setScheduleDraft] = useState<DaySchedule[] | null>(() => restoredDraft?.days ?? null);
+  const draftRoomVersion = useRef(restoredDraft?.expectedUpdatedAt ?? room.updatedAt ?? null);
+  const [editingExceptionId, setEditingExceptionId] = useState<number | null>(null);
+  const [discarding, setDiscarding] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [exception, setException] = useState<AvailabilityExceptionInput>({
@@ -62,99 +64,103 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
   });
 
   useEffect(() => {
-    liveQueueForm.reset(liveQueueValues(room));
+    const nextBaseline = liveQueueValues(room);
+    // Background room refreshes must not erase edits made in this form.
+    if (JSON.stringify(liveQueueForm.getValues()) === JSON.stringify(liveQueueBaseline.current)) {
+      liveQueueForm.reset(nextBaseline);
+    }
+    liveQueueBaseline.current = nextBaseline;
   }, [liveQueueForm, room]);
 
   useEffect(() => {
-    if (window.location.hash !== "#live-queue-reset-policy") return;
+    if (scheduleQuery.isPending || scheduleQuery.isError || window.location.hash !== "#live-queue-reset-policy") return;
     const resetPolicyField = document.getElementById("live-queue-reset-policy");
     resetPolicyField?.scrollIntoView({ block: "center" });
     resetPolicyField?.focus();
-  }, [room.id]);
+  }, [room.id, scheduleQuery.isPending, scheduleQuery.isError]);
 
-  const days = scheduleDraft && scheduleDraft.source === scheduleQuery.data
-    ? scheduleDraft.days
-    : scheduleQuery.data
-      ? scheduleFromRules(scheduleQuery.data)
-      : emptyWeek();
-  const hasUnsavedChanges = Boolean(scheduleDraft && scheduleDraft.source === scheduleQuery.data);
+  const days = scheduleDraft ?? (scheduleQuery.data?.length ? scheduleFromRules(scheduleQuery.data) : emptyWeek());
+  const hasUnsavedChanges = scheduleDraft !== null && scheduleSignature(scheduleInput(days)) !== scheduleSignature(scheduleQuery.data ?? []);
+  const hasConfigurationChanges = room.reservationMode === "LIVE_QUEUE"
+    && (!room.liveQueueResetPolicy
+      || (room.liveQueueResetPolicy === "DAILY_AT_TIME" && !room.liveQueueResetLocalTime)
+      || (room.liveQueueResetPolicy === "EVERY_INTERVAL" && !room.liveQueueResetIntervalMinutes)
+      || JSON.stringify(configurationValues) !== JSON.stringify(liveQueueValues(room)));
   const setDays = (updater: DaySchedule[] | ((current: DaySchedule[]) => DaySchedule[])) => {
-    setScheduleDraft((current) => {
-      const currentDays = current && current.source === scheduleQuery.data
-        ? current.days
-        : scheduleQuery.data
-          ? scheduleFromRules(scheduleQuery.data)
-          : emptyWeek();
-      return {
-        source: scheduleQuery.data,
-        days: typeof updater === "function" ? updater(currentDays) : updater,
-      };
-    });
+    setScheduleDraft((current) => typeof updater === "function" ? updater(current ?? days) : updater);
   };
+
+  useEffect(() => {
+    if (!hasUnsavedChanges && !hasConfigurationChanges) draftRoomVersion.current = room.updatedAt ?? null;
+    writeScheduleDraft(room.id, {
+      days: hasUnsavedChanges ? scheduleDraft : null,
+      configuration: hasConfigurationChanges ? liveQueueForm.getValues() : null,
+      expectedUpdatedAt: draftRoomVersion.current,
+    });
+  }, [room.id, room.updatedAt, scheduleDraft, hasUnsavedChanges, hasConfigurationChanges, configurationValues, liveQueueForm]);
 
   const saveMutation = useMutation({
     mutationFn: () => {
       const validation = validateSchedule(days);
       if (validation) throw new Error(validation);
-      return managementApi.replaceWeeklyAvailability(
-        room.id,
-        days.flatMap((day) => day.enabled
-          ? day.intervals.map((interval) => ({
-              dayOfWeek: day.day,
-              startTime: interval.startTime,
-              endTime: interval.endTime,
-              active: true,
-            }))
-          : []),
-      );
+      return managementApi.saveRoomSetupSchedule(room.id, {
+        weeklyAvailability: scheduleInput(days), configuration: null,
+        expectedUpdatedAt: draftRoomVersion.current,
+      });
     },
-    onSuccess: (savedRules) => {
+    onSuccess: (saved) => {
       setScheduleError(null);
       setSuccessMessage("Həftəlik iş qrafiki saxlanıldı.");
-      queryClient.setQueryData(["management-room-schedule", room.id], savedRules);
+      draftRoomVersion.current = saved.room.updatedAt ?? null;
+      queryClient.setQueryData(["management-room-schedule", room.id], saved.weeklyAvailability);
+      queryClient.setQueryData(["management-room", room.id], saved.room);
+      void queryClient.invalidateQueries({ queryKey: ["management-room-readiness", room.id] });
       setScheduleDraft(null);
     },
     onError: (error) => setScheduleError(apiMessage(error, "İş qrafiki saxlanılmadı.")),
   });
   const configurationMutation = useMutation({
-    mutationFn: (values: LiveQueueConfigurationFormValues) => managementApi.updateRoomConfiguration(
-      room.id,
-      liveQueueConfigurationInput(room, values),
-    ),
-    onSuccess: async () => {
+    mutationFn: (values: LiveQueueConfigurationFormValues) => managementApi.saveRoomSetupSchedule(room.id, {
+      weeklyAvailability: null, configuration: liveQueueConfigurationInput(room, values),
+      expectedUpdatedAt: draftRoomVersion.current,
+    }),
+    onSuccess: (saved) => {
+      const savedRoom = saved.room;
+      draftRoomVersion.current = savedRoom.updatedAt ?? null;
       setScheduleError(null);
       setSuccessMessage("Canlı növbənin sıfırlanma ayarları saxlanıldı.");
-      await queryClient.invalidateQueries({ queryKey: ["management-room", room.id] });
+      liveQueueBaseline.current = liveQueueValues(savedRoom);
+      liveQueueForm.reset(liveQueueValues(savedRoom));
+      queryClient.setQueryData(["management-room", room.id], savedRoom);
+      void queryClient.invalidateQueries({ queryKey: ["management-room-readiness", room.id] });
     },
     onError: (error) => setScheduleError(apiMessage(error, "Canlı növbə ayarları saxlanılmadı.")),
   });
   const continueMutation = useMutation({
     mutationFn: async (values: LiveQueueConfigurationFormValues | null) => {
       const hasSavedSchedule = (scheduleQuery.data ?? []).some((rule) => rule.active);
-      const savedRules = hasUnsavedChanges || !hasSavedSchedule
-        ? await managementApi.replaceWeeklyAvailability(
-            room.id,
-            days.flatMap((day) => day.enabled
-              ? day.intervals.map((interval) => ({
-                  dayOfWeek: day.day,
-                  startTime: interval.startTime,
-                  endTime: interval.endTime,
-                  active: true,
-                }))
-              : []),
-          )
-        : null;
-      if (values) await managementApi.updateRoomConfiguration(room.id, liveQueueConfigurationInput(room, values));
-      return savedRules;
+      if (!hasUnsavedChanges && hasSavedSchedule && !hasConfigurationChanges) return null;
+      return managementApi.saveRoomSetupSchedule(room.id, {
+        weeklyAvailability: hasUnsavedChanges || !hasSavedSchedule ? scheduleInput(days) : null,
+        configuration: values && hasConfigurationChanges ? liveQueueConfigurationInput(room, values) : null,
+        expectedUpdatedAt: draftRoomVersion.current,
+      });
     },
-    onSuccess: async (savedRules) => {
+    onSuccess: (saved) => {
       setScheduleError(null);
-      if (savedRules) queryClient.setQueryData(["management-room-schedule", room.id], savedRules);
+      if (saved) {
+        draftRoomVersion.current = saved.room.updatedAt ?? null;
+        void queryClient.invalidateQueries({ queryKey: ["management-room-readiness", room.id] });
+        queryClient.setQueryData(["management-room-schedule", room.id], saved.weeklyAvailability);
+        queryClient.setQueryData(["management-room", room.id], saved.room);
+        liveQueueBaseline.current = liveQueueValues(saved.room);
+        liveQueueForm.reset(liveQueueValues(saved.room));
+      }
       setScheduleDraft(null);
-      await queryClient.invalidateQueries({ queryKey: ["management-room", room.id] });
+      writeScheduleDraft(room.id, { days: null, configuration: null });
       setupNavigation?.onContinue();
     },
-    onError: (error) => setScheduleError(apiMessage(error, "Məcburi iş qrafiki ayarları saxlanılmadı.")),
+    onError: (error) => setScheduleError(apiMessage(error, "Məcburi iş qrafiki ayarları saxlanılmadı. Dəyişiklikləriniz qorunub, yenidən cəhd edə bilərsiniz.")),
   });
   const createExceptionMutation = useMutation({
     mutationFn: () => {
@@ -162,15 +168,19 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
       if (exception.type !== "CLOSED" && (!exception.startTime || !exception.endTime || exception.startTime >= exception.endTime)) {
         throw new Error("Xüsusi saat üçün düzgün başlanğıc və bitmə vaxtı seçin.");
       }
-      return managementApi.createAvailabilityException(room.id, {
+      const input = {
         ...exception,
         startTime: exception.type === "CLOSED" ? null : exception.startTime,
         endTime: exception.type === "CLOSED" ? null : exception.endTime,
-      });
+      };
+      return editingExceptionId === null
+        ? managementApi.createAvailabilityException(room.id, input)
+        : managementApi.updateAvailabilityException(room.id, editingExceptionId, input);
     },
     onSuccess: async () => {
       setException({ date: "", type: "CLOSED", startTime: null, endTime: null, reason: null });
-      setSuccessMessage("Xüsusi tarix qaydası əlavə edildi.");
+      setEditingExceptionId(null);
+      setSuccessMessage("Xüsusi tarix qaydası saxlanıldı.");
       await queryClient.invalidateQueries({ queryKey: ["management-room-exceptions", room.id] });
     },
   });
@@ -181,6 +191,19 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
       await queryClient.invalidateQueries({ queryKey: ["management-room-exceptions", room.id] });
     },
   });
+  const busy = discarding || scheduleQuery.isPending || scheduleQuery.isError
+    || saveMutation.isPending || configurationMutation.isPending || continueMutation.isPending
+    || createExceptionMutation.isPending || deleteExceptionMutation.isPending;
+  const dirty = hasUnsavedChanges || hasConfigurationChanges;
+  useEffect(() => {
+    onNavigationStateChange?.({ busy, dirty });
+  }, [busy, dirty, onNavigationStateChange]);
+  useEffect(() => {
+    if (!dirty) return;
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); };
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [dirty]);
   const error = scheduleQuery.error ?? exceptionsQuery.error ?? createExceptionMutation.error ?? deleteExceptionMutation.error;
 
   const continueSetup = async () => {
@@ -208,10 +231,35 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
     setSuccessMessage(null);
   };
 
+  const discardChanges = async () => {
+    if (!window.confirm("Saxlanmamış qrafik və növbə ayarları ləğv edilsin? Serverdəki son məlumatlar göstəriləcək.")) return;
+    setDiscarding(true);
+    try {
+      const [savedRoom, savedRules] = await Promise.all([managementApi.room(room.id), managementApi.weeklyAvailability(room.id)]);
+      draftRoomVersion.current = savedRoom.updatedAt ?? null;
+      liveQueueBaseline.current = liveQueueValues(savedRoom);
+      liveQueueForm.reset(liveQueueValues(savedRoom));
+      queryClient.setQueryData(["management-room", room.id], savedRoom);
+      queryClient.setQueryData(["management-room-schedule", room.id], savedRules);
+      setScheduleDraft(null);
+      writeScheduleDraft(room.id, { days: null, configuration: null });
+      setScheduleError(null);
+      setSuccessMessage("Dəyişikliklər ləğv edildi. Serverdəki son məlumatlar göstərilir.");
+    } catch (failure) {
+      setScheduleError(apiMessage(failure, "Son məlumatlar alınmadı. Dəyişiklikləriniz qorunub."));
+    } finally {
+      setDiscarding(false);
+    }
+  };
+
   return (
-    <div className="room-section-stack">
-      <NotificationEvent tone="success" message={successMessage} />
-      <NotificationEvent tone="error" message={scheduleError ?? (error ? apiMessage(error, "Qrafik əməliyyatı tamamlanmadı.") : null)} />
+    <div className="room-section-stack room-schedule">
+      {successMessage ? <p className="room-schedule__feedback" role="status">{successMessage}</p> : null}
+      {scheduleError || error ? <p className="room-schedule__feedback room-schedule__feedback--error" role="alert">{scheduleError ?? apiMessage(error, "Qrafik əməliyyatı tamamlanmadı.")}</p> : null}
+      {scheduleQuery.isError ? <Button variant="secondary" onClick={() => void scheduleQuery.refetch()}>Qrafiki yenidən yüklə</Button> : null}
+      {dirty ? <Button variant="quiet" disabled={busy} onClick={() => void discardChanges()}>Dəyişiklikləri ləğv et</Button> : null}
+      <fieldset className="room-schedule__controls" disabled={busy}>
+        <legend className="sr-only">Otağın iş qrafiki və ayarları</legend>
 
       <section className="management-panel" aria-labelledby="weekly-hours-title">
         <div className="section-heading">
@@ -219,7 +267,7 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
           <p>Bir gündə birdən çox interval əlavə edərək nahar və digər fasilələri ayıra bilərsiniz.</p>
         </div>
         <div className="schedule-toolbar">
-          {hasUnsavedChanges ? <strong role="status">Saxlanmamış dəyişikliklər var</strong> : <span>Qrafik serverlə eynidir</span>}
+          {hasUnsavedChanges ? <strong role="status">Saxlanmamış dəyişikliklər var</strong> : <span>{scheduleQuery.data?.length ? "Qrafik serverlə eynidir" : "İş günlərini seçin və qrafiki saxlayın"}</span>}
           <Button
             variant="secondary"
             onClick={() => {
@@ -232,14 +280,14 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
               setSuccessMessage("Bazar ertəsinin saatları digər iş günlərinə kopyalandı. Saxlamağı unutmayın.");
             }}
           >B.e saatlarını iş günlərinə kopyala</Button>
-          <Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate()}>Dəyişiklikləri saxla</Button>
+          <Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges && Boolean(scheduleQuery.data?.length)} onClick={() => saveMutation.mutate()}>Dəyişiklikləri saxla</Button>
         </div>
         {scheduleQuery.isPending ? <p role="status">İş saatları açılır…</p> : (
           <div className="week-editor">
             {days.map((day) => {
               const option = weekdayOptions.find((item) => item.value === day.day);
               return (
-                <fieldset className="day-editor" key={day.day}>
+                <fieldset className="day-editor" key={day.day} disabled={busy}>
                   <legend className="sr-only">{option?.label}</legend>
                   <label className="day-editor__toggle">
                     <input
@@ -252,20 +300,20 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
                   <div className="day-editor__intervals">
                     {day.enabled ? day.intervals.map((interval, index) => (
                       <div className="time-interval" key={interval.key}>
-                        <TimeField label="Başlayır" value={interval.startTime} onChange={(event) => updateDay(day.day, (current) => replaceInterval(current, index, "startTime", event.target.value))} />
+                        <TimeField hint="" label="Başlayır" value={interval.startTime} onChange={(event) => updateDay(day.day, (current) => replaceInterval(current, index, "startTime", event.target.value))} />
                         <span aria-hidden="true">—</span>
-                        <TimeField label="Bitir" value={interval.endTime} onChange={(event) => updateDay(day.day, (current) => replaceInterval(current, index, "endTime", event.target.value))} />
+                        <TimeField hint="" label="Bitir" value={interval.endTime} onChange={(event) => updateDay(day.day, (current) => replaceInterval(current, index, "endTime", event.target.value))} />
                         {day.intervals.length > 1 ? <Button variant="quiet" onClick={() => updateDay(day.day, (current) => ({ ...current, intervals: current.intervals.filter((_, itemIndex) => itemIndex !== index) }))}>Sil</Button> : null}
                       </div>
                     )) : <p>Bu gün yeni növbə qəbul edilmir.</p>}
-                    {day.enabled ? <Button variant="quiet" onClick={() => updateDay(day.day, (current) => ({ ...current, intervals: [...current.intervals, newInterval("14:00", "18:00")] }))}>+ Interval əlavə et</Button> : null}
+                    {day.enabled ? <Button variant="quiet" onClick={() => updateDay(day.day, (current) => ({ ...current, intervals: [...current.intervals, newInterval("", "")] }))} disabled={days.reduce((sum, item) => sum + (item.enabled ? item.intervals.length : 0), 0) >= 56}>+ Interval əlavə et</Button> : null}
                   </div>
                 </fieldset>
               );
             })}
           </div>
         )}
-        <div className="management-form__actions"><Button loading={saveMutation.isPending} disabled={!hasUnsavedChanges} onClick={() => saveMutation.mutate()}>İş qrafikini saxla</Button></div>
+        <p className="room-schedule__time-hint">Saatları 24 saat formatında yazın: məsələn, 09:00–18:00. Həftədə ən çox 56 interval əlavə edə bilərsiniz.</p>
       </section>
 
       {room.reservationMode === "LIVE_QUEUE" ? (
@@ -319,12 +367,14 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
               <span><strong>Yeni iştirakçıları qəbul et</strong><small>Otaq sahibi lazım olduqda canlı növbəyə qoşulmanı dayandıra bilər.</small></span>
             </label>
             <div className="warning-note"><strong>Sıfırlama zamanı:</strong> aktiv gözləyənlər cari növbədən çıxarılır, köhnə sessiya isə tarixçədə saxlanılır.</div>
-            <div className="management-form__actions"><Button type="submit" loading={configurationMutation.isPending}>Sıfırlama ayarlarını saxla</Button></div>
+            <div className="management-form__actions"><Button type="submit" disabled={!hasConfigurationChanges} loading={configurationMutation.isPending}>Sıfırlama ayarlarını saxla</Button></div>
           </form>
         </section>
       ) : null}
 
-      <section className="management-panel" aria-labelledby="exceptions-title">
+      <details className="management-panel room-schedule__exceptions">
+        <summary><strong>Xüsusi tarixlər</strong><span>Tətil və fərqli saatlar · istəyə bağlı</span></summary>
+        <section aria-labelledby="exceptions-title">
         <div className="section-heading">
           <div><p className="eyebrow">Tətil və fərqli saatlar</p><h2 id="exceptions-title">Xüsusi tarixlər</h2></div>
           <p>Həftəlik qrafiki dəyişmədən bir günü bağlayın və ya fərqli saat təyin edin.</p>
@@ -343,105 +393,35 @@ export function RoomScheduleSection({ room, setupNavigation }: { room: ManagedRo
             </>
           ) : null}
           <TextField label="Səbəb (istəyə bağlı)" value={exception.reason ?? ""} onChange={(event) => setException((current) => ({ ...current, reason: event.target.value || null }))} />
-          <Button loading={createExceptionMutation.isPending} onClick={() => createExceptionMutation.mutate()}>Tarixi əlavə et</Button>
+          <Button loading={createExceptionMutation.isPending} onClick={() => createExceptionMutation.mutate()}>{editingExceptionId === null ? "Tarixi əlavə et" : "Tarixi yadda saxla"}</Button>
+          {editingExceptionId !== null ? <Button variant="secondary" onClick={() => { setEditingExceptionId(null); setException({ date: "", type: "CLOSED", startTime: null, endTime: null, reason: null }); }}>Ləğv et</Button> : null}
         </div>
         <div className="exception-list">
           {(exceptionsQuery.data ?? []).length === 0 ? <p>Hələ xüsusi tarix əlavə edilməyib.</p> : (exceptionsQuery.data ?? []).map((item) => (
             <article key={item.id}>
               <div><strong>{new Intl.DateTimeFormat("az-AZ", { dateStyle: "long" }).format(new Date(`${item.date}T12:00:00`))}</strong><p>{exceptionLabel(item.type)}{item.startTime && item.endTime ? ` · ${item.startTime.slice(0, 5)}–${item.endTime.slice(0, 5)}` : ""}{item.reason ? ` · ${item.reason}` : ""}</p></div>
               <StatusBadge tone={item.type === "CLOSED" ? "warning" : "neutral"}>{exceptionLabel(item.type)}</StatusBadge>
+              <Button variant="quiet" onClick={() => { setEditingExceptionId(item.id); setException({ date: item.date, type: item.type, startTime: item.startTime?.slice(0, 5) ?? null, endTime: item.endTime?.slice(0, 5) ?? null, reason: item.reason }); }}>Düzəliş et</Button>
               <Button variant="quiet" disabled={deleteExceptionMutation.isPending} onClick={() => deleteExceptionMutation.mutate(item.id)}>Sil</Button>
             </article>
           ))}
         </div>
-      </section>
+        </section>
+      </details>
+      </fieldset>
 
       {setupNavigation ? (
         <div className="room-setup-actions">
-          <Button variant="secondary" onClick={setupNavigation.onBack}>Geri</Button>
+          <Button variant="secondary" disabled={busy} onClick={setupNavigation.onBack}>Geri</Button>
           <Button
             loading={continueMutation.isPending}
+            disabled={busy || scheduleQuery.isPending}
             onClick={() => void continueSetup()}
-          >Davam et</Button>
+          >{dirty ? "Saxla və davam et" : "Davam et"}</Button>
         </div>
       ) : null}
     </div>
   );
-}
-
-function liveQueueValues(room: ManagedRoom): LiveQueueConfigurationFormValues {
-  return {
-    liveQueueResetPolicy: room.liveQueueResetPolicy ?? "DAILY_AT_TIME",
-    liveQueueResetLocalTime: room.liveQueueResetLocalTime?.slice(0, 5) ?? "00:00",
-    liveQueueResetIntervalMinutes: room.liveQueueResetIntervalMinutes ? String(room.liveQueueResetIntervalMinutes) : "",
-    liveQueueMaxParticipants: room.liveQueueMaxParticipants ? String(room.liveQueueMaxParticipants) : "",
-    liveQueueAcceptingNewEntries: room.liveQueueAcceptingNewEntries,
-  };
-}
-
-function liveQueueConfigurationInput(room: ManagedRoom, values: LiveQueueConfigurationFormValues) {
-  if (!values.liveQueueResetPolicy) throw new Error("Növbənin sıfırlanma qaydasını seçin.");
-  return {
-    defaultSlotDurationMinutes: room.defaultSlotDurationMinutes,
-    appointmentBufferMinutes: room.appointmentBufferMinutes,
-    bookingWindowDays: room.bookingWindowDays,
-    minimumAdvanceMinutes: room.minimumAdvanceMinutes,
-    cancellationCutoffMinutes: room.cancellationCutoffMinutes,
-    liveQueueResetPolicy: values.liveQueueResetPolicy,
-    liveQueueResetLocalTime: values.liveQueueResetPolicy === "DAILY_AT_TIME" ? values.liveQueueResetLocalTime : null,
-    liveQueueResetIntervalMinutes: values.liveQueueResetPolicy === "EVERY_INTERVAL" ? nullableNumber(values.liveQueueResetIntervalMinutes) : null,
-    liveQueueMaxParticipants: nullableNumber(values.liveQueueMaxParticipants),
-    liveQueueAcceptingNewEntries: values.liveQueueAcceptingNewEntries,
-  };
-}
-
-function newInterval(startTime: string, endTime: string): ScheduleInterval {
-  intervalSequence += 1;
-  return { key: `interval-${intervalSequence}`, startTime, endTime };
-}
-
-function emptyWeek(): DaySchedule[] {
-  return weekdayOptions.map((option) => ({
-    day: option.value,
-    enabled: option.value !== "SATURDAY" && option.value !== "SUNDAY",
-    intervals: [newInterval("09:00", "18:00")],
-  }));
-}
-
-function scheduleFromRules(rules: WeeklyAvailabilityRule[]): DaySchedule[] {
-  return weekdayOptions.map((option) => {
-    const dayRules = rules.filter((rule) => rule.dayOfWeek === option.value && rule.active);
-    return {
-      day: option.value,
-      enabled: dayRules.length > 0,
-      intervals: dayRules.length > 0
-        ? dayRules.map((rule) => newInterval(rule.startTime.slice(0, 5), rule.endTime.slice(0, 5)))
-        : [newInterval("09:00", "18:00")],
-    };
-  });
-}
-
-function replaceInterval(day: DaySchedule, index: number, field: "startTime" | "endTime", value: string): DaySchedule {
-  return {
-    ...day,
-    intervals: day.intervals.map((interval, itemIndex) => itemIndex === index ? { ...interval, [field]: value } : interval),
-  };
-}
-
-function validateSchedule(days: DaySchedule[]) {
-  for (const day of days) {
-    if (!day.enabled) continue;
-    const option = weekdayOptions.find((item) => item.value === day.day);
-    const intervals = [...day.intervals].sort((first, second) => first.startTime.localeCompare(second.startTime));
-    for (let index = 0; index < intervals.length; index += 1) {
-      const current = intervals[index];
-      if (!isTime24(current.startTime) || !isTime24(current.endTime) || current.startTime >= current.endTime) return `${option?.label}: saatları 24 saat formatında yazın və başlanğıcı bitmədən əvvəl seçin.`;
-      const previous = intervals[index - 1];
-      if (previous && previous.endTime > current.startTime) return `${option?.label}: iş intervalları üst-üstə düşə bilməz.`;
-    }
-  }
-  if (!days.some((day) => day.enabled)) return "Ən azı bir iş günü açıq olmalıdır.";
-  return null;
 }
 
 function exceptionLabel(type: AvailabilityExceptionType) {

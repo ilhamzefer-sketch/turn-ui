@@ -118,6 +118,7 @@ describe("AuthProvider session expiry", () => {
   });
 
   it("does not restore a user after logout", async () => {
+    sessionStorage.setItem("novbetime.room-schedule-draft.v1:42", "private draft");
     let finishRestore!: (user: CurrentUser) => void;
     authMocks.restore.mockImplementationOnce(() => new Promise((resolve) => { finishRestore = resolve; }));
     renderAuthActions();
@@ -125,6 +126,7 @@ describe("AuthProvider session expiry", () => {
     await act(async () => fireEvent.click(screen.getByText("Logout")));
     await act(async () => finishRestore(signedInUser));
     expect(screen.getByTestId("auth-state")).toHaveTextContent("anonymous:");
+    expect(sessionStorage.getItem("novbetime.room-schedule-draft.v1:42")).toBeNull();
   });
 
   it("leaves checking state when login fails during background restore", async () => {
