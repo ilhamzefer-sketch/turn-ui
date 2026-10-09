@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   apiRequest,
   resetApiClientForTests,
+  restoreAccessToken,
   setAccessToken,
   subscribeToApiSessionChanges,
 } from "./httpClient";
@@ -91,5 +92,28 @@ describe("http client", () => {
       status: 408,
       message: "Sorğu vaxt limitini keçdi. Yenidən cəhd edin.",
     }));
+  });
+
+  it.each([200, 401])("ignores a late refresh response (%s) after a new login", async (status) => {
+    let finishRefresh!: (response: Response) => void;
+    const listener = vi.fn();
+    const unsubscribe = subscribeToApiSessionChanges(listener);
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(JSON.stringify({ csrfToken: "csrf-test" }), { status: 200 }))
+      .mockImplementationOnce(() => new Promise<Response>((resolve) => { finishRefresh = resolve; }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 44 }), { status: 200 }));
+
+    const restoring = restoreAccessToken();
+    const rejectedRestore = expect(restoring).rejects.toThrow("Sessiya dəyişdiyi");
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    setAccessToken("new-login-token");
+    finishRefresh(new Response(JSON.stringify({ accessToken: "old-refresh-token" }), { status }));
+    await rejectedRestore;
+    await apiRequest("/api/users/me", { retryAuthentication: false });
+
+    const headers = fetchMock.mock.calls[2]?.[1]?.headers as Headers;
+    expect(headers.get("Authorization")).toBe("Bearer new-login-token");
+    expect(listener).not.toHaveBeenCalled();
+    unsubscribe();
   });
 });

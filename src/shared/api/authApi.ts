@@ -57,6 +57,7 @@ function withoutToken(response: AuthenticatedUserResponse): CurrentUser {
 
 export const authApi = {
   async login(input: LoginInput) {
+    clearApiSession();
     const response = await apiRequest<AuthenticatedUserResponse>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify(input),
@@ -70,6 +71,7 @@ export const authApi = {
   },
 
   async register(input: RegistrationInput) {
+    clearApiSession();
     const response = await apiRequest<AuthenticatedUserResponse>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(input),

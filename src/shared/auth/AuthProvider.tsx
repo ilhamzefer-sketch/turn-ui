@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { authApi } from "../api/authApi";
 import { clearApiSession, subscribeToApiSessionChanges } from "../api/httpClient";
@@ -15,31 +15,57 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [user, setUser] = useState<CurrentUser | null>(null);
+  const sessionRevision = useRef(0);
 
   const login = useCallback(async (input: LoginInput) => {
-    const currentUser = await authApi.login(input);
-    queryClient.clear();
-    setUser(currentUser);
-    setStatus("authenticated");
-    return currentUser;
+    const revision = ++sessionRevision.current;
+    try {
+      const currentUser = await authApi.login(input);
+      if (sessionRevision.current === revision) {
+        queryClient.clear();
+        setUser(currentUser);
+        setStatus("authenticated");
+      }
+      return currentUser;
+    } catch (error) {
+      if (sessionRevision.current === revision) {
+        setUser(null);
+        setStatus("anonymous");
+      }
+      throw error;
+    }
   }, [queryClient]);
 
   const register = useCallback(async (input: RegistrationInput) => {
-    const currentUser = await authApi.register(input);
-    queryClient.clear();
-    setUser(currentUser);
-    setStatus("authenticated");
-    return currentUser;
+    const revision = ++sessionRevision.current;
+    try {
+      const currentUser = await authApi.register(input);
+      if (sessionRevision.current === revision) {
+        queryClient.clear();
+        setUser(currentUser);
+        setStatus("authenticated");
+      }
+      return currentUser;
+    } catch (error) {
+      if (sessionRevision.current === revision) {
+        setUser(null);
+        setStatus("anonymous");
+      }
+      throw error;
+    }
   }, [queryClient]);
 
   const restore = useCallback(async () => {
+    const revision = ++sessionRevision.current;
     setStatus("checking");
     try {
       const currentUser = await authApi.restore();
+      if (sessionRevision.current !== revision) return null;
       setUser(currentUser);
       setStatus("authenticated");
       return currentUser;
     } catch {
+      if (sessionRevision.current !== revision) return null;
       setUser(null);
       setStatus("anonymous");
       return null;
@@ -47,6 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const logout = useCallback(async () => {
+    sessionRevision.current += 1;
     const logoutRequest = authApi.logout();
     queryClient.clear();
     setUser(null);
@@ -72,6 +99,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       void restore();
       return;
     }
+    sessionRevision.current += 1;
     clearApiSession();
     setUser(null);
     setStatus("anonymous");

@@ -34,6 +34,7 @@ export class ApiError extends Error {
 let accessToken: string | null = null;
 let csrfToken: string | null = null;
 let refreshPromise: Promise<string> | null = null;
+let sessionRevision = 0;
 const sessionListeners = new Set<ApiSessionListener>();
 const SESSION_SYNC_KEY = "novbetime.session-sync";
 const REFRESH_LEASE_KEY = "novbetime.refresh-lease";
@@ -78,8 +79,11 @@ async function ensureCsrfToken() {
 
 async function refreshAccessToken() {
   if (!refreshPromise) {
-    refreshPromise = withRefreshLock(async () => {
+    const revision = sessionRevision;
+    const pendingRefresh = withRefreshLock(async () => {
+      assertSessionRevision(revision);
       const token = await ensureCsrfToken();
+      assertSessionRevision(revision);
       const response = await fetchWithTimeout(endpoint("/api/auth/refresh"), {
         method: "POST",
         credentials: "include",
@@ -88,6 +92,7 @@ async function refreshAccessToken() {
           "X-CSRF-TOKEN": token,
         },
       }, DEFAULT_REQUEST_TIMEOUT_MS);
+      assertSessionRevision(revision);
       captureCsrfToken(response);
 
       if (!response.ok) {
@@ -101,14 +106,20 @@ async function refreshAccessToken() {
       }
 
       const payload = (await response.json()) as { accessToken: string };
+      assertSessionRevision(revision);
       accessToken = payload.accessToken;
       return payload.accessToken;
     }).finally(() => {
-      refreshPromise = null;
+      if (refreshPromise === pendingRefresh) refreshPromise = null;
     });
+    refreshPromise = pendingRefresh;
   }
 
   return refreshPromise;
+}
+
+function assertSessionRevision(revision: number) {
+  if (sessionRevision !== revision) throw new Error("Sessiya dəyişdiyi üçün əvvəlki yoxlama dayandırıldı.");
 }
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
@@ -202,11 +213,13 @@ export async function apiDownload(
 }
 
 export function setAccessToken(token: string | null) {
+  sessionRevision += 1;
+  refreshPromise = null;
   accessToken = token;
 }
 
 export function clearApiSession() {
-  accessToken = null;
+  setAccessToken(null);
 }
 
 export function announceApiSessionChange(event: Exclude<ApiSessionEvent, "expired">) {
@@ -244,6 +257,7 @@ export async function restoreAccessToken() {
 }
 
 export function resetApiClientForTests() {
+  sessionRevision += 1;
   accessToken = null;
   csrfToken = null;
   refreshPromise = null;
