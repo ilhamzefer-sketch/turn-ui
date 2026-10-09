@@ -74,7 +74,7 @@ export function LoginPage() {
           <Button type="submit" loading={isSubmitting}>Daxil ol</Button>
         </form>
         <p className="auth-card__assist"><Link to="/account-recovery">Şifrəni unutmusunuz?</Link></p>
-        <p className="auth-card__switch">Hesabınız yoxdur? <Link to="/register">Pulsuz qeydiyyatdan keçin</Link></p>
+        <p className="auth-card__switch">Hesabınız yoxdur? <Link to="/register">Qeydiyyatdan keçin</Link></p>
       </div>
     </section>
   );

@@ -4,15 +4,36 @@ import { Link, Outlet, useLocation, useNavigationType } from "react-router-dom";
 import { Brand } from "../../shared/ui/Brand";
 import { Button, ButtonLink } from "../../shared/ui/Button";
 import { useAuth } from "../../shared/auth/useAuth";
+import { useWorkspace } from "../../shared/workspace/useWorkspace";
+import { workspaceHomePath } from "../../features/workspaces/workspaceLabels";
 
 export function PublicLayout() {
   const { status, logout } = useAuth();
+  const { activeWorkspace, workspaces } = useWorkspace();
   const location = useLocation();
   const navigationType = useNavigationType();
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isAuthenticated = status === "authenticated";
   const isLandingPage = location.pathname === "/";
+  const managementWorkspace = activeWorkspace && activeWorkspace.type !== "CUSTOMER"
+    ? activeWorkspace
+    : workspaces.find((workspace) => workspace.type !== "CUSTOMER");
+  const navigationLinks = (
+    <>
+      <Link to="/rooms">Otaq tap</Link>
+      {isAuthenticated ? <>
+        <Link to="/app/bookings">Növbələrim</Link>
+        {managementWorkspace ? <Link to={workspaceHomePath(managementWorkspace)}>İdarəetmə</Link> : null}
+        <Link to="/app">Hesabım</Link>
+      </> : <>
+        <a href="/#how-it-works">Necə işləyir</a>
+        <a href="/#for-business">Biznes üçün</a>
+        <a href="/#suitable-businesses">Kimlər üçün</a>
+        <Link to="/login">Daxil ol</Link>
+      </>}
+    </>
+  );
 
   useEffect(() => {
     if (mobileMenuRef.current) mobileMenuRef.current.open = false;
@@ -39,18 +60,12 @@ export function PublicLayout() {
       <a className="skip-link" href="#main-content">
         Əsas məzmuna keç
       </a>
-      {isLandingPage ? <div className="site-announcement"><p><strong>Növbəniz telefonunuzda.</strong> Vaxtınız çatanda gəlin.</p><a href="#how-it-works">Necə işləyir <span aria-hidden="true">↗</span></a></div> : null}
+      {isLandingPage && !isAuthenticated ? <div className="site-announcement"><p><strong>Növbəniz telefonunuzda.</strong> Vaxtınız çatanda gəlin.</p><a href="#how-it-works">Necə işləyir <span aria-hidden="true">↗</span></a></div> : null}
       <header className="site-header">
         <div className="shell site-header__inner">
           <Brand />
           <nav className="desktop-nav" aria-label="Əsas naviqasiya">
-            <Link to="/rooms">Otaq tap</Link>
-            {isAuthenticated ? <Link to="/app/bookings">Növbələrim</Link> : null}
-            <a href="/#how-it-works">Necə işləyir</a>
-            <a href="/#for-business">Biznes üçün</a>
-            <a href="/#suitable-businesses">Kimlər üçün</a>
-            {isAuthenticated ? <Link to="/app">Hesabım</Link> : null}
-            {!isAuthenticated ? <Link to="/login">Daxil ol</Link> : null}
+            {navigationLinks}
           </nav>
           <div className="desktop-actions">
             {isAuthenticated ? (
@@ -68,16 +83,10 @@ export function PublicLayout() {
             <nav aria-label="Mobil naviqasiya" onClick={(event) => {
               if ((event.target as HTMLElement).closest("a") && mobileMenuRef.current) mobileMenuRef.current.open = false;
             }}>
-              <Link to="/rooms">Otaq tap</Link>
-              <Link to="/app/bookings">Növbələrim</Link>
-              <a href="/#how-it-works">Necə işləyir</a>
-              <a href="/#for-business">Biznes üçün</a>
-              <a href="/#suitable-businesses">Kimlər üçün</a>
-              {isAuthenticated ? <Link to="/app">Hesabım</Link> : null}
+              {navigationLinks}
               {isAuthenticated ? (
                 <Button variant="quiet" loading={isLoggingOut} onClick={() => void handleLogout()}>Çıxış et</Button>
               ) : null}
-              {!isAuthenticated ? <Link to="/login">Daxil ol</Link> : null}
               {!isAuthenticated ? <ButtonLink to="/register">Hesab yarat</ButtonLink> : null}
             </nav>
           </details>

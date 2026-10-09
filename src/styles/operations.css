@@ -243,15 +243,22 @@
 .live-operator,
 .booking-operator { display: grid; gap: var(--space-6); }
 .live-sync-status { display: flex; align-items: center; justify-self: end; gap: var(--space-2); margin: 0; color: var(--color-muted); font-size: var(--text-small); }
-.live-sync-status span { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--color-success); }
+.live-sync-status span { flex: none; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--color-success); }
 .live-control-bar,
 .current-participant,
 .date-control { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); padding: var(--space-5); }
-.live-control-bar > div:first-child { display: flex; align-items: center; gap: var(--space-3); }
+.live-control-bar > div:first-child { min-width: 0; flex: 1 1 16rem; display: flex; align-items: center; gap: var(--space-3); }
 .live-control-bar p,
 .current-participant p,
 .date-control p { margin: 0; color: var(--color-muted); }
-.live-control-bar__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+.live-control-bar > div:first-child > div,
+.current-participant > div { min-width: 0; overflow-wrap: anywhere; }
+.live-control-bar__actions { min-width: 0; max-width: 100%; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+.live-operator .button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.live-operator .management-panel__header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+.live-operator .management-panel__header > div { min-width: 0; }
+.live-operator .management-panel__header h2 { margin: var(--space-2) 0 0; font-size: var(--text-card); line-height: 1.15; overflow-wrap: anywhere; }
+.live-operator .management-panel__header > span { display: grid; min-width: 2.5rem; min-height: 2.5rem; flex: none; padding: var(--space-2); place-items: center; border-radius: var(--radius-pill); background: var(--color-brand-100); font-weight: 750; }
 .current-participant { border-color: var(--color-brand-700); background: var(--color-brand-100); }
 .current-participant h2,
 .date-control h2 { margin: var(--space-1) 0; font-size: var(--text-card); letter-spacing: -0.035em; }
@@ -263,13 +270,11 @@
 .operator-entry__position { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: 50%; background: var(--color-surface-soft); font-weight: 800; }
 .operator-entry__identity { min-width: 0; }
 .operator-entry__identity > div { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-.operator-entry h3 { margin: 0; }
+.operator-entry h3 { min-width: 0; max-width: 100%; margin: 0; overflow-wrap: anywhere; }
 .operator-entry p,
 .operator-entry small { margin: var(--space-1) 0 0; color: var(--color-muted); }
 .operator-entry__meta { display: flex; min-width: 0; flex-wrap: wrap; gap: var(--space-1) var(--space-2); line-height: 1.45; }
-.operator-entry__meta span { min-width: 0; }
-.operator-entry__meta span:first-child { overflow-wrap: anywhere; }
-.operator-entry__meta span:not(:first-child) { white-space: nowrap; }
+.operator-entry__meta span { min-width: 0; overflow-wrap: anywhere; }
 .operator-entry__meta span + span::before { margin-right: var(--space-2); content: "·"; }
 .operator-entry small { overflow-wrap: anywhere; }
 .operator-entry__actions { display: flex; grid-column: 2; flex-wrap: wrap; justify-content: flex-start; gap: var(--space-1); }
@@ -308,6 +313,7 @@
   .date-control { align-items: stretch; flex-direction: column; }
   .booking-submit .button,
   .current-participant .button { width: 100%; }
+  .live-control-bar > div:first-child { flex-basis: auto; }
   .live-control-bar__actions { justify-content: stretch; }
   .live-control-bar__actions .button { flex: 1 1 10rem; }
   .customer-booking-card { grid-template-columns: 1fr; }

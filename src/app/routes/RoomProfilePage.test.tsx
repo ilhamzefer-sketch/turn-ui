@@ -76,6 +76,17 @@ describe("RoomProfilePage", () => {
     expect(await screen.findByText("10:00")).toBeInTheDocument();
   });
 
+  it("describes an individual provider without business or branch language", async () => {
+    const room = await publicApi.room(7);
+    vi.mocked(publicApi.room).mockResolvedValue({ ...room, branchName: null });
+    renderPage();
+
+    expect(await screen.findByText("Xidmət göstərən")).toBeInTheDocument();
+    expect(screen.queryByText("Biznes və filial")).not.toBeInTheDocument();
+    expect(screen.queryByText("Filial")).not.toBeInTheDocument();
+    expect(screen.getByText("Fərdi mütəxəssis")).toBeInTheDocument();
+  });
+
   it("does not represent failed live availability as a closed queue", async () => {
     const room = await publicApi.room(7);
     vi.mocked(publicApi.room).mockResolvedValue({ ...room, reservationMode: "LIVE_QUEUE" });

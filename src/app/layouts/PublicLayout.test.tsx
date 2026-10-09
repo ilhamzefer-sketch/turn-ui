@@ -1,11 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
-import type { CurrentUser } from "../../shared/api/contracts";
+import type { CurrentUser, WorkspaceContext } from "../../shared/api/contracts";
 import { AuthContext, type AuthStatus } from "../../shared/auth/authContext";
 import { ProtectedRoute } from "../../shared/auth/ProtectedRoute";
+import { WorkspaceContextState } from "../../shared/workspace/workspaceContext";
 import { PublicLayout } from "./PublicLayout";
 
 const user: CurrentUser = {
@@ -17,7 +18,9 @@ const user: CurrentUser = {
   createdAt: "2026-08-20T10:00:00",
 };
 
-function layout(status: AuthStatus) {
+const customerWorkspace: WorkspaceContext = { type: "CUSTOMER", contextId: 7, name: "Camal Cavadov", role: "CUSTOMER" };
+
+function layout(status: AuthStatus, workspaces: WorkspaceContext[] = [customerWorkspace], activeWorkspace = workspaces[0] ?? null) {
   return (
     <AuthContext.Provider value={{
       status,
@@ -27,6 +30,7 @@ function layout(status: AuthStatus) {
       restore: vi.fn(),
       logout: vi.fn(),
     }}>
+      <WorkspaceContextState.Provider value={{ status: "ready", workspaces, activeWorkspace, selectWorkspace: vi.fn(), refreshWorkspaces: vi.fn() }}>
       <MemoryRouter>
         <Routes>
           <Route element={<PublicLayout />}>
@@ -35,6 +39,7 @@ function layout(status: AuthStatus) {
           </Route>
         </Routes>
       </MemoryRouter>
+      </WorkspaceContextState.Provider>
     </AuthContext.Provider>
   );
 }
@@ -63,6 +68,51 @@ describe("PublicLayout", () => {
     expect(screen.getAllByRole("button", { name: "Çıxış et" })).toHaveLength(2);
     expect(screen.queryByRole("link", { name: "Daxil ol" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Hesab yarat" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "İdarəetmə" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Biznes üçün" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Kimlər üçün" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Necə işləyir" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Növbəniz telefonunuzda.")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["BUSINESS", "ADMIN", "/app/businesses/10"],
+    ["INDIVIDUAL", "OWNER", "/app/individual/10"],
+    ["ROOM", "OWNER", "/app/rooms/10"],
+  ] as const)("links to the available %s workspace in desktop and mobile navigation", (type, role, path) => {
+    const workspace: WorkspaceContext = { type, role, contextId: 10, name: "İş sahəsi" };
+    render(layout("authenticated", [customerWorkspace, workspace], workspace));
+
+    for (const name of ["Əsas naviqasiya", "Mobil naviqasiya"]) {
+      const nav = within(screen.getByRole("navigation", { name }));
+      expect(nav.getByRole("link", { name: "İdarəetmə" })).toHaveAttribute("href", path);
+      expect(nav.getByRole("link", { name: "Növbələrim" })).toHaveAttribute("href", "/app/bookings");
+      expect(nav.getByRole("link", { name: "Hesabım" })).toHaveAttribute("href", "/app");
+      expect(nav.queryByRole("link", { name: "Biznes üçün" })).not.toBeInTheDocument();
+    }
+  });
+
+  it("keeps management accessible when the personal workspace is selected", () => {
+    const workspace: WorkspaceContext = { type: "BUSINESS", contextId: 10, name: "Biznes", role: "PRIMARY_OWNER" };
+    render(layout("authenticated", [customerWorkspace, workspace], customerWorkspace));
+
+    expect(screen.getAllByRole("link", { name: "İdarəetmə" })).toHaveLength(2);
+    for (const link of screen.getAllByRole("link", { name: "İdarəetmə" })) {
+      expect(link).toHaveAttribute("href", "/app/businesses/10");
+    }
+  });
+
+  it("preserves matching marketing navigation for guests on desktop and mobile", () => {
+    renderLayout("anonymous");
+
+    for (const name of ["Əsas naviqasiya", "Mobil naviqasiya"]) {
+      const nav = within(screen.getByRole("navigation", { name }));
+      expect(nav.getByRole("link", { name: "Otaq tap" })).toHaveAttribute("href", "/rooms");
+      expect(nav.getByRole("link", { name: "Biznes üçün" })).toHaveAttribute("href", "/#for-business");
+      expect(nav.getByRole("link", { name: "Kimlər üçün" })).toHaveAttribute("href", "/#suitable-businesses");
+      expect(nav.queryByRole("link", { name: "Növbələrim" })).not.toBeInTheDocument();
+      expect(nav.queryByRole("link", { name: "İdarəetmə" })).not.toBeInTheDocument();
+    }
   });
 
   it.each(["idle", "checking"] as const)("shows usable public actions immediately while auth is %s", (status) => {

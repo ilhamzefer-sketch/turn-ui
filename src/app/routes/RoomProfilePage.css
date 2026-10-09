@@ -1,0 +1,186 @@
+.room-profile {
+  --profile-space: clamp(1.25rem, 3vw, 2.25rem);
+}
+
+.room-profile .profile-hero {
+  padding-block: 1.5rem clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.room-profile .breadcrumbs {
+  min-width: 0;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.room-profile .profile-hero__grid {
+  align-items: center;
+  gap: clamp(1.75rem, 4vw, 3rem);
+  margin-top: clamp(1.75rem, 4vw, 3rem);
+}
+
+.room-profile .profile-identity,
+.room-profile .profile-identity > div,
+.room-profile .profile-title,
+.room-profile .profile-content,
+.room-profile .profile-section,
+.room-profile .profile-facts > div,
+.room-profile .owner-list article > div,
+.room-profile .availability-card,
+.room-profile .live-status-panel > div {
+  min-width: 0;
+}
+
+.room-profile .profile-identity img,
+.room-profile .provider-mark {
+  flex-shrink: 0;
+}
+
+.room-profile .profile-identity p,
+.room-profile .profile-title h1,
+.room-profile .profile-title > p,
+.room-profile .profile-facts dd,
+.room-profile .detail-list dd,
+.room-profile .owner-list h3,
+.room-profile .owner-list p,
+.room-profile .availability-card {
+  overflow-wrap: anywhere;
+}
+
+.room-profile .profile-title h1 {
+  max-width: 24ch;
+  margin-block: 1rem;
+  font-size: clamp(2.25rem, 4.5vw, 4.25rem);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.room-profile .profile-title > p {
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  line-height: 1.7;
+}
+
+.room-profile .profile-facts dd {
+  line-height: 1.55;
+}
+
+.room-profile .profile-layout {
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  padding-block: clamp(2rem, 5vw, 4rem);
+}
+
+.room-profile .profile-content {
+  gap: 1.5rem;
+}
+
+.room-profile .profile-section,
+.room-profile .availability-card {
+  padding: var(--profile-space);
+  border: 1px solid var(--color-line);
+}
+
+.room-profile .profile-section:hover,
+.room-profile .availability-card:hover {
+  transform: none;
+}
+
+.room-profile .profile-section h2,
+.room-profile .availability-card h2 {
+  margin-block: 0.75rem 1.5rem;
+  font-size: clamp(1.5rem, 2.5vw, 2.125rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.room-profile .profile-section > p:not(.eyebrow) {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.room-profile .detail-list {
+  margin-top: 1.5rem;
+}
+
+.room-profile .detail-list > div {
+  display: grid;
+  grid-template-columns: minmax(5rem, 0.35fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 0.75rem 1.5rem;
+  min-height: 0;
+  padding-block: 1rem;
+}
+
+.room-profile .detail-list > div:last-child {
+  padding-bottom: 0;
+}
+
+.room-profile .detail-list dd {
+  text-align: left;
+  line-height: 1.6;
+}
+
+.room-profile .owner-list article {
+  align-items: start;
+  padding: 1rem;
+}
+
+.room-profile .owner-list h3 {
+  line-height: 1.55;
+}
+
+.room-profile .owner-list p {
+  margin-top: 0.25rem;
+  line-height: 1.6;
+}
+
+.room-profile .availability-card > .button {
+  width: 100%;
+  margin-top: 1.25rem;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.room-profile .live-status-panel strong {
+  display: block;
+  line-height: 1.55;
+}
+
+.room-profile .live-status-panel p,
+.room-profile .availability-card__note {
+  line-height: 1.7;
+}
+
+@media (min-width: 58rem) {
+  .room-profile .profile-hero__grid {
+    grid-template-columns: minmax(12rem, 0.65fr) minmax(0, 1.5fr);
+  }
+}
+
+@media (min-width: 68rem) {
+  .room-profile .profile-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  }
+}
+
+@media (max-width: 41.99rem) {
+  .room-profile .profile-identity img,
+  .room-profile .profile-identity .provider-mark--large {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .room-profile .detail-list > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem;
+  }
+
+  .room-profile .availability-card {
+    grid-row: 1;
+  }
+
+  .room-profile .profile-facts div {
+    padding-block: 0.85rem;
+  }
+}

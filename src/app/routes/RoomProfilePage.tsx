@@ -15,6 +15,7 @@ import { publicApi } from "../../shared/api/publicApi";
 import { queueApi } from "../../shared/api/queueApi";
 import { usePageMeta } from "../../shared/meta/usePageMeta";
 import { Button, ButtonLink } from "../../shared/ui/Button";
+import "./RoomProfilePage.css";
 
 export function RoomProfilePage() {
   const roomId = Number(useParams().roomId);
@@ -139,7 +140,7 @@ export function RoomProfilePage() {
       <div className="shell profile-layout">
         <div className="profile-content">
           <section className="profile-section" aria-labelledby="provider-title">
-            <p className="eyebrow">Biznes və filial</p>
+            <p className="eyebrow">{room.branchName ? "Biznes və filial" : "Xidmət göstərən"}</p>
             <h2 id="provider-title">{room.providerName}</h2>
             {room.providerDescription && <p>{room.providerDescription}</p>}
             <dl className="detail-list">
@@ -155,8 +156,8 @@ export function RoomProfilePage() {
             <p className="eyebrow">Otaq sahibləri</p>
             <h2 id="owners-title">Otağı idarə edən komanda</h2>
             <div className="owner-list">
-              {room.owners.map((owner) => (
-                <article key={`${owner.displayName}-${owner.phone ?? "private"}`}>
+              {room.owners.map((owner, index) => (
+                <article key={`${owner.displayName}-${index}`}>
                   <div className="provider-mark" aria-hidden="true">{owner.displayName.slice(0, 1).toLocaleUpperCase("az")}</div>
                   <div><h3>{owner.displayName}</h3><p>{owner.phone ? <a href={`tel:${owner.phone}`}>{owner.phone}</a> : "Telefon gizlidir"}</p></div>
                 </article>
